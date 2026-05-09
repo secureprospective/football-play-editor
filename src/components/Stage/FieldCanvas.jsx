@@ -6,6 +6,7 @@ import { FIELD_CONFIG } from '../../constants/fieldConfig';
 import { TOOL_MODES } from '../../constants/toolModes';
 import { masterHitTest, exceededDragThreshold } from '../../utils/hitTesting';
 import { snapPoint, constrainToAngle } from '../../utils/snapToGrid';
+import FieldGrid from './FieldGrid';
 
 function generateId() {
   return 'el_' + Math.random().toString(36).slice(2, 9);
@@ -280,24 +281,7 @@ export default function FieldCanvas() {
         onMouseUp={handleStageMouseUp}
         onContextMenu={handleStageRightClick}
       >
-        <Layer>
-          <Rect
-            x={FIELD_CONFIG.FIELD_LEFT}
-            y={FIELD_CONFIG.FIELD_TOP}
-            width={FIELD_CONFIG.FIELD_RIGHT  - FIELD_CONFIG.FIELD_LEFT}
-            height={FIELD_CONFIG.FIELD_BOTTOM - FIELD_CONFIG.FIELD_TOP}
-            fill="#2d5a27"
-            stroke="#ffffff"
-            strokeWidth={2}
-          />
-          <Rect
-            x={FIELD_CONFIG.MIDPOINT_X - 1}
-            y={FIELD_CONFIG.FIELD_TOP}
-            width={2}
-            height={FIELD_CONFIG.FIELD_BOTTOM - FIELD_CONFIG.FIELD_TOP}
-            fill="rgba(255,255,255,0.3)"
-          />
-        </Layer>
+        <FieldGrid />
 
         <Layer>
           {elements.filter(el => el.type === 'path').map(el => renderPath(el))}
