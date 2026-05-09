@@ -10,7 +10,7 @@ import Inspector     from './components/Inspector/Inspector';
 import FieldCanvas   from './components/Stage/FieldCanvas';
 
 export default function App() {
-  const { viewMode } = useEditorStore();
+  const { viewMode, presentMode, togglePresentMode } = useEditorStore();
   const isFieldView = viewMode === VIEW_MODES.FIELD;
 
   if (!isFieldView) {
@@ -19,6 +19,21 @@ export default function App() {
         {viewMode === VIEW_MODES.PLAYBOOK  && <PlaybookView />}
         {viewMode === VIEW_MODES.FORMATION && <FormationView />}
         {viewMode === VIEW_MODES.PLAY      && <PlayView />}
+      </div>
+    );
+  }
+
+  if (presentMode) {
+    return (
+      <div className="app-shell-present">
+        <FieldCanvas />
+        <button
+          className="present-exit-btn"
+          onClick={togglePresentMode}
+          title="Exit Present Mode"
+        >
+          ✏️
+        </button>
       </div>
     );
   }

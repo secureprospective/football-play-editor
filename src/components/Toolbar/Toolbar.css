@@ -101,6 +101,17 @@
   color: #c0ff80;
 }
 
+.toolbar button.btn-present {
+  background: #1a2a4a;
+  border-color: #2a4a8a;
+  color: #80c0ff;
+  font-size: 16px;
+}
+
+.toolbar button.btn-present:hover {
+  background: #2a4a8a;
+}
+
 .toolbar-divider {
   width: 1px;
   height: 24px;

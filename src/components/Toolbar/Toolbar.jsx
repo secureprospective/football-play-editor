@@ -13,6 +13,7 @@ export default function Toolbar() {
     drawingPath, finishDrawing, cancelDrawing,
     scrimmageVisible, toggleScrimmage,
     goBack, navigateTo,
+    presentMode, togglePresentMode,
   } = useEditorStore();
 
   const play      = getActivePlay();
@@ -89,6 +90,8 @@ export default function Toolbar() {
             <button onClick={handleExport} title="Export playbook">⬇</button>
             <button onClick={handleImport} title="Import playbook">⬆</button>
             <div className="toolbar-divider" />
+            <div className="toolbar-divider" />
+            <button onClick={togglePresentMode} className="btn-present" title="Present Mode (full screen field)">📺</button>
             <button onClick={clearElements} className="btn-danger" title="Clear play">✕</button>
           </>
         )}

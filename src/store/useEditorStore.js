@@ -257,6 +257,9 @@ const useEditorStore = create((set, get) => ({
   scrimmageVisible: true,
   toggleScrimmage: () => set(state => ({ scrimmageVisible: !state.scrimmageVisible })),
 
+  presentMode: false,
+  togglePresentMode: () => set(state => ({ presentMode: !state.presentMode })),
+
   drawingPath: null,
   setDrawingPath: (path) => set({ drawingPath: path }),
 
