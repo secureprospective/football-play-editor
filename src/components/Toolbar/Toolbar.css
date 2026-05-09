@@ -1,0 +1,60 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  background: #16213e;
+  border-bottom: 1px solid #0f3460;
+  padding: 0 16px;
+  height: 48px;
+  gap: 8px;
+}
+
+.toolbar-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #e94560;
+  margin-right: 16px;
+  white-space: nowrap;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toolbar button {
+  background: #0f3460;
+  color: #e0e0e0;
+  border: 1px solid #1a4a7a;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.toolbar button:hover:not(:disabled) {
+  background: #1a5a9a;
+}
+
+.toolbar button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.toolbar button.btn-danger {
+  background: #4a1020;
+  border-color: #7a1530;
+}
+
+.toolbar button.btn-danger:hover {
+  background: #7a1530;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: #0f3460;
+  margin: 0 4px;
+}

@@ -1,0 +1,30 @@
+import './Toolbox.css';
+import useEditorStore from '../../store/useEditorStore';
+import { TOOL_MODES } from '../../constants/toolModes';
+
+const TOOLS = [
+  { mode: TOOL_MODES.SELECT,     label: '↖',  title: 'Select / Move' },
+  { mode: TOOL_MODES.ADD_PLAYER, label: '●',  title: 'Add Player' },
+  { mode: TOOL_MODES.ADD_LINE,   label: '╱',  title: 'Draw Route' },
+  { mode: TOOL_MODES.ADD_TEXT,   label: 'T',  title: 'Add Text' },
+  { mode: TOOL_MODES.EDIT_NODES, label: '◈',  title: 'Edit Nodes' },
+];
+
+export default function Toolbox() {
+  const { activeTool, setActiveTool } = useEditorStore();
+
+  return (
+    <div className="toolbox">
+      {TOOLS.map(tool => (
+        <button
+          key={tool.mode}
+          className={`tool-btn ${activeTool === tool.mode ? 'active' : ''}`}
+          onClick={() => setActiveTool(tool.mode)}
+          title={tool.title}
+        >
+          {tool.label}
+        </button>
+      ))}
+    </div>
+  );
+}
