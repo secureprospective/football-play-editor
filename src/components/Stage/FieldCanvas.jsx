@@ -20,13 +20,15 @@ export default function FieldCanvas() {
     snapEnabled, snapIncrement,
     pushHistory,
     drawingPath, setDrawingPath, finishDrawing, cancelDrawing,
+    scrimmageVisible,
   } = useEditorStore();
 
   const stageRef     = useRef(null);
   const containerRef = useRef(null);
-  const [stageSize, setStageSize] = useState({ width: 800, height: 450 });
+  const [stageSize, setStageSize] = useState({ width: 600, height: 800 });
   const [mousePos, setMousePos]   = useState(null);
   const [shiftHeld, setShiftHeld] = useState(false);
+  const [hoveredId, setHoveredId] = useState(null);
   const dragStartRef  = useRef(null);
   const isDraggingRef = useRef(false);
   const dragTargetRef = useRef(null);
@@ -48,17 +50,11 @@ export default function FieldCanvas() {
   useEffect(() => {
     function handleKeyDown(e) {
       if (e.key === 'Shift') setShiftHeld(true);
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        finishDrawing();
-      }
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        cancelDrawing();
-      }
+      if (e.key === 'Enter') { e.preventDefault(); finishDrawing(); }
+      if (e.key === 'Escape') { e.preventDefault(); cancelDrawing(); }
       if ((e.key === 'Delete' || e.key === 'Backspace') && !drawingPath) {
         const { selectedId, deleteElement } = useEditorStore.getState();
-        if (selectedId) deleteElement(selectedId);
+        if (selectedId && selectedId !== 'scrimmage_line') deleteElement(selectedId);
       }
     }
     function handleKeyUp(e) {
@@ -72,15 +68,23 @@ export default function FieldCanvas() {
     };
   }, [finishDrawing, cancelDrawing, drawingPath]);
 
-  const scaleX = stageSize.width  / FIELD_CONFIG.STAGE_WIDTH;
-  const scaleY = stageSize.height / FIELD_CONFIG.STAGE_HEIGHT;
+  // Scale — maintain aspect ratio, fit stage to container
+  const designRatio = FIELD_CONFIG.STAGE_WIDTH / FIELD_CONFIG.STAGE_HEIGHT;
+  const containerRatio = stageSize.width / stageSize.height;
+  let scaleX, scaleY;
+  if (containerRatio > designRatio) {
+    scaleY = stageSize.height / FIELD_CONFIG.STAGE_HEIGHT;
+    scaleX = scaleY;
+  } else {
+    scaleX = stageSize.width / FIELD_CONFIG.STAGE_WIDTH;
+    scaleY = scaleX;
+  }
 
   function getScaledPos() {
     const pos = stageRef.current.getPointerPosition();
     return { x: pos.x / scaleX, y: pos.y / scaleY };
   }
 
-  // Apply snap or angle constraint to a new route point
   function resolveRoutePoint(rawPos) {
     if (shiftHeld && drawingPath && drawingPath.points.length > 0) {
       const lastPt = drawingPath.points[drawingPath.points.length - 1];
@@ -89,7 +93,6 @@ export default function FieldCanvas() {
     return snapPoint(rawPos, snapIncrement, snapEnabled);
   }
 
-  // Apply angle constraint to the live preview mouse position
   function resolvePreviewPos(rawPos) {
     if (shiftHeld && drawingPath && drawingPath.points.length > 0) {
       const lastPt = drawingPath.points[drawingPath.points.length - 1];
@@ -98,7 +101,7 @@ export default function FieldCanvas() {
     return rawPos;
   }
 
-  function handleStageMouseDown(e) {
+  function handleStageMouseDown() {
     const pos = getScaledPos();
     dragStartRef.current  = pos;
     isDraggingRef.current = false;
@@ -135,6 +138,16 @@ export default function FieldCanvas() {
       return;
     }
 
+    // Check scrimmage line hit (horizontal line across full field width)
+    if (scrimmageVisible) {
+      const scrimmage = elements.find(el => el.id === 'scrimmage_line');
+      if (scrimmage && Math.abs(pos.y - scrimmage.y) < 10) {
+        setSelectedId('scrimmage_line');
+        dragTargetRef.current = { type: 'scrimmage', elementId: 'scrimmage_line', nodeIndex: null };
+        return;
+      }
+    }
+
     if (hit.type === 'handle') {
       setSelectedId(hit.elementId);
       dragTargetRef.current = hit;
@@ -155,6 +168,16 @@ export default function FieldCanvas() {
     const resolved = resolvePreviewPos(pos);
     setMousePos(resolved);
 
+    // Hover detection for cursor change
+    if (!dragStartRef.current && scrimmageVisible) {
+      const scrimmage = elements.find(el => el.id === 'scrimmage_line');
+      if (scrimmage && Math.abs(pos.y - scrimmage.y) < 10) {
+        setHoveredId('scrimmage_line');
+      } else {
+        setHoveredId(null);
+      }
+    }
+
     if (!dragStartRef.current) return;
     if (!isDraggingRef.current) {
       if (exceededDragThreshold(dragStartRef.current.x, dragStartRef.current.y, pos.x, pos.y)) {
@@ -163,8 +186,15 @@ export default function FieldCanvas() {
     }
 
     if (isDraggingRef.current && dragTargetRef.current) {
-      const snapped = snapPoint(pos, snapIncrement, snapEnabled);
       const { type, elementId, nodeIndex } = dragTargetRef.current;
+
+      if (type === 'scrimmage') {
+        // Constrain to vertical movement only
+        updateElement('scrimmage_line', { y: pos.y });
+        return;
+      }
+
+      const snapped = snapPoint(pos, snapIncrement, snapEnabled);
       if (type === 'player') {
         updateElement(elementId, { x: snapped.x, y: snapped.y });
       }
@@ -181,13 +211,30 @@ export default function FieldCanvas() {
     if (isDraggingRef.current && dragTargetRef.current) pushHistory();
     dragStartRef.current  = null;
     isDraggingRef.current = false;
+    dragTargetRef.current = null;
   }
 
   function handleStageRightClick(e) {
     e.evt.preventDefault();
-    if (activeTool === TOOL_MODES.ADD_LINE && drawingPath) {
-      finishDrawing();
-    }
+    if (activeTool === TOOL_MODES.ADD_LINE && drawingPath) finishDrawing();
+  }
+
+  function renderScrimmage() {
+    if (!scrimmageVisible) return null;
+    const scrimmage = elements.find(el => el.id === 'scrimmage_line');
+    if (!scrimmage) return null;
+    const isSelected = selectedId === 'scrimmage_line';
+    const isHovered  = hoveredId  === 'scrimmage_line';
+
+    return (
+      <Line
+        points={[FIELD_CONFIG.FIELD_LEFT, scrimmage.y, FIELD_CONFIG.FIELD_RIGHT, scrimmage.y]}
+        stroke={isSelected ? '#ffff00' : '#e8c840'}
+        strokeWidth={isSelected ? 3 : 2}
+        opacity={isHovered ? 1 : 0.85}
+        dash={[12, 6]}
+      />
+    );
   }
 
   function renderPath(el) {
@@ -268,8 +315,11 @@ export default function FieldCanvas() {
 
   const selectedEl = elements.find(el => el.id === selectedId);
 
+  // Cursor style based on hover state
+  const cursorStyle = hoveredId === 'scrimmage_line' ? 'ns-resize' : 'crosshair';
+
   return (
-    <div className="field-canvas-container" ref={containerRef}>
+    <div className="field-canvas-container" ref={containerRef} style={{ cursor: cursorStyle }}>
       <Stage
         ref={stageRef}
         width={stageSize.width}
@@ -284,6 +334,7 @@ export default function FieldCanvas() {
         <FieldGrid />
 
         <Layer>
+          {renderScrimmage()}
           {elements.filter(el => el.type === 'path').map(el => renderPath(el))}
           {renderDrawingPreview()}
           {activeTool === TOOL_MODES.EDIT_NODES && selectedEl?.type === 'path' &&

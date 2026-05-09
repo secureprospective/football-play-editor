@@ -62,6 +62,12 @@
   background: #2a7a4a;
 }
 
+.toolbar button.btn-active {
+  background: #2a4a1a;
+  border-color: #4a8a2a;
+  color: #c0ff80;
+}
+
 .toolbar-divider {
   width: 1px;
   height: 24px;

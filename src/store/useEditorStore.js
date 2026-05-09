@@ -1,25 +1,41 @@
 import { create } from 'zustand';
 import { DEFAULT_TOOL } from '../constants/toolModes';
+import { FIELD_CONFIG } from '../constants/fieldConfig';
 
 const MAX_HISTORY = 50;
+
+function createDefaultElements() {
+  return [
+    {
+      id: 'scrimmage_line',
+      type: 'scrimmage',
+      y: FIELD_CONFIG.SCRIMMAGE_DEFAULT_Y,
+      visible: true,
+    },
+  ];
+}
 
 const useEditorStore = create((set, get) => ({
 
   activeTool: DEFAULT_TOOL,
   setActiveTool: (tool) => set({ activeTool: tool }),
 
-  elements: [],
+  elements: createDefaultElements(),
 
   selectedId: null,
   setSelectedId: (id) => set({ selectedId: id }),
   clearSelection: () => set({ selectedId: null }),
 
   snapEnabled: true,
-  snapIncrement: 7.5,
+  snapIncrement: 15.33,
   setSnapEnabled: (val) => set({ snapEnabled: val }),
   setSnapIncrement: (val) => set({ snapIncrement: val }),
 
-  // --- Drawing State (moved from FieldCanvas so Toolbar can see it) ---
+  // Scrimmage line visibility toggle
+  scrimmageVisible: true,
+  toggleScrimmage: () => set((state) => ({ scrimmageVisible: !state.scrimmageVisible })),
+
+  // Drawing state
   drawingPath: null,
   setDrawingPath: (path) => set({ drawingPath: path }),
 
@@ -35,7 +51,7 @@ const useEditorStore = create((set, get) => ({
 
   cancelDrawing: () => set({ drawingPath: null }),
 
-  // --- History ---
+  // History
   history: [],
   historyIndex: -1,
 
@@ -87,6 +103,7 @@ const useEditorStore = create((set, get) => ({
   },
 
   deleteElement: (id) => {
+    if (id === 'scrimmage_line') return;
     const { pushHistory } = get();
     pushHistory();
     set((state) => ({
@@ -98,7 +115,7 @@ const useEditorStore = create((set, get) => ({
   clearElements: () => {
     const { pushHistory } = get();
     pushHistory();
-    set({ elements: [], selectedId: null, drawingPath: null });
+    set({ elements: createDefaultElements(), selectedId: null, drawingPath: null });
   },
 
   exportPlay: () => {
@@ -112,7 +129,11 @@ const useEditorStore = create((set, get) => ({
       if (!data.elements) throw new Error('Invalid play file');
       const { pushHistory } = get();
       pushHistory();
-      set({ elements: data.elements, selectedId: null, drawingPath: null });
+      const hasScrimmage = data.elements.some(el => el.id === 'scrimmage_line');
+      const elements = hasScrimmage
+        ? data.elements
+        : [...createDefaultElements(), ...data.elements];
+      set({ elements, selectedId: null, drawingPath: null });
       return { success: true };
     } catch (e) {
       return { success: false, error: e.message };

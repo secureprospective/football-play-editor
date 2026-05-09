@@ -9,6 +9,7 @@ export default function Toolbar() {
     elements, updateElement,
     exportPlay, importPlay,
     drawingPath, finishDrawing, cancelDrawing,
+    scrimmageVisible, toggleScrimmage,
   } = useEditorStore();
 
   function handleFlipH() {
@@ -67,6 +68,14 @@ export default function Toolbar() {
             <div className="toolbar-divider" />
             <button onClick={handleFlipH} title="Flip Horizontal">⇄ Flip H</button>
             <button onClick={handleFlipV} title="Flip Vertical">⇅ Flip V</button>
+            <div className="toolbar-divider" />
+            <button
+              onClick={toggleScrimmage}
+              className={scrimmageVisible ? 'btn-active' : ''}
+              title="Show/Hide line of scrimmage"
+            >
+              {scrimmageVisible ? '— Hide LOS' : '— Show LOS'}
+            </button>
             <div className="toolbar-divider" />
             <button onClick={handleExport} title="Export play as JSON">⬇ Export</button>
             <button onClick={handleImport} title="Import play from JSON">⬆ Import</button>
