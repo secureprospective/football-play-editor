@@ -1,16 +1,24 @@
 import './Toolbar.css';
 import useEditorStore from '../../store/useEditorStore';
 import { flipPlayHorizontal, flipPlayVertical } from '../../utils/flipUtils';
+import { VIEW_MODES } from '../../constants/toolModes';
 
 export default function Toolbar() {
   const {
     undo, redo, canUndo, canRedo,
     clearElements,
-    elements, updateElement,
-    exportPlay, importPlay,
+    getActivePlay, getActiveFormation, getActivePlaybook,
+    updateElement,
+    exportPlaybook, importPlaybook,
     drawingPath, finishDrawing, cancelDrawing,
     scrimmageVisible, toggleScrimmage,
+    goBack, navigateTo,
   } = useEditorStore();
+
+  const play      = getActivePlay();
+  const formation = getActiveFormation();
+  const playbook  = getActivePlaybook();
+  const elements  = play?.elements || [];
 
   function handleFlipH() {
     const flipped = flipPlayHorizontal(elements);
@@ -23,12 +31,13 @@ export default function Toolbar() {
   }
 
   function handleExport() {
-    const json = exportPlay();
+    const json = exportPlaybook();
+    if (!json) return;
     const blob = new Blob([json], { type: 'application/json' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
     a.href     = url;
-    a.download = 'play.json';
+    a.download = (playbook?.name || 'playbook') + '.json';
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -42,8 +51,8 @@ export default function Toolbar() {
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (ev) => {
-        const result = importPlay(ev.target.result);
-        if (!result.success) alert('Failed to load play: ' + result.error);
+        const result = importPlaybook(ev.target.result);
+        if (!result.success) alert('Failed to load playbook: ' + result.error);
       };
       reader.readAsText(file);
     };
@@ -52,38 +61,37 @@ export default function Toolbar() {
 
   return (
     <div className="toolbar">
-      <span className="toolbar-title">Football Play Editor</span>
+      <button className="toolbar-back-btn" onClick={goBack} title="Back to plays">← Plays</button>
+      <div className="toolbar-breadcrumb">
+        <span>{playbook?.name}</span>
+        <span className="crumb-sep">›</span>
+        <span>{formation?.name}</span>
+        <span className="crumb-sep">›</span>
+        <span className="crumb-active">{play?.name}</span>
+      </div>
       <div className="toolbar-actions">
-
         {drawingPath ? (
           <>
-            <span className="toolbar-drawing-hint">Drawing route — click to add points</span>
-            <button onClick={finishDrawing} className="btn-success" title="Finish route (Enter)">✓ Finish Route</button>
-            <button onClick={cancelDrawing} className="btn-danger" title="Cancel route (Escape)">✕ Cancel</button>
+            <span className="toolbar-drawing-hint">Drawing — click to add points</span>
+            <button onClick={finishDrawing} className="btn-success">✓ Finish</button>
+            <button onClick={cancelDrawing} className="btn-danger">✕ Cancel</button>
           </>
         ) : (
           <>
-            <button onClick={undo} disabled={!canUndo()} title="Undo">↩ Undo</button>
-            <button onClick={redo} disabled={!canRedo()} title="Redo">↪ Redo</button>
+            <button onClick={undo} disabled={!canUndo()} title="Undo">↩</button>
+            <button onClick={redo} disabled={!canRedo()} title="Redo">↪</button>
             <div className="toolbar-divider" />
-            <button onClick={handleFlipH} title="Flip Horizontal">⇄ Flip H</button>
-            <button onClick={handleFlipV} title="Flip Vertical">⇅ Flip V</button>
+            <button onClick={handleFlipH} title="Flip Horizontal">⇄</button>
+            <button onClick={handleFlipV} title="Flip Vertical">⇅</button>
             <div className="toolbar-divider" />
-            <button
-              onClick={toggleScrimmage}
-              className={scrimmageVisible ? 'btn-active' : ''}
-              title="Show/Hide line of scrimmage"
-            >
-              {scrimmageVisible ? '— Hide LOS' : '— Show LOS'}
-            </button>
+            <button onClick={toggleScrimmage} className={scrimmageVisible ? 'btn-active' : ''} title="Line of Scrimmage">LOS</button>
             <div className="toolbar-divider" />
-            <button onClick={handleExport} title="Export play as JSON">⬇ Export</button>
-            <button onClick={handleImport} title="Import play from JSON">⬆ Import</button>
+            <button onClick={handleExport} title="Export playbook">⬇</button>
+            <button onClick={handleImport} title="Import playbook">⬆</button>
             <div className="toolbar-divider" />
-            <button onClick={clearElements} className="btn-danger" title="Clear all elements">✕ Clear</button>
+            <button onClick={clearElements} className="btn-danger" title="Clear play">✕</button>
           </>
         )}
-
       </div>
     </div>
   );
