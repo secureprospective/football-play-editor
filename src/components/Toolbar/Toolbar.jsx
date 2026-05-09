@@ -64,65 +64,65 @@ export default function Toolbar() {
   return (
     <div className="toolbar">
 
-      {/* Left — navigation */}
-      <div className="toolbar-left">
-        <button className="tb-btn" onClick={goBack} title="Back to plays">← Plays</button>
-        <div className="toolbar-breadcrumb">
-          <span
-            className="crumb crumb-link"
+      {/* Left — back + breadcrumb + present */}
+      <div className="toolbar-nav">
+        <button className="tb-btn tb-back" onClick={goBack}>← Plays</button>
+        <div className="tb-divider-v" />
+        <nav className="toolbar-breadcrumb">
+          <button
+            className="tb-crumb"
             onClick={() => navigateTo(VIEW_MODES.FORMATION)}
             title="Go to formations"
-          >{playbook?.name}</span>
-          <span className="crumb-sep">›</span>
-          <span
-            className="crumb crumb-link"
+          >{playbook?.name}</button>
+          <span className="tb-crumb-sep">›</span>
+          <button
+            className="tb-crumb"
             onClick={() => navigateTo(VIEW_MODES.PLAY)}
             title="Go to plays"
-          >{formation?.name}</span>
-          <span className="crumb-sep">›</span>
-          <span className="crumb crumb-active">{play?.name}</span>
-        </div>
-      </div>
-
-      {/* Center — drawing state hint */}
-      {drawingPath && (
-        <div className="toolbar-center">
-          <span className="toolbar-drawing-hint">Click to add points</span>
-          <button className="tb-btn btn-success" onClick={finishDrawing} title="Finish (Enter)">✓ Done</button>
-          <button className="tb-btn btn-danger"  onClick={cancelDrawing} title="Cancel (Esc)">✕</button>
-        </div>
-      )}
-
-      {/* Right — actions */}
-      <div className="toolbar-right">
-        <button className="tb-btn" onClick={undo} disabled={!canUndo()} title="Undo">↩</button>
-        <button className="tb-btn" onClick={redo} disabled={!canRedo()} title="Redo">↪</button>
-        <div className="tb-divider" />
-        <button className="tb-btn" onClick={handleFlipH} title="Flip Horizontal">⇄</button>
-        <button className="tb-btn" onClick={handleFlipV} title="Flip Vertical">⇅</button>
-        <div className="tb-divider" />
+          >{formation?.name}</button>
+          <span className="tb-crumb-sep">›</span>
+          <span className="tb-crumb tb-crumb-active">{play?.name}</span>
+        </nav>
+        <div className="tb-divider-v" />
         <button
-          className={`tb-btn ${snapEnabled ? 'btn-active' : ''}`}
-          onClick={() => setSnapEnabled(!snapEnabled)}
-          title="Snap to grid"
-        >Snap</button>
-        <button
-          className={`tb-btn ${scrimmageVisible ? 'btn-active' : ''}`}
-          onClick={toggleScrimmage}
-          title="Line of Scrimmage"
-        >LOS</button>
-        <div className="tb-divider" />
-        <button className="tb-btn" onClick={handleExport} title="Export playbook">⬇</button>
-        <button className="tb-btn" onClick={handleImport} title="Import playbook">⬆</button>
-        <div className="tb-divider" />
-        <button className="tb-btn btn-danger" onClick={clearElements} title="Clear play">✕ Clear</button>
-        <div className="tb-divider" />
-        <button
-          className={`tb-btn btn-present ${presentMode ? 'btn-present-active' : ''}`}
+          className={`tb-btn tb-present ${presentMode ? 'btn-present-active' : ''}`}
           onClick={togglePresentMode}
           title="Present Mode"
-        >📺</button>
+        >📺 Present</button>
       </div>
+
+      {/* Right — actions (scrollable) or drawing state */}
+      {drawingPath ? (
+        <div className="toolbar-drawing">
+          <span className="toolbar-drawing-hint">Tap to add points · Shift to constrain</span>
+          <button className="tb-btn btn-success" onClick={finishDrawing}>✓ Done</button>
+          <button className="tb-btn btn-danger"  onClick={cancelDrawing}>✕ Cancel</button>
+        </div>
+      ) : (
+        <div className="toolbar-actions">
+          <button className="tb-btn" onClick={undo} disabled={!canUndo()} title="Undo">↩</button>
+          <button className="tb-btn" onClick={redo} disabled={!canRedo()} title="Redo">↪</button>
+          <div className="tb-divider-v" />
+          <button className="tb-btn" onClick={handleFlipH} title="Flip Horizontal">⇄ Flip H</button>
+          <button className="tb-btn" onClick={handleFlipV} title="Flip Vertical">⇅ Flip V</button>
+          <div className="tb-divider-v" />
+          <button
+            className={`tb-btn ${snapEnabled ? 'btn-active' : ''}`}
+            onClick={() => setSnapEnabled(!snapEnabled)}
+            title="Snap to grid"
+          >Snap</button>
+          <button
+            className={`tb-btn ${scrimmageVisible ? 'btn-active' : ''}`}
+            onClick={toggleScrimmage}
+            title="LOS"
+          >LOS</button>
+          <div className="tb-divider-v" />
+          <button className="tb-btn" onClick={handleExport} title="Export playbook">⬇ Export</button>
+          <button className="tb-btn" onClick={handleImport} title="Import playbook">⬆ Import</button>
+          <div className="tb-divider-v" />
+          <button className="tb-btn btn-danger" onClick={clearElements} title="Clear play">✕ Clear</button>
+        </div>
+      )}
 
     </div>
   );

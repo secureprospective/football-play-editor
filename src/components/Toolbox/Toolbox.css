@@ -5,25 +5,26 @@
   background: #16213e;
   border-right: 2px solid #0f3460;
   padding: 6px 0;
-  gap: 2px;
+  gap: 4px;
   height: 100%;
-  width: 52px;
+  width: 56px;
 }
 
 .tool-btn {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
   color: #606080;
-  font-size: 18px;
+  font-size: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 0.15s, color 0.15s;
   flex-shrink: 0;
+  touch-action: manipulation;
 }
 
 .tool-btn:hover {

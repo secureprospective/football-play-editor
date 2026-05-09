@@ -25,11 +25,11 @@ body {
   overflow: hidden;
 }
 
-/* Field editor layout */
+/* Field editor layout — toolbar is now 96px (two 48px rows) */
 .app-shell {
   display: grid;
-  grid-template-rows: 44px 1fr;
-  grid-template-columns: 52px 1fr 220px;
+  grid-template-rows: 48px 1fr;
+  grid-template-columns: 56px 1fr 220px;
   grid-template-areas:
     "toolbar toolbar toolbar"
     "toolbox stage inspector";
@@ -75,14 +75,14 @@ body {
   overflow: hidden;
 }
 
-/* Present Mode exit tab — slim vertical tab on left edge */
+/* Present Mode exit tab */
 .present-exit-tab {
   position: absolute;
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 20px;
-  height: 80px;
+  width: 44px;
+  height: 88px;
   background: rgba(15, 52, 96, 0.75);
   border: 1px solid rgba(26, 74, 122, 0.6);
   border-left: none;
@@ -97,10 +97,11 @@ body {
   writing-mode: vertical-rl;
   letter-spacing: 1px;
   transition: background 0.2s, width 0.2s;
+  touch-action: manipulation;
 }
 
 .present-exit-tab:hover {
-  width: 28px;
+  width: 52px;
   background: rgba(26, 90, 154, 0.9);
   color: #fff;
 }

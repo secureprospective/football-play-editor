@@ -73,8 +73,6 @@ export default function FieldCanvas() {
     };
   }, [finishDrawing, cancelDrawing, drawingPath]);
 
-  // Stretch to fill — field always fills 100% of container
-  // scaleX and scaleY are independent so there is no letterboxing
   const scaleX = stageSize.width  / FIELD_CONFIG.STAGE_WIDTH;
   const scaleY = stageSize.height / FIELD_CONFIG.STAGE_HEIGHT;
 
@@ -99,7 +97,6 @@ export default function FieldCanvas() {
     return rawPos;
   }
 
-  // Constrain a drag delta to 45deg axes when Shift held
   function resolveDragDelta(fromPos, toPos) {
     if (shiftHeld) {
       return constrainToAngle({ x: 0, y: 0 }, {
@@ -110,8 +107,10 @@ export default function FieldCanvas() {
     return { x: toPos.x - fromPos.x, y: toPos.y - fromPos.y };
   }
 
-  function handleStageMouseDown() {
-    // In present mode — no interaction
+  // --- Shared interaction logic ---
+  // Mouse and touch handlers call these after normalising the pointer position.
+
+  function handlePointerDown() {
     if (presentMode) return;
 
     const pos = getScaledPos();
@@ -151,7 +150,6 @@ export default function FieldCanvas() {
       return;
     }
 
-    // Scrimmage line hit
     if (scrimmageVisible) {
       const scrimmage = elements.find(el => el.id === 'scrimmage_line');
       if (scrimmage && Math.abs(pos.y - scrimmage.y) < 10) {
@@ -176,14 +174,13 @@ export default function FieldCanvas() {
     dragTargetRef.current = null;
   }
 
-  function handleStageMouseMove() {
+  function handlePointerMove() {
     if (presentMode) return;
 
     const pos = getScaledPos();
     const resolved = resolvePreviewPos(pos);
     setMousePos(resolved);
 
-    // Hover detection for scrimmage cursor
     if (!dragStartRef.current && scrimmageVisible) {
       const scrimmage = elements.find(el => el.id === 'scrimmage_line');
       if (scrimmage && Math.abs(pos.y - scrimmage.y) < 10) {
@@ -203,13 +200,11 @@ export default function FieldCanvas() {
     if (isDraggingRef.current && dragTargetRef.current) {
       const { type, elementId, nodeIndex } = dragTargetRef.current;
 
-      // Scrimmage — vertical only, no snap
       if (type === 'scrimmage') {
         updateElement('scrimmage_line', { y: pos.y });
         return;
       }
 
-      // Player — snap + optional Shift constraint
       if (type === 'player') {
         const delta = resolveDragDelta(dragStartPos.current, pos);
         const newPos = snapPoint(
@@ -220,7 +215,6 @@ export default function FieldCanvas() {
         return;
       }
 
-      // Whole path drag — translate all points by delta
       if (type === 'path') {
         const delta = resolveDragDelta(dragStartRef.current, pos);
         const el = elements.find(e => e.id === elementId);
@@ -230,12 +224,10 @@ export default function FieldCanvas() {
           y: p.y + delta.y,
         }));
         updateElement(elementId, { points: newPoints });
-        // Update drag start for next frame delta
         dragStartRef.current = pos;
         return;
       }
 
-      // Node handle
       if (type === 'handle' && nodeIndex !== null) {
         const snapped = snapPoint(pos, snapIncrement, snapEnabled);
         const el = elements.find(e => e.id === elementId);
@@ -246,7 +238,7 @@ export default function FieldCanvas() {
     }
   }
 
-  function handleStageMouseUp() {
+  function handlePointerUp() {
     if (isDraggingRef.current && dragTargetRef.current) pushHistory();
     dragStartRef.current  = null;
     dragStartPos.current  = null;
@@ -254,11 +246,33 @@ export default function FieldCanvas() {
     dragTargetRef.current = null;
   }
 
+  // --- Mouse handlers (desktop) ---
+  function handleStageMouseDown() { handlePointerDown(); }
+  function handleStageMouseMove() { handlePointerMove(); }
+  function handleStageMouseUp()   { handlePointerUp(); }
+
   function handleStageRightClick(e) {
     e.evt.preventDefault();
     if (activeTool === TOOL_MODES.ADD_LINE && drawingPath) finishDrawing();
   }
 
+  // --- Touch handlers (mobile / tablet) ---
+  function handleStageTouchStart(e) {
+    e.evt.preventDefault();
+    handlePointerDown();
+  }
+
+  function handleStageTouchMove(e) {
+    e.evt.preventDefault();
+    handlePointerMove();
+  }
+
+  function handleStageTouchEnd(e) {
+    e.evt.preventDefault();
+    handlePointerUp();
+  }
+
+  // --- Render helpers ---
   function renderScrimmage() {
     if (!scrimmageVisible) return null;
     const scrimmage = elements.find(el => el.id === 'scrimmage_line');
@@ -369,6 +383,9 @@ export default function FieldCanvas() {
         onMouseMove={handleStageMouseMove}
         onMouseUp={handleStageMouseUp}
         onContextMenu={handleStageRightClick}
+        onTouchStart={handleStageTouchStart}
+        onTouchMove={handleStageTouchMove}
+        onTouchEnd={handleStageTouchEnd}
       >
         <FieldGrid />
 

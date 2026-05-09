@@ -1,100 +1,137 @@
+/* ── Toolbar shell — single row ── */
 .toolbar {
   display: flex;
+  flex-direction: row;
   align-items: center;
   background: #16213e;
   border-bottom: 2px solid #0f3460;
-  padding: 0 8px;
-  height: 44px;
-  gap: 4px;
+  height: 48px;
+  width: 100%;
   overflow: hidden;
 }
 
-.toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.toolbar-center {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-  justify-content: center;
-}
-
-.toolbar-right {
+/* ── Nav group — left, fixed, never scrolls ── */
+.toolbar-nav {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-left: auto;
+  padding: 0 8px;
   flex-shrink: 0;
+  height: 100%;
 }
 
 .toolbar-breadcrumb {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  overflow: hidden;
+  gap: 2px;
 }
 
-.crumb {
-  color: #505070;
+.tb-crumb {
+  background: none;
+  border: none;
+  border-radius: 5px;
+  color: #4a80c0;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 6px 8px;
+  height: 36px;
   white-space: nowrap;
+  max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 120px;
-}
-
-.crumb-link {
-  color: #4a80c0;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: color 0.15s;
-}
-
-.crumb-link:hover {
-  color: #6aa0e0;
-}
-
-.crumb-sep {
-  color: #303050;
+  touch-action: manipulation;
+  transition: background 0.15s, color 0.15s;
   flex-shrink: 0;
 }
 
-.crumb-active {
+.tb-crumb:hover {
+  background: #0f3460;
+  color: #6aa0e0;
+}
+
+.tb-crumb-active {
   color: #e94560;
   font-weight: 600;
+  cursor: default;
+  pointer-events: none;
+  max-width: none;
+}
+
+.tb-crumb-sep {
+  color: #303050;
+  font-size: 14px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.tb-back {
+  flex-shrink: 0;
+}
+
+.tb-present {
+  flex-shrink: 0;
+  background: #1a2a4a;
+  border-color: #2a4a8a;
+}
+
+/* ── Actions group — right, scrollable ── */
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  margin-left: auto;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.toolbar-actions::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Drawing state — replaces actions when active ── */
+.toolbar-drawing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  margin-left: auto;
+  height: 100%;
+  flex-shrink: 0;
 }
 
 .toolbar-drawing-hint {
-  font-size: 11px;
-  color: #e94560;
+  font-size: 12px;
+  color: #c8c840;
   font-style: italic;
   white-space: nowrap;
 }
 
-/* Base button */
+/* ── Base button ── */
 .tb-btn {
   background: #0f3460;
   color: #e0e0e0;
   border: 1px solid #1a4a7a;
   border-radius: 5px;
-  padding: 0 8px;
+  padding: 0 12px;
   font-size: 13px;
   cursor: pointer;
-  height: 32px;
-  min-width: 32px;
+  height: 36px;
+  min-width: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   white-space: nowrap;
   transition: background 0.15s;
   flex-shrink: 0;
   font-family: inherit;
+  touch-action: manipulation;
 }
 
 .tb-btn:hover:not(:disabled) {
@@ -110,6 +147,7 @@
   background: #4a1020;
   border-color: #7a1530;
 }
+
 .btn-danger:hover:not(:disabled) {
   background: #7a1530 !important;
 }
@@ -119,6 +157,7 @@
   border-color: #2a7a4a;
   color: #90ffb0;
 }
+
 .btn-success:hover {
   background: #2a7a4a !important;
 }
@@ -129,20 +168,15 @@
   color: #c0ff80;
 }
 
-.btn-present {
-  background: #1a2a4a;
-  border-color: #2a4a8a;
-  font-size: 15px;
-}
-
 .btn-present-active {
   background: #2a4a8a;
   border-color: #4a7acc;
+  color: #ffffff;
 }
 
-.tb-divider {
+.tb-divider-v {
   width: 1px;
-  height: 22px;
+  height: 24px;
   background: #1a3060;
   margin: 0 2px;
   flex-shrink: 0;
