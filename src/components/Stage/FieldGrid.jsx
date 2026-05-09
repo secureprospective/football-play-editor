@@ -16,8 +16,6 @@ export default function FieldGrid() {
 
   // Draw yard lines every 5 yards
   // From -YARDS_BELOW_LOS to +YARDS_ABOVE_LOS
-  const totalYards = YARDS_ABOVE_LOS + YARDS_BELOW_LOS;
-
   for (let yard = -YARDS_BELOW_LOS; yard <= YARDS_ABOVE_LOS; yard += 5) {
     const y = LOS_Y - (yard * PX_PER_YARD);
     const isLOS = yard === 0;

@@ -55,7 +55,21 @@ function loadFromStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw);
+    const data = JSON.parse(raw);
+    // Migrate scrimmage line Y if it was set for the old vertical field
+    if (data?.playbooks) {
+      data.playbooks.forEach(pb => {
+        pb.formations?.forEach(fm => {
+          fm.plays?.forEach(pl => {
+            const scrimmage = pl.elements?.find(el => el.id === 'scrimmage_line');
+            if (scrimmage && scrimmage.y > FIELD_CONFIG.STAGE_HEIGHT) {
+              scrimmage.y = FIELD_CONFIG.SCRIMMAGE_DEFAULT_Y;
+            }
+          });
+        });
+      });
+    }
+    return data;
   } catch {
     return null;
   }
