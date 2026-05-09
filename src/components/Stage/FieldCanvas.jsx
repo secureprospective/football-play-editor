@@ -5,7 +5,7 @@ import useEditorStore from '../../store/useEditorStore';
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
 import { TOOL_MODES } from '../../constants/toolModes';
 import { masterHitTest, exceededDragThreshold } from '../../utils/hitTesting';
-import { snapPoint } from '../../utils/snapToGrid';
+import { snapPoint, constrainToAngle } from '../../utils/snapToGrid';
 
 function generateId() {
   return 'el_' + Math.random().toString(36).slice(2, 9);
@@ -25,6 +25,7 @@ export default function FieldCanvas() {
   const containerRef = useRef(null);
   const [stageSize, setStageSize] = useState({ width: 800, height: 450 });
   const [mousePos, setMousePos]   = useState(null);
+  const [shiftHeld, setShiftHeld] = useState(false);
   const dragStartRef  = useRef(null);
   const isDraggingRef = useRef(false);
   const dragTargetRef = useRef(null);
@@ -42,9 +43,10 @@ export default function FieldCanvas() {
     return () => observer.disconnect();
   }, []);
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts + shift tracking
   useEffect(() => {
     function handleKeyDown(e) {
+      if (e.key === 'Shift') setShiftHeld(true);
       if (e.key === 'Enter') {
         e.preventDefault();
         finishDrawing();
@@ -58,8 +60,15 @@ export default function FieldCanvas() {
         if (selectedId) deleteElement(selectedId);
       }
     }
+    function handleKeyUp(e) {
+      if (e.key === 'Shift') setShiftHeld(false);
+    }
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
   }, [finishDrawing, cancelDrawing, drawingPath]);
 
   const scaleX = stageSize.width  / FIELD_CONFIG.STAGE_WIDTH;
@@ -68,6 +77,24 @@ export default function FieldCanvas() {
   function getScaledPos() {
     const pos = stageRef.current.getPointerPosition();
     return { x: pos.x / scaleX, y: pos.y / scaleY };
+  }
+
+  // Apply snap or angle constraint to a new route point
+  function resolveRoutePoint(rawPos) {
+    if (shiftHeld && drawingPath && drawingPath.points.length > 0) {
+      const lastPt = drawingPath.points[drawingPath.points.length - 1];
+      return constrainToAngle(lastPt, rawPos);
+    }
+    return snapPoint(rawPos, snapIncrement, snapEnabled);
+  }
+
+  // Apply angle constraint to the live preview mouse position
+  function resolvePreviewPos(rawPos) {
+    if (shiftHeld && drawingPath && drawingPath.points.length > 0) {
+      const lastPt = drawingPath.points[drawingPath.points.length - 1];
+      return constrainToAngle(lastPt, rawPos);
+    }
+    return rawPos;
   }
 
   function handleStageMouseDown(e) {
@@ -93,16 +120,16 @@ export default function FieldCanvas() {
     }
 
     if (activeTool === TOOL_MODES.ADD_LINE) {
-      const snapped = snapPoint(pos, snapIncrement, snapEnabled);
+      const resolved = resolveRoutePoint(pos);
       if (!drawingPath) {
         setDrawingPath({
           id: generateId(), type: 'path',
-          points: [snapped],
+          points: [resolved],
           style: { stroke: '#ffffff', thickness: 3, dash: false, endArrow: true },
           groupId: null,
         });
       } else {
-        setDrawingPath({ ...drawingPath, points: [...drawingPath.points, snapped] });
+        setDrawingPath({ ...drawingPath, points: [...drawingPath.points, resolved] });
       }
       return;
     }
@@ -124,7 +151,8 @@ export default function FieldCanvas() {
 
   function handleStageMouseMove() {
     const pos = getScaledPos();
-    setMousePos(pos);
+    const resolved = resolvePreviewPos(pos);
+    setMousePos(resolved);
 
     if (!dragStartRef.current) return;
     if (!isDraggingRef.current) {
@@ -160,8 +188,6 @@ export default function FieldCanvas() {
       finishDrawing();
     }
   }
-
-  // --- Render Helpers ---
 
   function renderPath(el) {
     const isSelected = el.id === selectedId;
@@ -228,7 +254,9 @@ export default function FieldCanvas() {
           <Line points={allFlat} stroke="#ffffff" strokeWidth={3}
             dash={[6, 4]} lineCap="round" opacity={0.7} />
         )}
-        <Line points={previewFlat} stroke="#e94560" strokeWidth={2}
+        <Line points={previewFlat}
+          stroke={shiftHeld ? '#00ffaa' : '#e94560'}
+          strokeWidth={2}
           dash={[6, 4]} lineCap="round" opacity={0.8} />
         {pts.map((p, i) => (
           <Circle key={'preview_node_' + i} x={p.x} y={p.y} radius={5} fill="#e94560" />
