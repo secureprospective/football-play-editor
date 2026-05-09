@@ -3,30 +3,32 @@
   flex-direction: column;
   align-items: center;
   background: #16213e;
-  border-right: 1px solid #0f3460;
-  padding: 8px 0;
-  gap: 4px;
+  border-right: 2px solid #0f3460;
+  padding: 6px 0;
+  gap: 2px;
   height: 100%;
+  width: 52px;
 }
 
 .tool-btn {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
-  color: #a0a0c0;
-  font-size: 20px;
+  color: #606080;
+  font-size: 18px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
 }
 
 .tool-btn:hover {
   background: #0f3460;
-  color: #e0e0e0;
+  color: #c0c0e0;
 }
 
 .tool-btn.active {

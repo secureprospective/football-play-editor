@@ -6,12 +6,12 @@ export default function Inspector() {
   const elements = getActivePlay()?.elements || [];
   const selected = elements.find(el => el.id === selectedId);
 
-  if (!selected) {
+  if (!selected || selected.type === 'scrimmage') {
     return (
       <div className="inspector">
         <div className="inspector-empty">
-          <p>Nothing selected</p>
-          <p>Click an element on the field to inspect it.</p>
+          <div>Nothing selected</div>
+          <div>Click an element on the field</div>
         </div>
       </div>
     );
@@ -22,9 +22,7 @@ export default function Inspector() {
   }
 
   function handleStyleChange(field, value) {
-    updateElement(selected.id, {
-      style: { ...selected.style, [field]: value }
-    });
+    updateElement(selected.id, { style: { ...selected.style, [field]: value } });
   }
 
   return (
@@ -46,14 +44,14 @@ export default function Inspector() {
           <label>Fill Color
             <input
               type="color"
-              value={selected.style?.fill || '#ffffff'}
+              value={selected.style?.fill || '#e94560'}
               onChange={e => handleStyleChange('fill', e.target.value)}
             />
           </label>
           <label>Stroke Color
             <input
               type="color"
-              value={selected.style?.stroke || '#000000'}
+              value={selected.style?.stroke || '#ffffff'}
               onChange={e => handleStyleChange('stroke', e.target.value)}
             />
           </label>
@@ -80,15 +78,16 @@ export default function Inspector() {
             />
           </label>
           <label>Thickness
-            <input
-              type="range"
-              min="1" max="12"
-              value={selected.style?.thickness || 3}
-              onChange={e => handleStyleChange('thickness', parseInt(e.target.value))}
-            />
-            <span>{selected.style?.thickness || 3}px</span>
+            <div className="range-row">
+              <input
+                type="range" min="1" max="12"
+                value={selected.style?.thickness || 3}
+                onChange={e => handleStyleChange('thickness', parseInt(e.target.value))}
+              />
+              <span>{selected.style?.thickness || 3}px</span>
+            </div>
           </label>
-          <label>
+          <label className="check-row">
             <input
               type="checkbox"
               checked={selected.style?.dash || false}
@@ -96,10 +95,10 @@ export default function Inspector() {
             />
             Dashed Line
           </label>
-          <label>
+          <label className="check-row">
             <input
               type="checkbox"
-              checked={selected.style?.endArrow || false}
+              checked={selected.style?.endArrow !== false}
               onChange={e => handleStyleChange('endArrow', e.target.checked)}
             />
             End Arrow

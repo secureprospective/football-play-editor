@@ -2,43 +2,55 @@
   display: flex;
   align-items: center;
   background: #16213e;
-  border-bottom: 1px solid #0f3460;
-  padding: 0 12px;
-  height: 48px;
-  gap: 8px;
+  border-bottom: 2px solid #0f3460;
+  padding: 0 8px;
+  height: 44px;
+  gap: 4px;
   overflow: hidden;
 }
 
-.toolbar-back-btn {
-  background: #0f3460;
-  color: #e0e0e0;
-  border: 1px solid #1a4a7a;
-  border-radius: 6px;
-  padding: 4px 12px;
-  font-size: 13px;
-  cursor: pointer;
-  white-space: nowrap;
-  min-height: 36px;
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   flex-shrink: 0;
 }
 
-.toolbar-back-btn:hover {
-  background: #1a5a9a;
+.toolbar-center {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .toolbar-breadcrumb {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
-  color: #505070;
-  flex: 1;
+  font-size: 11px;
   overflow: hidden;
+}
+
+.crumb {
+  color: #505070;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
 }
 
 .crumb-sep {
   color: #303050;
+  flex-shrink: 0;
 }
 
 .crumb-active {
@@ -46,84 +58,79 @@
   font-weight: 600;
 }
 
-.toolbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
+.toolbar-drawing-hint {
+  font-size: 11px;
+  color: #e94560;
+  font-style: italic;
+  white-space: nowrap;
 }
 
-.toolbar button {
+/* Base button */
+.tb-btn {
   background: #0f3460;
   color: #e0e0e0;
   border: 1px solid #1a4a7a;
-  border-radius: 4px;
-  padding: 4px 8px;
+  border-radius: 5px;
+  padding: 0 8px;
   font-size: 13px;
   cursor: pointer;
-  transition: background 0.15s;
+  height: 32px;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   white-space: nowrap;
-  min-height: 36px;
-  min-width: 36px;
+  transition: background 0.15s;
+  flex-shrink: 0;
 }
 
-.toolbar button:hover:not(:disabled) {
+.tb-btn:hover:not(:disabled) {
   background: #1a5a9a;
 }
 
-.toolbar button:disabled {
-  opacity: 0.35;
+.tb-btn:disabled {
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
-.toolbar button.btn-danger {
+.btn-danger {
   background: #4a1020;
   border-color: #7a1530;
 }
-
-.toolbar button.btn-danger:hover {
-  background: #7a1530;
+.btn-danger:hover:not(:disabled) {
+  background: #7a1530 !important;
 }
 
-.toolbar button.btn-success {
+.btn-success {
   background: #1a4a2a;
   border-color: #2a7a4a;
   color: #90ffb0;
 }
-
-.toolbar button.btn-success:hover {
-  background: #2a7a4a;
+.btn-success:hover {
+  background: #2a7a4a !important;
 }
 
-.toolbar button.btn-active {
+.btn-active {
   background: #2a4a1a;
   border-color: #4a8a2a;
   color: #c0ff80;
 }
 
-.toolbar button.btn-present {
+.btn-present {
   background: #1a2a4a;
   border-color: #2a4a8a;
-  color: #80c0ff;
-  font-size: 16px;
+  font-size: 15px;
 }
 
-.toolbar button.btn-present:hover {
+.btn-present-active {
   background: #2a4a8a;
+  border-color: #4a7acc;
 }
 
-.toolbar-divider {
+.tb-divider {
   width: 1px;
-  height: 24px;
-  background: #0f3460;
+  height: 22px;
+  background: #1a3060;
   margin: 0 2px;
   flex-shrink: 0;
-}
-
-.toolbar-drawing-hint {
-  font-size: 11px;
-  color: #e94560;
-  font-style: italic;
-  margin-right: 4px;
-  white-space: nowrap;
 }

@@ -27,13 +27,13 @@ export default function App() {
     return (
       <div className="app-shell-present">
         <FieldCanvas />
-        <button
-          className="present-exit-btn"
+        <div
+          className="present-exit-tab"
           onClick={togglePresentMode}
           title="Exit Present Mode"
         >
-          ✏️
-        </button>
+          EDIT
+        </div>
       </div>
     );
   }
