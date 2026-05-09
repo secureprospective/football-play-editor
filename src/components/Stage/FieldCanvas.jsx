@@ -21,25 +21,30 @@ export default function FieldCanvas() {
   } = useEditorStore();
 
   const stageRef = useRef(null);
+  const containerRef = useRef(null);
   const [stageSize, setStageSize] = useState({ width: 800, height: 450 });
   const [drawingPath, setDrawingPath] = useState(null);
   const dragStartRef = useRef(null);
   const isDraggingRef = useRef(false);
   const dragTargetRef = useRef(null);
 
-  // Resize stage to fit container
+  // Resize stage to fit container using ResizeObserver
   useEffect(() => {
-    function resize() {
-      const container = stageRef.current?.container().parentElement;
-      if (!container) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    function updateSize() {
       setStageSize({
         width: container.clientWidth,
         height: container.clientHeight,
       });
     }
-    resize();
-    window.addEventListener('resize', resize);
-    return () => window.removeEventListener('resize', resize);
+
+    updateSize();
+
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(container);
+    return () => observer.disconnect();
   }, []);
 
   // Scale factor from design coordinates (1920x1080) to actual stage size
@@ -159,7 +164,7 @@ export default function FieldCanvas() {
   }
 
   return (
-    <div className="field-canvas-container">
+    <div className="field-canvas-container" ref={containerRef}>
       <Stage
         ref={stageRef}
         width={stageSize.width}
