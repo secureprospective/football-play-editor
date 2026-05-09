@@ -26,16 +26,20 @@ Deploy: automatic on push to main
 - Inline add, rename, duplicate, arm/confirm delete on all nav screens
 - No prompt() or confirm() dialogs anywhere
 - Touch event wiring on FieldCanvas (onTouchStart/Move/End)
-- 44px minimum touch targets on Toolbox buttons
+- 44px minimum touch targets throughout
 - Single-row toolbar: nav left (Back, breadcrumb, Present), actions right (scrollable)
 - Present Mode button lives in nav context, immediately after breadcrumb
+- Card actions consistent across all levels: Playbook (Rename, Delete), Formation (Rename, Duplicate, Delete), Play (Rename, Duplicate, Delete)
+- Duplicate Formation — empty copy with one blank play, no elements carried over
+- Drag to reorder cards at all three levels — persists to localStorage via array position
+- Drag handle (⠿) on each card — explicit touch target, no accidental drag on tap
+- dnd-kit (PointerSensor + TouchSensor) with 8px activation distance / 200ms touch delay
 ## What is next
 1. Play thumbnails — mini field render on play cards (own session)
 2. Previous/Next play in Present Mode
-3. PWA — installable offline
+3. PWA — installable offline (Vite PWA plugin, own session)
 4. Inspector touch friendliness — input heights, label padding, color/checkbox hit areas
-5. Nav screens touch audit — card action buttons
-6. Animation — future phase, major session
+5. Animation — future phase, major session
 ## Known deferred items
 - Duplicate play is Play view only — Formation and Playbook views have no duplicate concept by design
 - Chunk size warning on build — Konva bundle, address when animation phase requires code splitting
