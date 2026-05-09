@@ -48,6 +48,18 @@
   max-width: 120px;
 }
 
+.crumb-link {
+  color: #4a80c0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+
+.crumb-link:hover {
+  color: #6aa0e0;
+}
+
 .crumb-sep {
   color: #303050;
   flex-shrink: 0;
@@ -82,6 +94,7 @@
   white-space: nowrap;
   transition: background 0.15s;
   flex-shrink: 0;
+  font-family: inherit;
 }
 
 .tb-btn:hover:not(:disabled) {

@@ -1,5 +1,6 @@
 import './Toolbar.css';
 import useEditorStore from '../../store/useEditorStore';
+import { VIEW_MODES } from '../../constants/toolModes';
 import { flipPlayHorizontal, flipPlayVertical } from '../../utils/flipUtils';
 
 export default function Toolbar() {
@@ -12,7 +13,8 @@ export default function Toolbar() {
     drawingPath, finishDrawing, cancelDrawing,
     scrimmageVisible, toggleScrimmage,
     presentMode, togglePresentMode,
-    goBack,
+    snapEnabled, setSnapEnabled,
+    navigateTo, goBack,
   } = useEditorStore();
 
   const play      = getActivePlay();
@@ -43,9 +45,9 @@ export default function Toolbar() {
   }
 
   function handleImport() {
-    const input = document.createElement('input');
-    input.type  = 'file';
-    input.accept = '.json';
+    const input    = document.createElement('input');
+    input.type     = 'file';
+    input.accept   = '.json';
     input.onchange = (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -66,9 +68,17 @@ export default function Toolbar() {
       <div className="toolbar-left">
         <button className="tb-btn" onClick={goBack} title="Back to plays">← Plays</button>
         <div className="toolbar-breadcrumb">
-          <span className="crumb">{playbook?.name}</span>
+          <span
+            className="crumb crumb-link"
+            onClick={() => navigateTo(VIEW_MODES.FORMATION)}
+            title="Go to formations"
+          >{playbook?.name}</span>
           <span className="crumb-sep">›</span>
-          <span className="crumb">{formation?.name}</span>
+          <span
+            className="crumb crumb-link"
+            onClick={() => navigateTo(VIEW_MODES.PLAY)}
+            title="Go to plays"
+          >{formation?.name}</span>
           <span className="crumb-sep">›</span>
           <span className="crumb crumb-active">{play?.name}</span>
         </div>
@@ -92,6 +102,11 @@ export default function Toolbar() {
         <button className="tb-btn" onClick={handleFlipV} title="Flip Vertical">⇅</button>
         <div className="tb-divider" />
         <button
+          className={`tb-btn ${snapEnabled ? 'btn-active' : ''}`}
+          onClick={() => setSnapEnabled(!snapEnabled)}
+          title="Snap to grid"
+        >Snap</button>
+        <button
           className={`tb-btn ${scrimmageVisible ? 'btn-active' : ''}`}
           onClick={toggleScrimmage}
           title="Line of Scrimmage"
@@ -100,7 +115,7 @@ export default function Toolbar() {
         <button className="tb-btn" onClick={handleExport} title="Export playbook">⬇</button>
         <button className="tb-btn" onClick={handleImport} title="Import playbook">⬆</button>
         <div className="tb-divider" />
-        <button className="tb-btn btn-danger" onClick={clearElements} title="Clear play">✕</button>
+        <button className="tb-btn btn-danger" onClick={clearElements} title="Clear play">✕ Clear</button>
         <div className="tb-divider" />
         <button
           className={`tb-btn btn-present ${presentMode ? 'btn-present-active' : ''}`}

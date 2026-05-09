@@ -384,14 +384,32 @@ export default function FieldCanvas() {
         <Layer>
           {elements.filter(el => el.type === 'player').map(el => {
             const isSelected = !presentMode && el.id === selectedId;
+            const shape = el.style?.shape || 'circle';
+            const fill   = el.style?.fill   || '#e94560';
+            const stroke = isSelected ? '#ffff00' : (el.style?.stroke || '#ffffff');
+            const sw     = isSelected ? 3 : 2;
+            const r      = FIELD_CONFIG.PLAYER_RADIUS;
+            if (shape === 'square') {
+              return (
+                <Rect
+                  key={el.id}
+                  x={el.x - r} y={el.y - r}
+                  width={r * 2} height={r * 2}
+                  fill={fill}
+                  stroke={stroke}
+                  strokeWidth={sw}
+                  cornerRadius={3}
+                />
+              );
+            }
             return (
               <Circle
                 key={el.id}
                 x={el.x} y={el.y}
-                radius={FIELD_CONFIG.PLAYER_RADIUS}
-                fill={el.style?.fill || '#e94560'}
-                stroke={isSelected ? '#ffff00' : (el.style?.stroke || '#ffffff')}
-                strokeWidth={isSelected ? 3 : 2}
+                radius={r}
+                fill={fill}
+                stroke={stroke}
+                strokeWidth={sw}
               />
             );
           })}

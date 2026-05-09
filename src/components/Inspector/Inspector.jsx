@@ -62,7 +62,6 @@ export default function Inspector() {
             >
               <option value="circle">Circle</option>
               <option value="square">Square</option>
-              <option value="triangle">Triangle</option>
             </select>
           </label>
         </div>
