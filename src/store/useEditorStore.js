@@ -250,7 +250,7 @@ const useEditorStore = create((set, get) => ({
   clearSelection: () => set({ selectedId: null }),
 
   snapEnabled: true,
-  snapIncrement: 15.33,
+  snapIncrement: 19.28,
   setSnapEnabled: (val) => set({ snapEnabled: val }),
   setSnapIncrement: (val) => set({ snapIncrement: val }),
 

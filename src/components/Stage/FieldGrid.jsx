@@ -1,175 +1,141 @@
-import { Layer, Rect, Line, Text } from 'react-konva';
+import { Layer, Rect, Line } from 'react-konva';
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
 
 const {
   FIELD_LEFT, FIELD_RIGHT, FIELD_TOP, FIELD_BOTTOM,
-  FIELD_WIDTH, END_ZONE_PX,
-  HASH_NFL_LEFT, HASH_NFL_RIGHT,
-  PX_PER_YARD,
+  FIELD_WIDTH, FIELD_HEIGHT,
+  LOS_Y, PX_PER_YARD,
+  HASH_LEFT_X, HASH_RIGHT_X,
+  YARDS_ABOVE_LOS, YARDS_BELOW_LOS,
 } = FIELD_CONFIG;
 
-// Convert yard number (0=goal line, 50=midfield) to Y pixel position
-// End zone is at top, 50yd line is at bottom
-function yardToY(yard) {
-  return FIELD_TOP + END_ZONE_PX + yard * PX_PER_YARD;
-}
-
 export default function FieldGrid() {
-  const yardLines   = [];
-  const yardNumbers = [];
-  const hashMarks   = [];
+  const yardLines = [];
+  const hashMarks = [];
+  const bands     = [];
 
-  // Draw yard lines every 5 yards from goal line (0) to 50
-  for (let yard = 0; yard <= 50; yard += 5) {
-    const y = yardToY(yard);
-    const isGoalLine = yard === 0;
-    const isMidfield = yard === 50;
+  // Draw yard lines every 5 yards
+  // From -YARDS_BELOW_LOS to +YARDS_ABOVE_LOS
+  const totalYards = YARDS_ABOVE_LOS + YARDS_BELOW_LOS;
+
+  for (let yard = -YARDS_BELOW_LOS; yard <= YARDS_ABOVE_LOS; yard += 5) {
+    const y = LOS_Y - (yard * PX_PER_YARD);
+    const isLOS = yard === 0;
+
+    // Skip LOS — rendered separately as scrimmage line
+    if (isLOS) continue;
 
     yardLines.push(
       <Line
         key={'yl_' + yard}
         points={[FIELD_LEFT, y, FIELD_RIGHT, y]}
-        stroke={isGoalLine ? '#ffffff' : isMidfield ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)'}
-        strokeWidth={isGoalLine ? 3 : isMidfield ? 2 : 1}
+        stroke="rgba(255,255,255,0.15)"
+        strokeWidth={1}
       />
     );
-
-    // Yard numbers on left and right sidelines (10, 20, 30, 40, 50)
-    if (yard > 0 && yard % 10 === 0) {
-      const label = String(yard);
-
-      // Left side number
-      yardNumbers.push(
-        <Text
-          key={'yn_left_' + yard}
-          x={FIELD_LEFT + 6}
-          y={y - 10}
-          text={label}
-          fontSize={20}
-          fill="rgba(255,255,255,0.5)"
-        />
-      );
-
-      // Right side number
-      yardNumbers.push(
-        <Text
-          key={'yn_right_' + yard}
-          x={FIELD_RIGHT - 36}
-          y={y - 10}
-          text={label}
-          fontSize={20}
-          fill="rgba(255,255,255,0.5)"
-        />
-      );
-    }
-
-    // Hash marks — short horizontal ticks on the hash columns
-    if (yard > 0 && yard < 50) {
-      const hashLen = 10;
-      const hashX1 = FIELD_LEFT + HASH_NFL_LEFT;
-      const hashX2 = FIELD_LEFT + HASH_NFL_RIGHT;
-
-      hashMarks.push(
-        <Line
-          key={'hl_' + yard}
-          points={[hashX1 - hashLen, y, hashX1 + hashLen, y]}
-          stroke="rgba(255,255,255,0.4)"
-          strokeWidth={1}
-        />
-      );
-      hashMarks.push(
-        <Line
-          key={'hr_' + yard}
-          points={[hashX2 - hashLen, y, hashX2 + hashLen, y]}
-          stroke="rgba(255,255,255,0.4)"
-          strokeWidth={1}
-        />
-      );
-    }
   }
 
-  // Alternating yard bands for mowed grass effect (every 10 yards)
-  const bands = [];
-  for (let yard = 0; yard < 50; yard += 10) {
-    const y1 = yardToY(yard);
-    const y2 = yardToY(yard + 10);
-    if (yard % 20 === 0) {
+  // Alternating 10-yard bands for mowed grass effect
+  for (let yard = -YARDS_BELOW_LOS; yard < YARDS_ABOVE_LOS; yard += 10) {
+    const y1 = LOS_Y - (yard * PX_PER_YARD);
+    const y2 = LOS_Y - ((yard + 10) * PX_PER_YARD);
+    const top    = Math.min(y1, y2);
+    const height = Math.abs(y2 - y1);
+
+    if (Math.floor((yard + YARDS_BELOW_LOS) / 10) % 2 === 0) {
       bands.push(
         <Rect
           key={'band_' + yard}
           x={FIELD_LEFT}
-          y={y1}
+          y={top}
           width={FIELD_WIDTH}
-          height={y2 - y1}
-          fill="rgba(0,0,0,0.06)"
+          height={height}
+          fill="rgba(0,0,0,0.07)"
         />
       );
     }
   }
 
+  // Hash marks — short vertical ticks at hash columns, every 5 yards
+  for (let yard = -YARDS_BELOW_LOS; yard <= YARDS_ABOVE_LOS; yard += 5) {
+    const y = LOS_Y - (yard * PX_PER_YARD);
+    const hashLen = 12;
+
+    hashMarks.push(
+      <Line
+        key={'hl_' + yard}
+        points={[HASH_LEFT_X, y - hashLen, HASH_LEFT_X, y + hashLen]}
+        stroke="rgba(255,255,255,0.25)"
+        strokeWidth={1}
+      />
+    );
+    hashMarks.push(
+      <Line
+        key={'hr_' + yard}
+        points={[HASH_RIGHT_X, y - hashLen, HASH_RIGHT_X, y + hashLen]}
+        stroke="rgba(255,255,255,0.25)"
+        strokeWidth={1}
+      />
+    );
+  }
+
+  // Sideline hash columns — very faint vertical lines
+  const hashColumnLines = [
+    <Line
+      key="hash_col_left"
+      points={[HASH_LEFT_X, FIELD_TOP, HASH_LEFT_X, FIELD_BOTTOM]}
+      stroke="rgba(255,255,255,0.06)"
+      strokeWidth={1}
+    />,
+    <Line
+      key="hash_col_right"
+      points={[HASH_RIGHT_X, FIELD_TOP, HASH_RIGHT_X, FIELD_BOTTOM]}
+      stroke="rgba(255,255,255,0.06)"
+      strokeWidth={1}
+    />,
+  ];
+
+  // Left and right sidelines
+  const sidelines = [
+    <Line
+      key="sideline_left"
+      points={[FIELD_LEFT + 4, FIELD_TOP, FIELD_LEFT + 4, FIELD_BOTTOM]}
+      stroke="rgba(255,255,255,0.4)"
+      strokeWidth={2}
+    />,
+    <Line
+      key="sideline_right"
+      points={[FIELD_RIGHT - 4, FIELD_TOP, FIELD_RIGHT - 4, FIELD_BOTTOM]}
+      stroke="rgba(255,255,255,0.4)"
+      strokeWidth={2}
+    />,
+  ];
+
   return (
     <Layer>
-      {/* Main field */}
+      {/* Field background */}
       <Rect
         x={FIELD_LEFT}
         y={FIELD_TOP}
         width={FIELD_WIDTH}
-        height={FIELD_BOTTOM - FIELD_TOP}
+        height={FIELD_HEIGHT}
         fill="#2d5a27"
       />
 
-      {/* End zone — darker green at top */}
-      <Rect
-        x={FIELD_LEFT}
-        y={FIELD_TOP}
-        width={FIELD_WIDTH}
-        height={END_ZONE_PX}
-        fill="#1e3d1a"
-      />
-
-      {/* Alternating grass bands */}
+      {/* Alternating bands */}
       {bands}
 
       {/* Yard lines */}
       {yardLines}
 
+      {/* Hash columns */}
+      {hashColumnLines}
+
       {/* Hash marks */}
       {hashMarks}
 
-      {/* Hash columns — faint vertical lines showing hash positions */}
-      <Line
-        points={[FIELD_LEFT + HASH_NFL_LEFT, FIELD_TOP + END_ZONE_PX, FIELD_LEFT + HASH_NFL_LEFT, FIELD_BOTTOM]}
-        stroke="rgba(255,255,255,0.08)"
-        strokeWidth={1}
-      />
-      <Line
-        points={[FIELD_LEFT + HASH_NFL_RIGHT, FIELD_TOP + END_ZONE_PX, FIELD_LEFT + HASH_NFL_RIGHT, FIELD_BOTTOM]}
-        stroke="rgba(255,255,255,0.08)"
-        strokeWidth={1}
-      />
-
-      {/* Field border */}
-      <Rect
-        x={FIELD_LEFT}
-        y={FIELD_TOP}
-        width={FIELD_WIDTH}
-        height={FIELD_BOTTOM - FIELD_TOP}
-        fill="transparent"
-        stroke="#ffffff"
-        strokeWidth={2}
-      />
-
-      {/* Goal line label */}
-      <Text
-        x={FIELD_LEFT + FIELD_WIDTH / 2 - 30}
-        y={FIELD_TOP + END_ZONE_PX + 6}
-        text="GOAL LINE"
-        fontSize={14}
-        fill="rgba(255,255,255,0.4)"
-      />
-
-      {/* Yard numbers */}
-      {yardNumbers}
+      {/* Sidelines */}
+      {sidelines}
     </Layer>
   );
 }

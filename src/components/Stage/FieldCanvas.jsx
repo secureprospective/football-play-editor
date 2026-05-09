@@ -73,17 +73,10 @@ export default function FieldCanvas() {
     };
   }, [finishDrawing, cancelDrawing, drawingPath]);
 
-  // Uniform scale maintaining aspect ratio
-  const designRatio     = FIELD_CONFIG.STAGE_WIDTH / FIELD_CONFIG.STAGE_HEIGHT;
-  const containerRatio  = stageSize.width / stageSize.height;
-  let scaleX, scaleY;
-  if (containerRatio > designRatio) {
-    scaleY = stageSize.height / FIELD_CONFIG.STAGE_HEIGHT;
-    scaleX = scaleY;
-  } else {
-    scaleX = stageSize.width / FIELD_CONFIG.STAGE_WIDTH;
-    scaleY = scaleX;
-  }
+  // Stretch to fill — field always fills 100% of container
+  // scaleX and scaleY are independent so there is no letterboxing
+  const scaleX = stageSize.width  / FIELD_CONFIG.STAGE_WIDTH;
+  const scaleY = stageSize.height / FIELD_CONFIG.STAGE_HEIGHT;
 
   function getScaledPos() {
     const pos = stageRef.current.getPointerPosition();
