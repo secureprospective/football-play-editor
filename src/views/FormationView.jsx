@@ -2,12 +2,92 @@ import { useState } from 'react';
 import './Views.css';
 import useEditorStore from '../store/useEditorStore';
 import { VIEW_MODES } from '../constants/toolModes';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  rectSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+function FormationCard({ fm, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDown, onDuplicate, onDeleteArm, onDeleteConfirm, onDeleteCancel, deletingId, renamingId, renameValue, setRenameValue, setRenamingId }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: fm.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`card ${deletingId === fm.id ? 'deleting' : ''} ${isDragging ? 'dragging' : ''}`}
+      onClick={() => onOpen(fm)}
+    >
+      <div className="card-thumb card-thumb-formation">
+        <span className="card-thumb-icon">🏈</span>
+      </div>
+      <div className="card-info">
+        <div className="card-name">{fm.name}</div>
+        <div className="card-meta">{fm.plays.length} play{fm.plays.length !== 1 ? 's' : ''}</div>
+      </div>
+
+      {renamingId === fm.id ? (
+        <div className="inline-input-row" style={{ borderTop: '1px solid #0f3460', borderBottom: 'none', padding: '8px' }}>
+          <input
+            className="inline-input"
+            value={renameValue}
+            autoFocus
+            onChange={e => setRenameValue(e.target.value)}
+            onKeyDown={e => onRenameKeyDown(e, fm)}
+            onClick={e => e.stopPropagation()}
+          />
+          <button className="inline-save-btn" onClick={e => onRenameConfirm(e, fm)}>Save</button>
+          <button className="inline-cancel-btn" onClick={e => { e.stopPropagation(); setRenamingId(null); setRenameValue(''); }}>✕</button>
+        </div>
+      ) : (
+        <div className="card-actions">
+          <div
+            className="card-drag-handle"
+            {...attributes}
+            {...listeners}
+            onClick={e => e.stopPropagation()}
+            title="Drag to reorder"
+          >⠿</div>
+          <div className="card-action-btns">
+            <button className="card-action-btn" onClick={e => onRenameArm(e, fm)}>Rename</button>
+            <button className="card-action-btn" onClick={e => onDuplicate(e, fm)}>Duplicate</button>
+            <button className="card-action-btn danger" onClick={e => onDeleteArm(e, fm.id)}>Delete</button>
+          </div>
+        </div>
+      )}
+
+      {deletingId === fm.id && (
+        <div className="card-delete-confirm">
+          <span>Delete formation?</span>
+          <button className="card-delete-cancel-btn" onClick={onDeleteCancel}>Cancel</button>
+          <button className="card-delete-confirm-btn" onClick={e => onDeleteConfirm(e, fm.id)}>Delete</button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function FormationView() {
   const {
     getActivePlaybook, activePlaybookId,
     navigateTo, goBack,
-    addFormation, deleteFormation, updateFormation,
+    addFormation, deleteFormation, updateFormation, duplicateFormation,
+    reorderFormations,
   } = useEditorStore();
 
   const playbook = getActivePlaybook();
@@ -18,14 +98,22 @@ export default function FormationView() {
   const [renamingId, setRenamingId]   = useState(null);
   const [renameValue, setRenameValue] = useState('');
 
-  if (!playbook) return <div className="view-container"><p>No playbook selected.</p></div>;
+  const formations = playbook?.formations || [];
 
-  const formations = playbook.formations;
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor,   { activationConstraint: { delay: 200, tolerance: 8 } }),
+  );
 
-  function handleAdd() {
-    setNewName('');
-    setShowInput(true);
+  function handleDragEnd(event) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = formations.findIndex(fm => fm.id === active.id);
+    const newIndex = formations.findIndex(fm => fm.id === over.id);
+    reorderFormations(activePlaybookId, arrayMove(formations, oldIndex, newIndex));
   }
+
+  function handleAdd() { setNewName(''); setShowInput(true); }
 
   function handleSave() {
     if (!newName.trim()) return;
@@ -54,9 +142,7 @@ export default function FormationView() {
 
   function handleRenameConfirm(e, fm) {
     e.stopPropagation();
-    if (renameValue.trim()) {
-      updateFormation(activePlaybookId, fm.id, { name: renameValue.trim() });
-    }
+    if (renameValue.trim()) updateFormation(activePlaybookId, fm.id, { name: renameValue.trim() });
     setRenamingId(null);
     setRenameValue('');
   }
@@ -64,6 +150,11 @@ export default function FormationView() {
   function handleRenameKeyDown(e, fm) {
     if (e.key === 'Enter')  handleRenameConfirm(e, fm);
     if (e.key === 'Escape') { setRenamingId(null); setRenameValue(''); }
+  }
+
+  function handleDuplicate(e, fm) {
+    e.stopPropagation();
+    duplicateFormation(activePlaybookId, fm.id);
   }
 
   function handleDeleteArm(e, id) {
@@ -106,54 +197,34 @@ export default function FormationView() {
         </div>
       )}
 
-      <div className="card-grid">
-        {formations.map(fm => (
-          <div
-            key={fm.id}
-            className={`card ${deletingId === fm.id ? 'deleting' : ''}`}
-            onClick={() => handleOpen(fm)}
-          >
-            <div className="card-thumb card-thumb-formation">
-              <span className="card-thumb-icon">🏈</span>
-            </div>
-            <div className="card-info">
-              <div className="card-name">{fm.name}</div>
-              <div className="card-meta">{fm.plays.length} play{fm.plays.length !== 1 ? 's' : ''}</div>
-            </div>
-
-            {renamingId === fm.id ? (
-              <div className="inline-input-row" style={{ borderTop: '1px solid #0f3460', borderBottom: 'none', padding: '8px' }}>
-                <input
-                  className="inline-input"
-                  value={renameValue}
-                  autoFocus
-                  onChange={e => setRenameValue(e.target.value)}
-                  onKeyDown={e => handleRenameKeyDown(e, fm)}
-                  onClick={e => e.stopPropagation()}
-                />
-                <button className="inline-save-btn" onClick={e => handleRenameConfirm(e, fm)}>Save</button>
-                <button className="inline-cancel-btn" onClick={e => { e.stopPropagation(); setRenamingId(null); }}>✕</button>
-              </div>
-            ) : (
-              <div className="card-actions">
-                <button className="card-action-btn" onClick={e => handleRenameArm(e, fm)}>Rename</button>
-                <button className="card-action-btn danger" onClick={e => handleDeleteArm(e, fm.id)}>Delete</button>
-              </div>
-            )}
-
-            {deletingId === fm.id && (
-              <div className="card-delete-confirm">
-                <span>Delete formation?</span>
-                <button className="card-delete-cancel-btn" onClick={handleDeleteCancel}>Cancel</button>
-                <button className="card-delete-confirm-btn" onClick={e => handleDeleteConfirm(e, fm.id)}>Delete</button>
-              </div>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={formations.map(fm => fm.id)} strategy={rectSortingStrategy}>
+          <div className="card-grid">
+            {formations.map(fm => (
+              <FormationCard
+                key={fm.id}
+                fm={fm}
+                onOpen={handleOpen}
+                onRenameArm={handleRenameArm}
+                onRenameConfirm={handleRenameConfirm}
+                onRenameKeyDown={handleRenameKeyDown}
+                onDuplicate={handleDuplicate}
+                onDeleteArm={handleDeleteArm}
+                onDeleteConfirm={handleDeleteConfirm}
+                onDeleteCancel={handleDeleteCancel}
+                deletingId={deletingId}
+                renamingId={renamingId}
+                renameValue={renameValue}
+                setRenameValue={setRenameValue}
+                setRenamingId={setRenamingId}
+              />
+            ))}
+            {formations.length === 0 && (
+              <div className="view-empty">No formations yet. Tap + New Formation to start.</div>
             )}
           </div>
-        ))}
-        {formations.length === 0 && (
-          <div className="view-empty">No formations yet. Tap + New Formation to start.</div>
-        )}
-      </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }

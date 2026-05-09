@@ -282,6 +282,60 @@ const useEditorStore = create((set, get) => ({
     return copy;
   },
 
+
+  duplicateFormation: (playbookId, formationId) => {
+    const state = get();
+    const pb = state.playbooks.find(p => p.id === playbookId);
+    const fm = pb?.formations.find(f => f.id === formationId);
+    if (!fm) return;
+    const copy = {
+      id: genId('fm'),
+      name: fm.name + ' (copy)',
+      plays: [createPlay('Play 1')],
+    };
+    set(state => ({
+      playbooks: state.playbooks.map(pb =>
+        pb.id === playbookId
+          ? { ...pb, formations: [...pb.formations, copy] }
+          : pb
+      )
+    }));
+    get()._persist();
+    return copy;
+  },
+
+  reorderPlaybooks: (newOrder) => {
+    set({ playbooks: newOrder });
+    get()._persist();
+  },
+
+  reorderFormations: (playbookId, newOrder) => {
+    set(state => ({
+      playbooks: state.playbooks.map(pb =>
+        pb.id === playbookId
+          ? { ...pb, formations: newOrder }
+          : pb
+      )
+    }));
+    get()._persist();
+  },
+
+  reorderPlays: (playbookId, formationId, newOrder) => {
+    set(state => ({
+      playbooks: state.playbooks.map(pb =>
+        pb.id === playbookId ? {
+          ...pb,
+          formations: pb.formations.map(fm =>
+            fm.id === formationId
+              ? { ...fm, plays: newOrder }
+              : fm
+          )
+        } : pb
+      )
+    }));
+    get()._persist();
+  },
+
   // --- Element Operations (operate on active play) ---
   activeTool: DEFAULT_TOOL,
   setActiveTool: (tool) => set({ activeTool: tool }),

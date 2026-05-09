@@ -46,6 +46,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: manipulation;
 }
 
 .view-back-btn:hover {
@@ -67,6 +68,7 @@
   align-items: center;
   justify-content: center;
   white-space: nowrap;
+  touch-action: manipulation;
 }
 
 .view-add-btn:hover {
@@ -117,6 +119,7 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  touch-action: manipulation;
 }
 
 .inline-save-btn:hover {
@@ -131,6 +134,7 @@
   padding: 7px 12px;
   font-size: 14px;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .inline-cancel-btn:hover {
@@ -154,6 +158,7 @@
   }
 }
 
+/* Card */
 .card {
   background: #16213e;
   border: 1px solid #0f3460;
@@ -164,6 +169,7 @@
   flex-direction: column;
   transition: border-color 0.15s, transform 0.1s;
   min-height: 160px;
+  position: relative;
 }
 
 .card:hover {
@@ -179,6 +185,14 @@
   border-color: #e94560;
   background: #2a0a14;
   transform: none;
+}
+
+/* Drag overlay — card being dragged */
+.card.dragging {
+  opacity: 0.4;
+  border-color: #4a7acc;
+  transform: none;
+  cursor: grabbing;
 }
 
 .card-thumb {
@@ -230,14 +244,49 @@
   font-size: 11px;
 }
 
-/* Card action buttons — always visible at bottom of card */
+/* Card action bar — drag handle + action buttons */
 .card-actions {
   display: flex;
-  gap: 4px;
-  padding: 6px 8px;
+  align-items: stretch;
+  gap: 0;
   border-top: 1px solid #0f3460;
   background: #12193a;
   flex-shrink: 0;
+}
+
+/* Drag handle — left side of actions bar */
+.card-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  min-height: 44px;
+  color: #303050;
+  font-size: 14px;
+  cursor: grab;
+  flex-shrink: 0;
+  border-right: 1px solid #0f3460;
+  touch-action: none;
+  transition: color 0.15s, background 0.15s;
+  user-select: none;
+}
+
+.card-drag-handle:hover {
+  color: #6080a0;
+  background: #0f2040;
+}
+
+.card-drag-handle:active {
+  cursor: grabbing;
+  color: #4a7acc;
+}
+
+/* Action buttons — fill remaining space */
+.card-action-btns {
+  display: flex;
+  flex: 1;
+  gap: 4px;
+  padding: 6px 8px;
 }
 
 .card-action-btn {
@@ -247,10 +296,12 @@
   border-radius: 5px;
   color: #606080;
   font-size: 11px;
-  padding: 5px 0;
+  padding: 10px 0;
   cursor: pointer;
   font-family: inherit;
   transition: color 0.15s, border-color 0.15s;
+  min-height: 44px;
+  touch-action: manipulation;
 }
 
 .card-action-btn:hover {
@@ -268,7 +319,7 @@
   border-color: #e94560;
 }
 
-/* Delete confirmation — appears at bottom of card */
+/* Delete confirmation */
 .card-delete-confirm {
   display: flex;
   align-items: center;
@@ -277,6 +328,7 @@
   background: #3a0a14;
   border-top: 1px solid #e94560;
   flex-shrink: 0;
+  min-height: 44px;
 }
 
 .card-delete-confirm span {
@@ -290,10 +342,12 @@
   color: #ffffff;
   border: none;
   border-radius: 5px;
-  padding: 4px 10px;
+  padding: 8px 14px;
   font-size: 12px;
   cursor: pointer;
   font-family: inherit;
+  min-height: 44px;
+  touch-action: manipulation;
 }
 
 .card-delete-confirm-btn:hover {
@@ -305,10 +359,12 @@
   color: #606080;
   border: 1px solid #303050;
   border-radius: 5px;
-  padding: 4px 8px;
+  padding: 8px 12px;
   font-size: 12px;
   cursor: pointer;
   font-family: inherit;
+  min-height: 44px;
+  touch-action: manipulation;
 }
 
 .card-delete-cancel-btn:hover {
