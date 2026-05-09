@@ -1,0 +1,9 @@
+export const TOOL_MODES = {
+  SELECT:      'SELECT',
+  ADD_PLAYER:  'ADD_PLAYER',
+  ADD_LINE:    'ADD_LINE',
+  ADD_TEXT:    'ADD_TEXT',
+  EDIT_NODES:  'EDIT_NODES',
+};
+
+export const DEFAULT_TOOL = TOOL_MODES.SELECT;
