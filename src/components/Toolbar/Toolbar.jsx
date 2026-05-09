@@ -6,8 +6,9 @@ export default function Toolbar() {
   const {
     undo, redo, canUndo, canRedo,
     clearElements,
-    elements, updateElement, addElement,
+    elements, updateElement,
     exportPlay, importPlay,
+    drawingPath, finishDrawing, cancelDrawing,
   } = useEditorStore();
 
   function handleFlipH() {
@@ -52,16 +53,28 @@ export default function Toolbar() {
     <div className="toolbar">
       <span className="toolbar-title">Football Play Editor</span>
       <div className="toolbar-actions">
-        <button onClick={undo} disabled={!canUndo()} title="Undo">↩ Undo</button>
-        <button onClick={redo} disabled={!canRedo()} title="Redo">↪ Redo</button>
-        <div className="toolbar-divider" />
-        <button onClick={handleFlipH} title="Flip Horizontal">⇄ Flip H</button>
-        <button onClick={handleFlipV} title="Flip Vertical">⇅ Flip V</button>
-        <div className="toolbar-divider" />
-        <button onClick={handleExport} title="Export play as JSON">⬇ Export</button>
-        <button onClick={handleImport} title="Import play from JSON">⬆ Import</button>
-        <div className="toolbar-divider" />
-        <button onClick={clearElements} className="btn-danger" title="Clear all elements">✕ Clear</button>
+
+        {drawingPath ? (
+          <>
+            <span className="toolbar-drawing-hint">Drawing route — click to add points</span>
+            <button onClick={finishDrawing} className="btn-success" title="Finish route (Enter)">✓ Finish Route</button>
+            <button onClick={cancelDrawing} className="btn-danger" title="Cancel route (Escape)">✕ Cancel</button>
+          </>
+        ) : (
+          <>
+            <button onClick={undo} disabled={!canUndo()} title="Undo">↩ Undo</button>
+            <button onClick={redo} disabled={!canRedo()} title="Redo">↪ Redo</button>
+            <div className="toolbar-divider" />
+            <button onClick={handleFlipH} title="Flip Horizontal">⇄ Flip H</button>
+            <button onClick={handleFlipV} title="Flip Vertical">⇅ Flip V</button>
+            <div className="toolbar-divider" />
+            <button onClick={handleExport} title="Export play as JSON">⬇ Export</button>
+            <button onClick={handleImport} title="Import play from JSON">⬆ Import</button>
+            <div className="toolbar-divider" />
+            <button onClick={clearElements} className="btn-danger" title="Clear all elements">✕ Clear</button>
+          </>
+        )}
+
       </div>
     </div>
   );

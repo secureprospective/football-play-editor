@@ -52,9 +52,26 @@
   background: #7a1530;
 }
 
+.toolbar button.btn-success {
+  background: #1a4a2a;
+  border-color: #2a7a4a;
+  color: #90ffb0;
+}
+
+.toolbar button.btn-success:hover {
+  background: #2a7a4a;
+}
+
 .toolbar-divider {
   width: 1px;
   height: 24px;
   background: #0f3460;
   margin: 0 4px;
+}
+
+.toolbar-drawing-hint {
+  font-size: 12px;
+  color: #e94560;
+  font-style: italic;
+  margin-right: 8px;
 }

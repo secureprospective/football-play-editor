@@ -19,6 +19,23 @@ const useEditorStore = create((set, get) => ({
   setSnapEnabled: (val) => set({ snapEnabled: val }),
   setSnapIncrement: (val) => set({ snapIncrement: val }),
 
+  // --- Drawing State (moved from FieldCanvas so Toolbar can see it) ---
+  drawingPath: null,
+  setDrawingPath: (path) => set({ drawingPath: path }),
+
+  finishDrawing: () => {
+    const { drawingPath, addElement, setSelectedId } = get();
+    if (!drawingPath) return;
+    if (drawingPath.points.length >= 2) {
+      addElement(drawingPath);
+      setSelectedId(drawingPath.id);
+    }
+    set({ drawingPath: null });
+  },
+
+  cancelDrawing: () => set({ drawingPath: null }),
+
+  // --- History ---
   history: [],
   historyIndex: -1,
 
@@ -81,7 +98,7 @@ const useEditorStore = create((set, get) => ({
   clearElements: () => {
     const { pushHistory } = get();
     pushHistory();
-    set({ elements: [], selectedId: null });
+    set({ elements: [], selectedId: null, drawingPath: null });
   },
 
   exportPlay: () => {
@@ -95,7 +112,7 @@ const useEditorStore = create((set, get) => ({
       if (!data.elements) throw new Error('Invalid play file');
       const { pushHistory } = get();
       pushHistory();
-      set({ elements: data.elements, selectedId: null });
+      set({ elements: data.elements, selectedId: null, drawingPath: null });
       return { success: true };
     } catch (e) {
       return { success: false, error: e.message };

@@ -18,18 +18,18 @@ export default function FieldCanvas() {
     activeTool,
     snapEnabled, snapIncrement,
     pushHistory,
+    drawingPath, setDrawingPath, finishDrawing, cancelDrawing,
   } = useEditorStore();
 
-  const stageRef      = useRef(null);
-  const containerRef  = useRef(null);
-  const [stageSize, setStageSize]     = useState({ width: 800, height: 450 });
-  const [drawingPath, setDrawingPath] = useState(null);
-  const [mousePos, setMousePos]       = useState(null);
+  const stageRef     = useRef(null);
+  const containerRef = useRef(null);
+  const [stageSize, setStageSize] = useState({ width: 800, height: 450 });
+  const [mousePos, setMousePos]   = useState(null);
   const dragStartRef  = useRef(null);
   const isDraggingRef = useRef(false);
   const dragTargetRef = useRef(null);
 
-  // Resize stage to fit container using ResizeObserver
+  // Resize observer
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -42,25 +42,42 @@ export default function FieldCanvas() {
     return () => observer.disconnect();
   }, []);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        finishDrawing();
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        cancelDrawing();
+      }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && !drawingPath) {
+        const { selectedId, deleteElement } = useEditorStore.getState();
+        if (selectedId) deleteElement(selectedId);
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [finishDrawing, cancelDrawing, drawingPath]);
+
   const scaleX = stageSize.width  / FIELD_CONFIG.STAGE_WIDTH;
   const scaleY = stageSize.height / FIELD_CONFIG.STAGE_HEIGHT;
 
-  function getScaledPos(e) {
+  function getScaledPos() {
     const pos = stageRef.current.getPointerPosition();
     return { x: pos.x / scaleX, y: pos.y / scaleY };
   }
 
-  // --- Mouse Handlers ---
-
   function handleStageMouseDown(e) {
-    const pos = getScaledPos(e);
-    dragStartRef.current    = pos;
-    isDraggingRef.current   = false;
+    const pos = getScaledPos();
+    dragStartRef.current  = pos;
+    isDraggingRef.current = false;
 
     const editNodesMode = activeTool === TOOL_MODES.EDIT_NODES;
     const hit = masterHitTest(pos.x, pos.y, elements, selectedId, editNodesMode);
 
-    // ADD_PLAYER
     if (activeTool === TOOL_MODES.ADD_PLAYER) {
       const snapped = snapPoint(pos, snapIncrement, snapEnabled);
       const newPlayer = {
@@ -75,24 +92,21 @@ export default function FieldCanvas() {
       return;
     }
 
-    // ADD_LINE — click to add points
     if (activeTool === TOOL_MODES.ADD_LINE) {
       const snapped = snapPoint(pos, snapIncrement, snapEnabled);
       if (!drawingPath) {
-        const newPath = {
+        setDrawingPath({
           id: generateId(), type: 'path',
           points: [snapped],
           style: { stroke: '#ffffff', thickness: 3, dash: false, endArrow: true },
           groupId: null,
-        };
-        setDrawingPath(newPath);
+        });
       } else {
-        setDrawingPath(prev => ({ ...prev, points: [...prev.points, snapped] }));
+        setDrawingPath({ ...drawingPath, points: [...drawingPath.points, snapped] });
       }
       return;
     }
 
-    // SELECT / EDIT_NODES — hit test then drag
     if (hit.type === 'handle') {
       setSelectedId(hit.elementId);
       dragTargetRef.current = hit;
@@ -108,8 +122,8 @@ export default function FieldCanvas() {
     dragTargetRef.current = null;
   }
 
-  function handleStageMouseMove(e) {
-    const pos = getScaledPos(e);
+  function handleStageMouseMove() {
+    const pos = getScaledPos();
     setMousePos(pos);
 
     if (!dragStartRef.current) return;
@@ -122,7 +136,6 @@ export default function FieldCanvas() {
     if (isDraggingRef.current && dragTargetRef.current) {
       const snapped = snapPoint(pos, snapIncrement, snapEnabled);
       const { type, elementId, nodeIndex } = dragTargetRef.current;
-
       if (type === 'player') {
         updateElement(elementId, { x: snapped.x, y: snapped.y });
       }
@@ -141,14 +154,10 @@ export default function FieldCanvas() {
     isDraggingRef.current = false;
   }
 
-  function handleStageDblClick() {
+  function handleStageRightClick(e) {
+    e.evt.preventDefault();
     if (activeTool === TOOL_MODES.ADD_LINE && drawingPath) {
-      if (drawingPath.points.length >= 2) {
-        addElement(drawingPath);
-        setSelectedId(drawingPath.id);
-      }
-      setDrawingPath(null);
-      setMousePos(null);
+      finishDrawing();
     }
   }
 
@@ -158,14 +167,12 @@ export default function FieldCanvas() {
     const isSelected = el.id === selectedId;
     const pts = el.points;
     if (!pts || pts.length < 2) return null;
-
     const flat = pts.flatMap(p => [p.x, p.y]);
     const dashPattern = el.style?.dash ? [10, 8] : [];
-    const color  = el.style?.stroke    || '#ffffff';
-    const thick  = el.style?.thickness || 3;
+    const color = el.style?.stroke    || '#ffffff';
+    const thick = el.style?.thickness || 3;
 
     if (el.style?.endArrow) {
-      // Draw all segments as a line, then an arrow head at the end
       return (
         <Arrow
           key={el.id}
@@ -181,7 +188,6 @@ export default function FieldCanvas() {
         />
       );
     }
-
     return (
       <Line
         key={el.id}
@@ -213,31 +219,17 @@ export default function FieldCanvas() {
     if (!drawingPath || !mousePos) return null;
     const pts = drawingPath.points;
     if (pts.length === 0) return null;
-
     const lastPt = pts[pts.length - 1];
     const previewFlat = [lastPt.x, lastPt.y, mousePos.x, mousePos.y];
     const allFlat = pts.flatMap(p => [p.x, p.y]);
-
     return (
       <>
         {pts.length >= 2 && (
-          <Line
-            points={allFlat}
-            stroke="#ffffff"
-            strokeWidth={3}
-            dash={[6, 4]}
-            lineCap="round"
-            opacity={0.7}
-          />
+          <Line points={allFlat} stroke="#ffffff" strokeWidth={3}
+            dash={[6, 4]} lineCap="round" opacity={0.7} />
         )}
-        <Line
-          points={previewFlat}
-          stroke="#e94560"
-          strokeWidth={2}
-          dash={[6, 4]}
-          lineCap="round"
-          opacity={0.8}
-        />
+        <Line points={previewFlat} stroke="#e94560" strokeWidth={2}
+          dash={[6, 4]} lineCap="round" opacity={0.8} />
         {pts.map((p, i) => (
           <Circle key={'preview_node_' + i} x={p.x} y={p.y} radius={5} fill="#e94560" />
         ))}
@@ -258,9 +250,8 @@ export default function FieldCanvas() {
         onMouseDown={handleStageMouseDown}
         onMouseMove={handleStageMouseMove}
         onMouseUp={handleStageMouseUp}
-        onDblClick={handleStageDblClick}
+        onContextMenu={handleStageRightClick}
       >
-        {/* Layer 1: Field */}
         <Layer>
           <Rect
             x={FIELD_CONFIG.FIELD_LEFT}
@@ -280,7 +271,6 @@ export default function FieldCanvas() {
           />
         </Layer>
 
-        {/* Layer 2: Routes / Paths */}
         <Layer>
           {elements.filter(el => el.type === 'path').map(el => renderPath(el))}
           {renderDrawingPreview()}
@@ -289,7 +279,6 @@ export default function FieldCanvas() {
           }
         </Layer>
 
-        {/* Layer 3: Players */}
         <Layer>
           {elements.filter(el => el.type === 'player').map(el => {
             const isSelected = el.id === selectedId;
