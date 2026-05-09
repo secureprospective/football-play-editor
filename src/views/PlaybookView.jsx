@@ -5,9 +5,12 @@ import { VIEW_MODES } from '../constants/toolModes';
 
 export default function PlaybookView() {
   const { playbooks, navigateTo, addPlaybook, deletePlaybook, updatePlaybook } = useEditorStore();
-  const [showInput, setShowInput]   = useState(false);
-  const [newName, setNewName]       = useState('');
-  const [deletingId, setDeletingId] = useState(null);
+
+  const [showInput, setShowInput]     = useState(false);
+  const [newName, setNewName]         = useState('');
+  const [deletingId, setDeletingId]   = useState(null);
+  const [renamingId, setRenamingId]   = useState(null);
+  const [renameValue, setRenameValue] = useState('');
 
   function handleAdd() {
     setNewName('');
@@ -22,24 +25,41 @@ export default function PlaybookView() {
     navigateTo(VIEW_MODES.FORMATION, { playbookId: pb.id });
   }
 
-  function handleKeyDown(e) {
+  function handleAddKeyDown(e) {
     if (e.key === 'Enter')  handleSave();
     if (e.key === 'Escape') { setShowInput(false); setNewName(''); }
   }
 
   function handleOpen(pb) {
+    if (deletingId === pb.id || renamingId === pb.id) return;
     navigateTo(VIEW_MODES.FORMATION, { playbookId: pb.id });
   }
 
-  function handleRename(e, pb) {
+  function handleRenameArm(e, pb) {
     e.stopPropagation();
-    const name = prompt('Rename playbook:', pb.name);
-    if (name?.trim()) updatePlaybook(pb.id, { name: name.trim() });
+    setRenamingId(pb.id);
+    setRenameValue(pb.name);
+    setDeletingId(null);
+  }
+
+  function handleRenameConfirm(e, pb) {
+    e.stopPropagation();
+    if (renameValue.trim()) {
+      updatePlaybook(pb.id, { name: renameValue.trim() });
+    }
+    setRenamingId(null);
+    setRenameValue('');
+  }
+
+  function handleRenameKeyDown(e, pb) {
+    if (e.key === 'Enter')  handleRenameConfirm(e, pb);
+    if (e.key === 'Escape') { setRenamingId(null); setRenameValue(''); }
   }
 
   function handleDeleteArm(e, id) {
     e.stopPropagation();
     setDeletingId(id);
+    setRenamingId(null);
   }
 
   function handleDeleteConfirm(e, id) {
@@ -68,7 +88,7 @@ export default function PlaybookView() {
             value={newName}
             autoFocus
             onChange={e => setNewName(e.target.value)}
-            onKeyDown={handleKeyDown}
+            onKeyDown={handleAddKeyDown}
           />
           <button className="inline-save-btn" onClick={handleSave}>Save</button>
           <button className="inline-cancel-btn" onClick={() => { setShowInput(false); setNewName(''); }}>Cancel</button>
@@ -80,7 +100,7 @@ export default function PlaybookView() {
           <div
             key={pb.id}
             className={`card ${deletingId === pb.id ? 'deleting' : ''}`}
-            onClick={() => deletingId !== pb.id && handleOpen(pb)}
+            onClick={() => handleOpen(pb)}
           >
             <div className="card-thumb card-thumb-playbook">
               <span className="card-thumb-icon">📋</span>
@@ -94,10 +114,27 @@ export default function PlaybookView() {
                 </div>
               )}
             </div>
-            <div className="card-actions">
-              <button className="card-action-btn" onClick={e => handleRename(e, pb)}>Rename</button>
-              <button className="card-action-btn danger" onClick={e => handleDeleteArm(e, pb.id)}>Delete</button>
-            </div>
+
+            {renamingId === pb.id ? (
+              <div className="inline-input-row" style={{ borderTop: '1px solid #0f3460', borderBottom: 'none', padding: '8px' }}>
+                <input
+                  className="inline-input"
+                  value={renameValue}
+                  autoFocus
+                  onChange={e => setRenameValue(e.target.value)}
+                  onKeyDown={e => handleRenameKeyDown(e, pb)}
+                  onClick={e => e.stopPropagation()}
+                />
+                <button className="inline-save-btn" onClick={e => handleRenameConfirm(e, pb)}>Save</button>
+                <button className="inline-cancel-btn" onClick={e => { e.stopPropagation(); setRenamingId(null); }}>✕</button>
+              </div>
+            ) : (
+              <div className="card-actions">
+                <button className="card-action-btn" onClick={e => handleRenameArm(e, pb)}>Rename</button>
+                <button className="card-action-btn danger" onClick={e => handleDeleteArm(e, pb.id)}>Delete</button>
+              </div>
+            )}
+
             {deletingId === pb.id && (
               <div className="card-delete-confirm">
                 <span>Delete playbook?</span>

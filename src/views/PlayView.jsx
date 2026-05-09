@@ -8,14 +8,17 @@ export default function PlayView() {
     getActivePlaybook, getActiveFormation,
     activePlaybookId, activeFormationId,
     navigateTo, goBack,
-    addPlay, deletePlay, updatePlay,
+    addPlay, deletePlay, updatePlay, duplicatePlay,
   } = useEditorStore();
 
-  const playbook  = getActivePlaybook();
   const formation = getActiveFormation();
-  const [showInput, setShowInput]   = useState(false);
-  const [newName, setNewName]       = useState('');
-  const [deletingId, setDeletingId] = useState(null);
+  const playbook  = getActivePlaybook();
+
+  const [showInput, setShowInput]     = useState(false);
+  const [newName, setNewName]         = useState('');
+  const [deletingId, setDeletingId]   = useState(null);
+  const [renamingId, setRenamingId]   = useState(null);
+  const [renameValue, setRenameValue] = useState('');
 
   if (!formation) return <div className="view-container"><p>No formation selected.</p></div>;
 
@@ -34,29 +37,46 @@ export default function PlayView() {
     navigateTo(VIEW_MODES.FIELD, { playId: pl.id });
   }
 
-  function handleKeyDown(e) {
+  function handleAddKeyDown(e) {
     if (e.key === 'Enter')  handleSave();
     if (e.key === 'Escape') { setShowInput(false); setNewName(''); }
   }
 
   function handleOpen(pl) {
+    if (deletingId === pl.id || renamingId === pl.id) return;
     navigateTo(VIEW_MODES.FIELD, { playId: pl.id });
   }
 
-  function handleRename(e, pl) {
+  function handleRenameArm(e, pl) {
     e.stopPropagation();
-    const name = prompt('Rename play:', pl.name);
-    if (name?.trim()) updatePlay(activePlaybookId, activeFormationId, pl.id, { name: name.trim() });
+    setRenamingId(pl.id);
+    setRenameValue(pl.name);
+    setDeletingId(null);
+  }
+
+  function handleRenameConfirm(e, pl) {
+    e.stopPropagation();
+    if (renameValue.trim()) {
+      updatePlay(activePlaybookId, activeFormationId, pl.id, { name: renameValue.trim() });
+    }
+    setRenamingId(null);
+    setRenameValue('');
+  }
+
+  function handleRenameKeyDown(e, pl) {
+    if (e.key === 'Enter')  handleRenameConfirm(e, pl);
+    if (e.key === 'Escape') { setRenamingId(null); setRenameValue(''); }
   }
 
   function handleDuplicate(e, pl) {
     e.stopPropagation();
-    // TODO: wire duplicate in next session
+    duplicatePlay(activePlaybookId, activeFormationId, pl.id);
   }
 
   function handleDeleteArm(e, id) {
     e.stopPropagation();
     setDeletingId(id);
+    setRenamingId(null);
   }
 
   function handleDeleteConfirm(e, id) {
@@ -86,7 +106,7 @@ export default function PlayView() {
             value={newName}
             autoFocus
             onChange={e => setNewName(e.target.value)}
-            onKeyDown={handleKeyDown}
+            onKeyDown={handleAddKeyDown}
           />
           <button className="inline-save-btn" onClick={handleSave}>Save</button>
           <button className="inline-cancel-btn" onClick={() => { setShowInput(false); setNewName(''); }}>Cancel</button>
@@ -98,7 +118,7 @@ export default function PlayView() {
           <div
             key={pl.id}
             className={`card ${deletingId === pl.id ? 'deleting' : ''}`}
-            onClick={() => deletingId !== pl.id && handleOpen(pl)}
+            onClick={() => handleOpen(pl)}
           >
             <div className="card-thumb card-thumb-play">
               <span className="card-thumb-icon">▶</span>
@@ -108,11 +128,28 @@ export default function PlayView() {
               <div className="card-meta">{pl.elements.length - 1} element{pl.elements.length - 1 !== 1 ? 's' : ''}</div>
               {pl.notes && <div className="card-meta">{pl.notes}</div>}
             </div>
-            <div className="card-actions">
-              <button className="card-action-btn" onClick={e => handleRename(e, pl)}>Rename</button>
-              <button className="card-action-btn" onClick={e => handleDuplicate(e, pl)}>Duplicate</button>
-              <button className="card-action-btn danger" onClick={e => handleDeleteArm(e, pl.id)}>Delete</button>
-            </div>
+
+            {renamingId === pl.id ? (
+              <div className="inline-input-row" style={{ borderTop: '1px solid #0f3460', borderBottom: 'none', padding: '8px' }}>
+                <input
+                  className="inline-input"
+                  value={renameValue}
+                  autoFocus
+                  onChange={e => setRenameValue(e.target.value)}
+                  onKeyDown={e => handleRenameKeyDown(e, pl)}
+                  onClick={e => e.stopPropagation()}
+                />
+                <button className="inline-save-btn" onClick={e => handleRenameConfirm(e, pl)}>Save</button>
+                <button className="inline-cancel-btn" onClick={e => { e.stopPropagation(); setRenamingId(null); }}>✕</button>
+              </div>
+            ) : (
+              <div className="card-actions">
+                <button className="card-action-btn" onClick={e => handleRenameArm(e, pl)}>Rename</button>
+                <button className="card-action-btn" onClick={e => handleDuplicate(e, pl)}>Duplicate</button>
+                <button className="card-action-btn danger" onClick={e => handleDeleteArm(e, pl.id)}>Delete</button>
+              </div>
+            )}
+
             {deletingId === pl.id && (
               <div className="card-delete-confirm">
                 <span>Delete play?</span>

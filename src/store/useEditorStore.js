@@ -255,6 +255,33 @@ const useEditorStore = create((set, get) => ({
     get()._persist();
   },
 
+  duplicatePlay: (playbookId, formationId, playId) => {
+    const state = get();
+    const pb = state.playbooks.find(p => p.id === playbookId);
+    const fm = pb?.formations.find(f => f.id === formationId);
+    const pl = fm?.plays.find(p => p.id === playId);
+    if (!pl) return;
+    const copy = {
+      ...JSON.parse(JSON.stringify(pl)),
+      id: genId('pl'),
+      name: pl.name + ' (copy)',
+    };
+    set(state => ({
+      playbooks: state.playbooks.map(pb =>
+        pb.id === playbookId ? {
+          ...pb,
+          formations: pb.formations.map(fm =>
+            fm.id === formationId
+              ? { ...fm, plays: [...fm.plays, copy] }
+              : fm
+          )
+        } : pb
+      )
+    }));
+    get()._persist();
+    return copy;
+  },
+
   // --- Element Operations (operate on active play) ---
   activeTool: DEFAULT_TOOL,
   setActiveTool: (tool) => set({ activeTool: tool }),
