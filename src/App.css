@@ -19,7 +19,7 @@ body {
 .app-shell {
   display: grid;
   grid-template-rows: 48px 1fr;
-  grid-template-columns: 64px 1fr 240px;
+  grid-template-columns: 64px 2fr 240px;
   grid-template-areas:
     "toolbar toolbar toolbar"
     "toolbox stage inspector";
@@ -29,5 +29,5 @@ body {
 
 .toolbar-area  { grid-area: toolbar; min-width: 0; }
 .toolbox-area  { grid-area: toolbox; min-width: 0; }
-.stage-area    { grid-area: stage;   min-width: 0; min-height: 0; }
+.stage-area    { grid-area: stage;   min-width: 0; min-height: 0; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
 .inspector-area { grid-area: inspector; min-width: 0; }

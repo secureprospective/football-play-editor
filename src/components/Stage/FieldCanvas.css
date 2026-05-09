@@ -3,5 +3,7 @@
   height: 100%;
   background: #1a1a2e;
   overflow: hidden;
-  cursor: crosshair;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
 }
