@@ -14,7 +14,8 @@ function generateId() {
 
 export default function FieldCanvas() {
   const {
-    elements, addElement, updateElement,
+    getActivePlay,
+    addElement, updateElement,
     selectedId, setSelectedId, clearSelection,
     activeTool,
     snapEnabled, snapIncrement,
@@ -22,6 +23,8 @@ export default function FieldCanvas() {
     drawingPath, setDrawingPath, finishDrawing, cancelDrawing,
     scrimmageVisible,
   } = useEditorStore();
+
+  const elements = getActivePlay()?.elements || [];
 
   const stageRef     = useRef(null);
   const containerRef = useRef(null);

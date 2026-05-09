@@ -2,7 +2,8 @@ import './Inspector.css';
 import useEditorStore from '../../store/useEditorStore';
 
 export default function Inspector() {
-  const { elements, selectedId, updateElement } = useEditorStore();
+  const { getActivePlay, selectedId, updateElement } = useEditorStore();
+  const elements = getActivePlay()?.elements || [];
   const selected = elements.find(el => el.id === selectedId);
 
   if (!selected) {
