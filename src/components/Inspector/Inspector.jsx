@@ -1,10 +1,38 @@
 import './Inspector.css';
 import useEditorStore from '../../store/useEditorStore';
 
+const THEME_PALETTES = {
+  'theme-sun-cyan': [
+    { fill: '#00e5ff', label: '#000000' },
+    { fill: '#ffffff', label: '#000000' },
+    { fill: '#ffd600', label: '#000000' },
+    { fill: '#ff4444', label: '#ffffff' },
+  ],
+  'theme-sun-orange': [
+    { fill: '#ff6a00', label: '#000000' },
+    { fill: '#ffffff', label: '#000000' },
+    { fill: '#ffd600', label: '#000000' },
+    { fill: '#00e676', label: '#000000' },
+  ],
+  'theme-paper-overcast': [
+    { fill: '#1565c0', label: '#ffffff' },
+    { fill: '#b71c1c', label: '#ffffff' },
+    { fill: '#1b5e20', label: '#ffffff' },
+    { fill: '#4a148c', label: '#ffffff' },
+  ],
+  'theme-paper-newsprint': [
+    { fill: '#bf360c', label: '#ffffff' },
+    { fill: '#0d47a1', label: '#ffffff' },
+    { fill: '#1a237e', label: '#ffffff' },
+    { fill: '#33691e', label: '#ffffff' },
+  ],
+};
+
 export default function Inspector() {
-  const { getActivePlay, selectedId, updateElement, updateSegment } = useEditorStore();
+  const { getActivePlay, selectedId, updateElement, updateSegment, theme } = useEditorStore();
   const elements = getActivePlay()?.elements || [];
   const selected = elements.find(el => el.id === selectedId);
+  const palette = THEME_PALETTES[theme] || THEME_PALETTES['theme-sun-cyan'];
 
   if (!selected || selected.type === 'scrimmage') {
     return (
@@ -25,6 +53,14 @@ export default function Inspector() {
     updateElement(selected.id, { style: { ...selected.style, [field]: value } });
   }
 
+  function setColorIndex(index) {
+    updateElement(selected.id, {
+      style: { ...selected.style, colorIndex: index },
+    });
+  }
+
+  const activeIndex = selected.style?.colorIndex ?? -1;
+
   return (
     <div className="inspector">
       <div className="inspector-header">
@@ -41,20 +77,20 @@ export default function Inspector() {
               onChange={e => handleChange('label', e.target.value)}
             />
           </label>
-          <label>Fill Color
-            <input
-              type="color"
-              value={selected.style?.fill || '#e94560'}
-              onChange={e => handleStyleChange('fill', e.target.value)}
-            />
-          </label>
-          <label>Stroke Color
-            <input
-              type="color"
-              value={selected.style?.stroke || '#ffffff'}
-              onChange={e => handleStyleChange('stroke', e.target.value)}
-            />
-          </label>
+          <label>Color</label>
+          <div className="color-btn-row">
+            {palette.map(({ fill, label }, i) => (
+              <button
+                key={i}
+                className={`color-btn ${activeIndex === i ? 'color-btn-active' : ''}`}
+                style={{ background: fill }}
+                onClick={() => setColorIndex(i)}
+                title={fill}
+              >
+                <span style={{ color: label, fontWeight: 900, fontSize: 11 }}>X</span>
+              </button>
+            ))}
+          </div>
           <label>Shape
             <select
               value={selected.style?.shape || 'circle'}
@@ -69,13 +105,18 @@ export default function Inspector() {
 
       {selected.type === 'path' && (
         <div className="inspector-body">
-          <label>Stroke Color
-            <input
-              type="color"
-              value={selected.style?.stroke || '#ffffff'}
-              onChange={e => handleStyleChange('stroke', e.target.value)}
-            />
-          </label>
+          <label>Color</label>
+          <div className="color-btn-row">
+            {palette.map(({ fill }, i) => (
+              <button
+                key={i}
+                className={`color-btn ${activeIndex === i ? 'color-btn-active' : ''}`}
+                style={{ background: fill }}
+                onClick={() => setColorIndex(i)}
+                title={fill}
+              />
+            ))}
+          </div>
           <label>Thickness
             <div className="range-row">
               <input

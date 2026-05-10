@@ -1,5 +1,4 @@
 import { Layer, Rect, Line } from 'react-konva';
-import { useMemo } from 'react';
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
 import useEditorStore from '../../store/useEditorStore';
 
@@ -11,16 +10,16 @@ const {
   YARDS_ABOVE_LOS, YARDS_BELOW_LOS,
 } = FIELD_CONFIG;
 
+const THEME_FIELD_COLORS = {
+  'theme-sun-cyan':        { field: '#111111', fieldLine: '#ffffff' },
+  'theme-sun-orange':      { field: '#0f0f0f', fieldLine: '#ffffff' },
+  'theme-paper-overcast':  { field: '#f2f6fa', fieldLine: '#141e28' },
+  'theme-paper-newsprint': { field: '#f0ece4', fieldLine: '#0a0806' },
+};
+
 export default function FieldGrid() {
   const theme = useEditorStore(s => s.theme);
-
-  const colors = useMemo(() => {
-    const cs = getComputedStyle(document.documentElement);
-    return {
-      field:     cs.getPropertyValue('--color-field').trim(),
-      fieldLine: cs.getPropertyValue('--color-field-line').trim(),
-    };
-  }, [theme]);
+  const colors = THEME_FIELD_COLORS[theme] || THEME_FIELD_COLORS['theme-sun-cyan'];
 
   const yardLines = [];
   const hashMarks = [];

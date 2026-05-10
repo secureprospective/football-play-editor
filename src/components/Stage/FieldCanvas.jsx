@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useMemo } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Stage, Layer, Rect, Circle, Text, Line, Arrow, Group, RegularPolygon } from 'react-konva';
 import './FieldCanvas.css';
 import useEditorStore from '../../store/useEditorStore';
@@ -62,13 +62,13 @@ export default function FieldCanvas() {
   } = useEditorStore();
 
   const theme = useEditorStore(s => s.theme);
-  const colors = useMemo(() => {
-    const cs = getComputedStyle(document.documentElement);
-    return {
-      accent: cs.getPropertyValue('--color-accent').trim(),
-      text:   cs.getPropertyValue('--color-text').trim(),
-    };
-  }, [theme]);
+  const THEME_COLORS = {
+    'theme-sun-cyan':        { accent: '#00e5ff', text: '#ffffff', palette: ['#00e5ff','#ffffff','#ffd600','#ff4444'], labels: ['#000000','#000000','#000000','#ffffff'] },
+    'theme-sun-orange':      { accent: '#ff6a00', text: '#f8f8f8', palette: ['#ff6a00','#ffffff','#ffd600','#00e676'], labels: ['#000000','#000000','#000000','#000000'] },
+    'theme-paper-overcast':  { accent: '#059669', text: '#141e28', palette: ['#1565c0','#b71c1c','#1b5e20','#4a148c'], labels: ['#ffffff','#ffffff','#ffffff','#ffffff'] },
+    'theme-paper-newsprint': { accent: '#dc2626', text: '#0a0806', palette: ['#bf360c','#0d47a1','#1a237e','#33691e'], labels: ['#ffffff','#ffffff','#ffffff','#ffffff'] },
+  };
+  const colors = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
 
   const elements = getActivePlay()?.elements || [];
 
@@ -460,7 +460,8 @@ export default function FieldCanvas() {
   function renderPath(el) {
     if (!el.segments?.length) return null;
     const isSelected = el.id === selectedId;
-    const color = el.style?.stroke || '#ffffff';
+    const ci = el.style?.colorIndex ?? -1;
+    const color = ci >= 0 ? colors.palette[ci] : colors.text;
     const thick = el.style?.thickness || 3;
 
     // Collect all rendered segments as an array of Konva elements
@@ -555,7 +556,7 @@ export default function FieldCanvas() {
 
     if (!tail) return null;
 
-    const color = '#ffffff';
+    const color = colors.text;
     const thick = 3;
 
     // Already-committed segments in this drawing session
@@ -610,6 +611,7 @@ export default function FieldCanvas() {
   return (
     <div className="field-canvas-container" ref={containerRef} style={{ cursor: cursorStyle }}>
       <Stage
+        key={theme}
         ref={stageRef}
         width={stageSize.width}
         height={stageSize.height}
@@ -639,8 +641,10 @@ export default function FieldCanvas() {
           {elements.filter(el => el.type === 'player').map(el => {
             const isSelected = !presentMode && el.id === selectedId;
             const shape  = el.style?.shape  || 'circle';
-            const fill   = el.style?.fill   || '#e94560';
-            const stroke = isSelected ? '#ffff00' : (el.style?.stroke || '#ffffff');
+            const ci = el.style?.colorIndex ?? -1;
+            const fill   = ci >= 0 ? colors.palette[ci] : colors.accent;
+            const labelColor = ci >= 0 ? colors.labels[ci] : colors.text;
+            const stroke = isSelected ? '#ffff00' : labelColor;
             const sw     = isSelected ? 3 : 2;
             const r      = FIELD_CONFIG.PLAYER_RADIUS;
             if (shape === 'square') {
@@ -659,14 +663,17 @@ export default function FieldCanvas() {
               />
             );
           })}
-          {elements.filter(el => el.type === 'player' && el.label).map(el => (
-            <Text key={el.id + '_label'}
-              x={el.x - 12} y={el.y - 7}
-              text={el.label}
-              fontSize={FIELD_CONFIG.PLAYER_FONT_SIZE}
-              fill={colors.text} width={24} align="center"
-            />
-          ))}
+          {elements.filter(el => el.type === 'player' && el.label).map(el => {
+            const isSelected = !presentMode && el.id === selectedId;
+            return (
+              <Text key={el.id + '_label'}
+                x={el.x - 12} y={el.y - 7}
+                text={el.label}
+                fontSize={FIELD_CONFIG.PLAYER_FONT_SIZE}
+                fill={isSelected ? '#ffff00' : (el.style?.colorIndex >= 0 ? colors.labels[el.style.colorIndex] : colors.text)} width={24} align="center"
+              />
+            );
+          })}
         </Layer>
       </Stage>
     </div>
