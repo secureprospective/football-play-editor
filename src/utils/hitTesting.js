@@ -1,35 +1,24 @@
 import { FIELD_CONFIG } from '../constants/fieldConfig';
 
-// Hit region sizes — change these to tune grab sensitivity
-const HANDLE_HIT_RADIUS = 12;    // 24x24px effective hit area on node handles
-const LINE_HIT_TOLERANCE = 10;   // px distance from line center that counts as a hit
-const DRAG_THRESHOLD = 3;        // px of movement before a drag activates
+const HANDLE_HIT_RADIUS = 12;
+const LINE_HIT_TOLERANCE = 10;
+const DRAG_THRESHOLD = 3;
 
-/**
- * Check if a point is within a circular hit region.
- * Used for player bodies and node handles.
- */
 export function hitTestCircle(px, py, cx, cy, radius) {
   const dx = px - cx;
   const dy = py - cy;
   return Math.sqrt(dx * dx + dy * dy) <= radius;
 }
 
-/**
- * Check if a point is within the hit region of a line segment.
- * Returns true if the point is within LINE_HIT_TOLERANCE px of the segment.
- */
 export function hitTestSegment(px, py, x1, y1, x2, y2) {
   const dx = x2 - x1;
   const dy = y2 - y1;
   const lenSq = dx * dx + dy * dy;
 
   if (lenSq === 0) {
-    // Segment is a point
     return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2) <= LINE_HIT_TOLERANCE;
   }
 
-  // Project point onto segment, clamp to [0,1]
   let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
   t = Math.max(0, Math.min(1, t));
 
@@ -41,89 +30,125 @@ export function hitTestSegment(px, py, x1, y1, x2, y2) {
 }
 
 /**
- * Check if a point hits any segment in a path's points array.
- * Returns true if any segment is hit.
+ * Hit test a segment-based path.
+ * Returns { hit: bool, segmentIndex: number, t: number, point: {x,y} }
+ * t is the position along the hit segment (0=start, 1=end).
+ * point is the exact location on the segment where the click landed.
  */
-export function hitTestPath(px, py, points) {
-  if (!points || points.length < 2) return false;
-  for (let i = 0; i < points.length - 1; i++) {
-    if (hitTestSegment(px, py, points[i].x, points[i].y, points[i+1].x, points[i+1].y)) {
-      return true;
+export function hitTestPathSegments(px, py, segments) {
+  if (!segments || segments.length === 0) return { hit: false };
+
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i];
+    const pts = seg.points;
+    if (!pts || pts.length < 2) continue;
+
+    const x1 = pts[0].x, y1 = pts[0].y;
+    const x2 = pts[pts.length - 1].x, y2 = pts[pts.length - 1].y;
+
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const lenSq = dx * dx + dy * dy;
+
+    let t = 0;
+    let closestX = x1, closestY = y1;
+
+    if (lenSq > 0) {
+      t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+      t = Math.max(0, Math.min(1, t));
+      closestX = x1 + t * dx;
+      closestY = y1 + t * dy;
+    }
+
+    const dist = Math.sqrt((px - closestX) ** 2 + (py - closestY) ** 2);
+    if (dist <= LINE_HIT_TOLERANCE) {
+      return {
+        hit: true,
+        segmentIndex: i,
+        t,
+        point: { x: closestX, y: closestY },
+      };
     }
   }
-  return false;
+
+  return { hit: false };
 }
 
-/**
- * Check if a point hits a node handle.
- * Uses HANDLE_HIT_RADIUS for the hit region.
- */
 export function hitTestHandle(px, py, hx, hy) {
   return hitTestCircle(px, py, hx, hy, HANDLE_HIT_RADIUS);
 }
 
-/**
- * Check if a point hits a player element.
- * Uses FIELD_CONFIG.PLAYER_RADIUS plus a small buffer.
- */
 export function hitTestPlayer(px, py, player) {
   const radius = (player.style?.radius || FIELD_CONFIG.PLAYER_RADIUS) + 4;
   return hitTestCircle(px, py, player.x, player.y, radius);
 }
 
 /**
- * Master hit test — implements the handle-first priority hierarchy.
+ * Master hit test.
  *
  * Priority order:
- * 1. Node handles (if a line is selected and in EDIT_NODES mode)
+ * 1. Node handles on the selected path (always shown when a path is selected)
  * 2. Player bodies
- * 3. Line paths
- * 4. Nothing (returns null)
+ * 3. Path segments
+ * 4. Nothing
  *
- * @param {number} px - Mouse x
- * @param {number} py - Mouse y
- * @param {Array} elements - All elements from the store
- * @param {string|null} selectedId - Currently selected element id
- * @param {boolean} editNodesMode - Whether EDIT_NODES tool is active
- * @returns {{ type: 'handle'|'player'|'path'|null, elementId: string|null, nodeIndex: number|null }}
+ * Returns:
+ * { type: 'handle'|'player'|'path'|null, elementId, nodeIndex, segmentIndex, segmentPoint }
  */
-export function masterHitTest(px, py, elements, selectedId, editNodesMode) {
-  // 1. Check node handles first (only when a path is selected in edit mode)
-  if (editNodesMode && selectedId) {
+export function masterHitTest(px, py, elements, selectedId) {
+  // 1. Node handles on selected path
+  if (selectedId) {
     const selected = elements.find(el => el.id === selectedId);
-    if (selected && selected.type === 'path' && selected.points) {
-      for (let i = 0; i < selected.points.length; i++) {
-        if (hitTestHandle(px, py, selected.points[i].x, selected.points[i].y)) {
-          return { type: 'handle', elementId: selectedId, nodeIndex: i };
+    if (selected && selected.type === 'path' && selected.segments) {
+      // Collect all unique node points across segments
+      const nodes = [];
+      selected.segments.forEach((seg, si) => {
+        seg.points?.forEach((p, pi) => {
+          nodes.push({ x: p.x, y: p.y, segmentIndex: si, nodeIndex: pi });
+        });
+      });
+      for (const node of nodes) {
+        if (hitTestHandle(px, py, node.x, node.y)) {
+          return {
+            type: 'handle',
+            elementId: selectedId,
+            nodeIndex: node.nodeIndex,
+            segmentIndex: node.segmentIndex,
+            segmentPoint: null,
+          };
         }
       }
     }
   }
 
-  // 2. Check player bodies (reverse order so top-rendered player is hit first)
+  // 2. Players
   for (let i = elements.length - 1; i >= 0; i--) {
     const el = elements[i];
     if (el.type === 'player' && hitTestPlayer(px, py, el)) {
-      return { type: 'player', elementId: el.id, nodeIndex: null };
+      return { type: 'player', elementId: el.id, nodeIndex: null, segmentIndex: null, segmentPoint: null };
     }
   }
 
-  // 3. Check line paths
+  // 3. Paths
   for (let i = elements.length - 1; i >= 0; i--) {
     const el = elements[i];
-    if (el.type === 'path' && hitTestPath(px, py, el.points)) {
-      return { type: 'path', elementId: el.id, nodeIndex: null };
+    if (el.type === 'path') {
+      const result = hitTestPathSegments(px, py, el.segments);
+      if (result.hit) {
+        return {
+          type: 'path',
+          elementId: el.id,
+          nodeIndex: null,
+          segmentIndex: result.segmentIndex,
+          segmentPoint: result.point,
+        };
+      }
     }
   }
 
-  // 4. Nothing hit
-  return { type: null, elementId: null, nodeIndex: null };
+  return { type: null, elementId: null, nodeIndex: null, segmentIndex: null, segmentPoint: null };
 }
 
-/**
- * Returns true if the mouse has moved more than DRAG_THRESHOLD px.
- * Used to distinguish a click (select) from a drag (move).
- */
 export function exceededDragThreshold(x1, y1, x2, y2) {
   return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2) > DRAG_THRESHOLD;
 }

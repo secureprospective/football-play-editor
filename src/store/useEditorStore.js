@@ -5,12 +5,10 @@ import { FIELD_CONFIG } from '../constants/fieldConfig';
 const MAX_HISTORY = 50;
 const STORAGE_KEY = 'football_playbook_v1';
 
-// --- ID Generator ---
 function genId(prefix = 'id') {
   return prefix + '_' + Math.random().toString(36).slice(2, 9);
 }
 
-// --- Default scrimmage element ---
 function createScrimmage() {
   return {
     id: 'scrimmage_line',
@@ -20,7 +18,6 @@ function createScrimmage() {
   };
 }
 
-// --- Default empty play ---
 function createPlay(name = 'New Play') {
   return {
     id: genId('pl'),
@@ -31,7 +28,6 @@ function createPlay(name = 'New Play') {
   };
 }
 
-// --- Default empty formation ---
 function createFormation(name = 'New Formation') {
   return {
     id: genId('fm'),
@@ -40,7 +36,6 @@ function createFormation(name = 'New Formation') {
   };
 }
 
-// --- Default empty playbook ---
 function createPlaybook(name = 'New Playbook') {
   return {
     id: genId('pb'),
@@ -50,13 +45,37 @@ function createPlaybook(name = 'New Playbook') {
   };
 }
 
-// --- Load from localStorage ---
+// --- Migrate old flat-points path to new segment structure ---
+function migratePath(el) {
+  if (el.type !== 'path') return el;
+  if (el.segments) return el; // already migrated
+  if (!el.points || el.points.length < 2) return el;
+  // Convert flat points array into single straight segment per consecutive pair
+  const segments = [];
+  for (let i = 0; i < el.points.length - 1; i++) {
+    segments.push({
+      id: genId('seg'),
+      points: [el.points[i], el.points[i + 1]],
+      curve: false,
+      preSnap: false,
+    });
+  }
+  const { points, ...rest } = el;
+  return { ...rest, segments, branches: [] };
+}
+
+function migratePlay(play) {
+  return {
+    ...play,
+    elements: play.elements.map(el => migratePath(el)),
+  };
+}
+
 function loadFromStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const data = JSON.parse(raw);
-    // Migrate scrimmage line Y if it was set for the old vertical field
     if (data?.playbooks) {
       data.playbooks.forEach(pb => {
         pb.formations?.forEach(fm => {
@@ -65,6 +84,8 @@ function loadFromStorage() {
             if (scrimmage && scrimmage.y > FIELD_CONFIG.STAGE_HEIGHT) {
               scrimmage.y = FIELD_CONFIG.SCRIMMAGE_DEFAULT_Y;
             }
+            // Migrate old path format
+            pl.elements = pl.elements.map(el => migratePath(el));
           });
         });
       });
@@ -75,7 +96,6 @@ function loadFromStorage() {
   }
 }
 
-// --- Save to localStorage ---
 function saveToStorage(playbooks) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(playbooks));
@@ -84,7 +104,6 @@ function saveToStorage(playbooks) {
   }
 }
 
-// --- Initial state ---
 const stored = loadFromStorage();
 const initialPlaybooks = stored?.playbooks || [createPlaybook('My First Playbook')];
 
@@ -119,7 +138,6 @@ const useEditorStore = create((set, get) => ({
     saveToStorage({ playbooks: get().playbooks });
   },
 
-  // Getters for active objects
   getActivePlaybook: () => {
     const { playbooks, activePlaybookId } = get();
     return playbooks.find(pb => pb.id === activePlaybookId) || null;
@@ -282,7 +300,6 @@ const useEditorStore = create((set, get) => ({
     return copy;
   },
 
-
   duplicateFormation: (playbookId, formationId) => {
     const state = get();
     const pb = state.playbooks.find(p => p.id === playbookId);
@@ -336,13 +353,15 @@ const useEditorStore = create((set, get) => ({
     get()._persist();
   },
 
-  // --- Element Operations (operate on active play) ---
+  // --- Element Operations ---
   activeTool: DEFAULT_TOOL,
   setActiveTool: (tool) => set({ activeTool: tool }),
 
   selectedId: null,
-  setSelectedId: (id) => set({ selectedId: id }),
-  clearSelection: () => set({ selectedId: null }),
+  selectedSegmentId: null,
+  setSelectedId: (id) => set({ selectedId: id, selectedSegmentId: null }),
+  setSelectedSegmentId: (pathId, segmentId) => set({ selectedId: pathId, selectedSegmentId: segmentId }),
+  clearSelection: () => set({ selectedId: null, selectedSegmentId: null }),
 
   snapEnabled: true,
   snapIncrement: 19.28,
@@ -355,22 +374,40 @@ const useEditorStore = create((set, get) => ({
   presentMode: false,
   togglePresentMode: () => set(state => ({ presentMode: !state.presentMode })),
 
+  // drawingPath: the path currently being drawn
+  // activePathId: if set, new segments are added to this existing path (branch/continue)
   drawingPath: null,
+  activePathId: null,
   setDrawingPath: (path) => set({ drawingPath: path }),
 
   finishDrawing: () => {
-    const { drawingPath, addElement, setSelectedId } = get();
+    const { drawingPath, activePathId, addElement, updateElement, getActivePlay, setSelectedId } = get();
     if (!drawingPath) return;
-    if (drawingPath.points.length >= 2) {
-      addElement(drawingPath);
-      setSelectedId(drawingPath.id);
+
+    if (activePathId) {
+      // Adding segments to an existing path
+      const play = getActivePlay();
+      const existingPath = play?.elements.find(el => el.id === activePathId);
+      if (existingPath && drawingPath.segments.length > 0) {
+        updateElement(activePathId, {
+          segments: [...existingPath.segments, ...drawingPath.segments],
+        });
+      }
+      set({ drawingPath: null, activePathId: null });
+      setSelectedId(activePathId);
+    } else {
+      // New path
+      if (drawingPath.segments.length > 0) {
+        addElement(drawingPath);
+        setSelectedId(drawingPath.id);
+      }
+      set({ drawingPath: null, activePathId: null });
     }
-    set({ drawingPath: null });
   },
 
-  cancelDrawing: () => set({ drawingPath: null }),
+  cancelDrawing: () => set({ drawingPath: null, activePathId: null }),
 
-  // History (per session, not persisted)
+  // History
   history: [],
   historyIndex: -1,
 
@@ -391,7 +428,7 @@ const useEditorStore = create((set, get) => ({
     get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
       elements: JSON.parse(JSON.stringify(prev))
     });
-    set({ historyIndex: historyIndex - 1, selectedId: null });
+    set({ historyIndex: historyIndex - 1, selectedId: null, selectedSegmentId: null });
   },
 
   redo: () => {
@@ -401,7 +438,7 @@ const useEditorStore = create((set, get) => ({
     get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
       elements: JSON.parse(JSON.stringify(next))
     });
-    set({ historyIndex: historyIndex + 1, selectedId: null });
+    set({ historyIndex: historyIndex + 1, selectedId: null, selectedSegmentId: null });
   },
 
   canUndo: () => get().historyIndex > 0,
@@ -426,6 +463,24 @@ const useEditorStore = create((set, get) => ({
     });
   },
 
+  updateSegment: (pathId, segmentId, changes) => {
+    const { activePlaybookId, activeFormationId, activePlayId, getActivePlay, pushHistory } = get();
+    const play = getActivePlay();
+    if (!play) return;
+    pushHistory();
+    get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
+      elements: play.elements.map(el => {
+        if (el.id !== pathId) return el;
+        return {
+          ...el,
+          segments: el.segments.map(seg =>
+            seg.id === segmentId ? { ...seg, ...changes } : seg
+          ),
+        };
+      })
+    });
+  },
+
   deleteElement: (id) => {
     if (id === 'scrimmage_line') return;
     const { pushHistory, activePlaybookId, activeFormationId, activePlayId, getActivePlay } = get();
@@ -435,7 +490,7 @@ const useEditorStore = create((set, get) => ({
     get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
       elements: play.elements.filter(el => el.id !== id)
     });
-    set(state => ({ selectedId: state.selectedId === id ? null : state.selectedId }));
+    set(state => ({ selectedId: state.selectedId === id ? null : state.selectedId, selectedSegmentId: null }));
   },
 
   clearElements: () => {
@@ -444,10 +499,10 @@ const useEditorStore = create((set, get) => ({
     get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
       elements: [createScrimmage()]
     });
-    set({ selectedId: null, drawingPath: null });
+    set({ selectedId: null, selectedSegmentId: null, drawingPath: null, activePathId: null });
   },
 
-  // --- Playbook Export/Import (full playbook JSON) ---
+  // --- Playbook Export/Import ---
   exportPlaybook: () => {
     const pb = get().getActivePlaybook();
     if (!pb) return null;
@@ -459,6 +514,12 @@ const useEditorStore = create((set, get) => ({
       const data = JSON.parse(jsonString);
       if (!data.playbook) throw new Error('Invalid playbook file');
       const pb = { ...data.playbook, id: genId('pb') };
+      // Migrate any old-format paths in the imported playbook
+      pb.formations?.forEach(fm => {
+        fm.plays?.forEach(pl => {
+          pl.elements = pl.elements.map(el => migratePath(el));
+        });
+      });
       set(state => ({ playbooks: [...state.playbooks, pb] }));
       get()._persist();
       return { success: true, id: pb.id };

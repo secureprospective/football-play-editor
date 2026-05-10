@@ -3,15 +3,14 @@ import useEditorStore from '../../store/useEditorStore';
 import { TOOL_MODES } from '../../constants/toolModes';
 
 const TOOLS = [
-  { mode: TOOL_MODES.SELECT,     label: '↖', title: 'Select / Move' },
-  { mode: TOOL_MODES.ADD_PLAYER, label: '●', title: 'Add Player' },
-  { mode: TOOL_MODES.ADD_LINE,   label: '╱', title: 'Draw Route' },
-  { mode: TOOL_MODES.EDIT_NODES, label: '◈', title: 'Edit Nodes' },
+  { mode: TOOL_MODES.SELECT,            label: '↖', title: 'Select / Move' },
+  { mode: TOOL_MODES.ADD_PLAYER,        label: '●', title: 'Add Player' },
+  { mode: TOOL_MODES.ADD_LINE_STRAIGHT, label: '╱', title: 'Draw Straight Route' },
+  { mode: TOOL_MODES.ADD_LINE_CURVE,    label: '⌒', title: 'Draw Curved Route' },
 ];
 
 export default function Toolbox() {
   const { activeTool, setActiveTool } = useEditorStore();
-
   return (
     <div className="toolbox">
       {TOOLS.map(tool => (
