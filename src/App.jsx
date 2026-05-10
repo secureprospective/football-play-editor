@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import './App.css';
 import useEditorStore from './store/useEditorStore';
 import { VIEW_MODES } from './constants/toolModes';
@@ -10,12 +11,15 @@ import Inspector     from './components/Inspector/Inspector';
 import FieldCanvas   from './components/Stage/FieldCanvas';
 
 export default function App() {
-  const { viewMode, presentMode, togglePresentMode } = useEditorStore();
+  const { viewMode, presentMode, togglePresentMode, theme } = useEditorStore();
+  useEffect(() => {
+    document.documentElement.className = theme;
+  }, [theme]);
   const isFieldView = viewMode === VIEW_MODES.FIELD;
 
   if (!isFieldView) {
     return (
-      <div className="app-shell-nav">
+      <div className={`app-shell-nav ${theme}`}>
         {viewMode === VIEW_MODES.PLAYBOOK  && <PlaybookView />}
         {viewMode === VIEW_MODES.FORMATION && <FormationView />}
         {viewMode === VIEW_MODES.PLAY      && <PlayView />}
@@ -25,7 +29,7 @@ export default function App() {
 
   if (presentMode) {
     return (
-      <div className="app-shell-present">
+      <div className={`app-shell-present ${theme}`}>
         <FieldCanvas />
         <div
           className="present-exit-tab"
@@ -39,7 +43,7 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${theme}`}>
       <div className="toolbar-area">
         <Toolbar />
       </div>

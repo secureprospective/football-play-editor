@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useMemo } from 'react';
 import { Stage, Layer, Rect, Circle, Text, Line, Arrow, Group, RegularPolygon } from 'react-konva';
 import './FieldCanvas.css';
 import useEditorStore from '../../store/useEditorStore';
@@ -60,6 +60,15 @@ export default function FieldCanvas() {
     scrimmageVisible,
     presentMode,
   } = useEditorStore();
+
+  const theme = useEditorStore(s => s.theme);
+  const colors = useMemo(() => {
+    const cs = getComputedStyle(document.documentElement);
+    return {
+      accent: cs.getPropertyValue('--color-accent').trim(),
+      text:   cs.getPropertyValue('--color-text').trim(),
+    };
+  }, [theme]);
 
   const elements = getActivePlay()?.elements || [];
 
@@ -166,7 +175,7 @@ export default function FieldCanvas() {
         id: generateId(), type: 'player',
         x: snapped.x, y: snapped.y,
         label: 'X',
-        style: { fill: '#e94560', stroke: '#ffffff', shape: 'circle' },
+        style: { fill: colors.accent, stroke: colors.text, shape: 'circle' },
         groupId: null,
       };
       addElement(newPlayer);
@@ -229,7 +238,7 @@ export default function FieldCanvas() {
         segments: [],
         branches: [],
         _startPoint: resolved,
-        style: { stroke: '#ffffff', thickness: 3, endArrow: true },
+        style: { stroke: colors.text, thickness: 3, endArrow: true },
       });
       return;
     }
@@ -529,7 +538,7 @@ export default function FieldCanvas() {
         handles.push(
           <Circle key={`${el.id}_node_${si}_${pi}`}
             x={p.x} y={p.y} radius={6}
-            fill="#ffffff" stroke="#e94560" strokeWidth={2}
+            fill={colors.text} stroke={colors.accent} strokeWidth={2}
           />
         );
       });
@@ -566,7 +575,7 @@ export default function FieldCanvas() {
     const ghost = (
       <Line
         points={[tail.x, tail.y, mousePos.x, mousePos.y]}
-        stroke={shiftHeld ? '#00ffaa' : '#e94560'}
+        stroke={shiftHeld ? '#00ffaa' : colors.accent}
         strokeWidth={2}
         dash={[6, 4]} lineCap="round" opacity={0.8}
       />
@@ -578,7 +587,7 @@ export default function FieldCanvas() {
       seg.points?.forEach((p, pi) => {
         nodes.push(
           <Circle key={`preview_node_${i}_${pi}`}
-            x={p.x} y={p.y} radius={5} fill="#e94560"
+            x={p.x} y={p.y} radius={5} fill={colors.accent}
           />
         );
       });
@@ -586,7 +595,7 @@ export default function FieldCanvas() {
     if (drawingPath._startPoint || drawingPath._branchOrigin) {
       const origin = drawingPath._branchOrigin || drawingPath._startPoint;
       nodes.push(
-        <Circle key="preview_origin" x={origin.x} y={origin.y} radius={5} fill="#e94560" />
+        <Circle key="preview_origin" x={origin.x} y={origin.y} radius={5} fill={colors.accent} />
       );
     }
 
@@ -655,7 +664,7 @@ export default function FieldCanvas() {
               x={el.x - 12} y={el.y - 7}
               text={el.label}
               fontSize={FIELD_CONFIG.PLAYER_FONT_SIZE}
-              fill="#ffffff" width={24} align="center"
+              fill={colors.text} width={24} align="center"
             />
           ))}
         </Layer>

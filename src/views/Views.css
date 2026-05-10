@@ -3,8 +3,8 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #1a1a2e;
-  color: #e0e0e0;
+  background: var(--color-bg);
+  color: var(--color-text);
   overflow: hidden;
 }
 
@@ -13,30 +13,30 @@
   align-items: center;
   gap: 12px;
   padding: 16px 24px;
-  background: #16213e;
-  border-bottom: 1px solid #0f3460;
+  background: var(--color-panel);
+  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 
 .view-title {
   font-size: 20px;
   font-weight: 700;
-  color: #e0e0e0;
+  color: var(--color-text);
   flex: 1;
   margin: 0;
 }
 
 .view-subtitle {
   font-size: 13px;
-  color: #505070;
+  color: var(--color-text-muted);
   padding: 6px 24px 0;
   flex-shrink: 0;
 }
 
 .view-back-btn {
-  background: #0f3460;
-  color: #e0e0e0;
-  border: 1px solid #1a4a7a;
+  background: var(--color-panel);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-mid);
   border-radius: 8px;
   padding: 8px 16px;
   font-size: 14px;
@@ -49,13 +49,11 @@
   touch-action: manipulation;
 }
 
-.view-back-btn:hover {
-  background: #1a5a9a;
-}
+.view-back-btn:hover { background: var(--color-panel-alt); }
 
 .view-add-btn {
-  background: #e94560;
-  color: #ffffff;
+  background: var(--color-accent);
+  color: var(--color-accent-text);
   border: none;
   border-radius: 8px;
   padding: 8px 16px;
@@ -71,47 +69,42 @@
   touch-action: manipulation;
 }
 
-.view-add-btn:hover {
-  background: #ff6b80;
-}
+.view-add-btn:hover { opacity: 0.85; }
 
 .view-empty {
-  color: #505070;
+  color: var(--color-text-muted);
   font-size: 15px;
   text-align: center;
   padding: 48px 24px;
 }
 
-/* Inline new-item input row */
 .inline-input-row {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 10px 24px;
-  background: #0f2040;
-  border-bottom: 1px solid #0f3460;
+  background: var(--color-panel-alt);
+  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 
 .inline-input {
   flex: 1;
-  background: #0f3460;
-  border: 1px solid #e94560;
+  background: var(--color-panel);
+  border: 1px solid var(--color-accent);
   border-radius: 6px;
-  color: #e0e0e0;
+  color: var(--color-text);
   padding: 7px 10px;
   font-size: 14px;
   outline: none;
   font-family: inherit;
 }
 
-.inline-input::placeholder {
-  color: #404060;
-}
+.inline-input::placeholder { color: var(--color-text-muted); }
 
 .inline-save-btn {
-  background: #e94560;
-  color: #ffffff;
+  background: var(--color-accent);
+  color: var(--color-accent-text);
   border: none;
   border-radius: 6px;
   padding: 7px 14px;
@@ -122,14 +115,12 @@
   touch-action: manipulation;
 }
 
-.inline-save-btn:hover {
-  background: #ff6b80;
-}
+.inline-save-btn:hover { opacity: 0.85; }
 
 .inline-cancel-btn {
   background: transparent;
-  color: #606080;
-  border: 1px solid #303050;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 7px 12px;
   font-size: 14px;
@@ -137,12 +128,8 @@
   touch-action: manipulation;
 }
 
-.inline-cancel-btn:hover {
-  color: #a0a0c0;
-  border-color: #505070;
-}
+.inline-cancel-btn:hover { color: var(--color-text); border-color: var(--color-border-mid); }
 
-/* Card grid */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -153,15 +140,12 @@
 }
 
 @media (max-width: 700px) {
-  .card-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .card-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* Card */
 .card {
-  background: #16213e;
-  border: 1px solid #0f3460;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
@@ -172,25 +156,18 @@
   position: relative;
 }
 
-.card:hover {
-  border-color: #e94560;
-  transform: translateY(-2px);
-}
-
-.card:active {
-  transform: translateY(0);
-}
+.card:hover { border-color: var(--color-accent); transform: translateY(-2px); }
+.card:active { transform: translateY(0); }
 
 .card.deleting {
-  border-color: #e94560;
-  background: #2a0a14;
+  border-color: var(--color-danger);
+  background: var(--color-delete-bg);
   transform: none;
 }
 
-/* Drag overlay — card being dragged */
 .card.dragging {
   opacity: 0.4;
-  border-color: #4a7acc;
+  border-color: var(--color-accent);
   transform: none;
   cursor: grabbing;
 }
@@ -204,84 +181,60 @@
   flex-shrink: 0;
 }
 
-.card-thumb-playbook  { background: #0f2a4a; }
-.card-thumb-formation { background: #1a3a1a; }
-.card-thumb-play      { background: #2a1a3a; }
+.card-thumb-playbook  { background: var(--color-panel-alt); }
+.card-thumb-formation { background: var(--color-panel-alt); }
+.card-thumb-play      { background: var(--color-panel-alt); }
 
-.card-thumb-icon {
-  font-size: 32px;
-}
+.card-thumb-icon { font-size: 32px; }
 
-.card-info {
-  padding: 10px 12px;
-  flex: 1;
-}
+.card-info { padding: 10px 12px; flex: 1; }
 
 .card-name {
   font-size: 14px;
   font-weight: 600;
-  color: #e0e0e0;
+  color: var(--color-text);
   margin-bottom: 4px;
 }
 
-.card-meta {
-  font-size: 12px;
-  color: #606080;
-}
+.card-meta { font-size: 12px; color: var(--color-text-muted); }
 
-.card-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 6px;
-}
+.card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 
 .card-tag {
-  background: #0f3460;
-  color: #a0b0d0;
+  background: var(--color-panel-alt);
+  color: var(--color-text-muted);
   border-radius: 4px;
   padding: 2px 6px;
   font-size: 11px;
 }
 
-/* Card action bar — drag handle + action buttons */
 .card-actions {
   display: flex;
   align-items: stretch;
-  gap: 0;
-  border-top: 1px solid #0f3460;
-  background: #12193a;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-panel);
   flex-shrink: 0;
 }
 
-/* Drag handle — left side of actions bar */
 .card-drag-handle {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 36px;
   min-height: 44px;
-  color: #303050;
+  color: var(--color-border-mid);
   font-size: 14px;
   cursor: grab;
   flex-shrink: 0;
-  border-right: 1px solid #0f3460;
+  border-right: 1px solid var(--color-border);
   touch-action: none;
   transition: color 0.15s, background 0.15s;
   user-select: none;
 }
 
-.card-drag-handle:hover {
-  color: #6080a0;
-  background: #0f2040;
-}
+.card-drag-handle:hover { color: var(--color-text-muted); background: var(--color-panel-alt); }
+.card-drag-handle:active { cursor: grabbing; color: var(--color-accent); }
 
-.card-drag-handle:active {
-  cursor: grabbing;
-  color: #4a7acc;
-}
-
-/* Action buttons — fill remaining space */
 .card-action-btns {
   display: flex;
   flex: 1;
@@ -292,9 +245,9 @@
 .card-action-btn {
   flex: 1;
   background: transparent;
-  border: 1px solid #1a3060;
+  border: 1px solid var(--color-border);
   border-radius: 5px;
-  color: #606080;
+  color: var(--color-text-muted);
   font-size: 11px;
   padding: 10px 0;
   cursor: pointer;
@@ -304,41 +257,26 @@
   touch-action: manipulation;
 }
 
-.card-action-btn:hover {
-  color: #c0c0e0;
-  border-color: #304080;
-}
+.card-action-btn:hover { color: var(--color-text); border-color: var(--color-border-mid); }
 
-.card-action-btn.danger {
-  color: #803050;
-  border-color: #4a1a2a;
-}
+.card-action-btn.danger { color: var(--color-danger); border-color: var(--color-border); }
+.card-action-btn.danger:hover { border-color: var(--color-danger); }
 
-.card-action-btn.danger:hover {
-  color: #e94560;
-  border-color: #e94560;
-}
-
-/* Delete confirmation */
 .card-delete-confirm {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 8px 10px;
-  background: #3a0a14;
-  border-top: 1px solid #e94560;
+  background: var(--color-delete-bg);
+  border-top: 1px solid var(--color-delete-border);
   flex-shrink: 0;
   min-height: 44px;
 }
 
-.card-delete-confirm span {
-  font-size: 12px;
-  color: #e94560;
-  flex: 1;
-}
+.card-delete-confirm span { font-size: 12px; color: var(--color-danger); flex: 1; }
 
 .card-delete-confirm-btn {
-  background: #e94560;
+  background: var(--color-danger);
   color: #ffffff;
   border: none;
   border-radius: 5px;
@@ -350,14 +288,12 @@
   touch-action: manipulation;
 }
 
-.card-delete-confirm-btn:hover {
-  background: #ff6b80;
-}
+.card-delete-confirm-btn:hover { opacity: 0.85; }
 
 .card-delete-cancel-btn {
   background: transparent;
-  color: #606080;
-  border: 1px solid #303050;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
   border-radius: 5px;
   padding: 8px 12px;
   font-size: 12px;
@@ -367,6 +303,4 @@
   touch-action: manipulation;
 }
 
-.card-delete-cancel-btn:hover {
-  color: #a0a0c0;
-}
+.card-delete-cancel-btn:hover { color: var(--color-text); }

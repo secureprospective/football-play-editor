@@ -4,6 +4,8 @@ import { FIELD_CONFIG } from '../constants/fieldConfig';
 
 const MAX_HISTORY = 50;
 const STORAGE_KEY = 'football_playbook_v1';
+const THEME_KEY = 'football_theme_v1';
+const DEFAULT_THEME = 'theme-sun-cyan';
 
 function genId(prefix = 'id') {
   return prefix + '_' + Math.random().toString(36).slice(2, 9);
@@ -371,6 +373,9 @@ const useEditorStore = create((set, get) => ({
 
   presentMode: false,
   togglePresentMode: () => set(state => ({ presentMode: !state.presentMode })),
+
+  theme: localStorage.getItem(THEME_KEY) || DEFAULT_THEME,
+  setTheme: (name) => { localStorage.setItem(THEME_KEY, name); set({ theme: name }); },
 
   // drawingPath: the path currently being drawn
   // activePathId: if set, new segments are added to this existing path (branch/continue)

@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: #16213e;
-  border-right: 2px solid #0f3460;
+  background: var(--color-panel);
+  border-right: 2px solid var(--color-border);
   padding: 6px 0;
   gap: 4px;
   height: 100%;
@@ -16,7 +16,7 @@
   background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
-  color: #606080;
+  color: var(--color-text-muted);
   font-size: 20px;
   cursor: pointer;
   display: flex;
@@ -27,13 +27,10 @@
   touch-action: manipulation;
 }
 
-.tool-btn:hover {
-  background: #0f3460;
-  color: #c0c0e0;
-}
+.tool-btn:hover { background: var(--color-panel-alt); color: var(--color-text); }
 
 .tool-btn.active {
-  background: #e94560;
-  color: #ffffff;
-  border-color: #ff6b80;
+  background: var(--color-accent);
+  color: var(--color-accent-text);
+  border-color: var(--color-accent);
 }
