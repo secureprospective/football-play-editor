@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { Stage, Layer, Rect, Circle, Text, Line, Arrow } from 'react-konva';
+import { Stage, Layer, Rect, Circle, Text, Line, Arrow, Group, RegularPolygon } from 'react-konva';
 import './FieldCanvas.css';
 import useEditorStore from '../../store/useEditorStore';
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
@@ -177,8 +177,10 @@ export default function FieldCanvas() {
     // DRAWING TOOL — straight or curve
     if (isDrawingTool) {
       // Case 1: Already drawing — add next segment
-      if (drawingPath) {
-        const tail = getPathTailPoint(drawingPath) ?? drawingPath._branchOrigin ?? drawingPath._startPoint;
+      // Read directly from store to avoid stale closure on drawingPath
+      const currentDrawingPath = useEditorStore.getState().drawingPath;
+      if (currentDrawingPath) {
+        const tail = getPathTailPoint(currentDrawingPath) ?? currentDrawingPath._branchOrigin ?? currentDrawingPath._startPoint;
         const resolved = resolveRoutePoint(pos, tail);
         const newSeg = {
           id: generateSegId(),
@@ -187,8 +189,8 @@ export default function FieldCanvas() {
           preSnap: false,
         };
         setDrawingPath({
-          ...drawingPath,
-          segments: [...drawingPath.segments, newSeg],
+          ...currentDrawingPath,
+          segments: [...currentDrawingPath.segments, newSeg],
         });
         return;
       }
@@ -226,6 +228,7 @@ export default function FieldCanvas() {
         id: generateId(),
         type: 'path',
         segments: [],
+        branches: [],
         _startPoint: resolved,
         style: { stroke: '#ffffff', thickness: 3, endArrow: true },
       });
@@ -404,19 +407,36 @@ export default function FieldCanvas() {
     }
 
     if (seg.curve) {
-      // Quadratic bezier — control point is midpoint offset perpendicular
+      const cp = seg.controlPoint;
+      if (cp) {
+        // User-defined control point — cubic bezier via tension through midpoint
+        return (
+          <Line key={key}
+            points={[p1.x, p1.y, cp.x, cp.y, p2.x, p2.y]}
+            stroke={stroke} strokeWidth={sw}
+            tension={0.5} lineCap="round" lineJoin="round"
+          />
+        );
+      }
+      // Auto-curve: add a perpendicular midpoint and use tension
       const mx = (p1.x + p2.x) / 2;
       const my = (p1.y + p2.y) / 2;
       const dx = p2.x - p1.x;
       const dy = p2.y - p1.y;
       const len = Math.sqrt(dx * dx + dy * dy);
-      const cpx = mx - (dy / len) * (len * 0.25);
-      const cpy = my + (dx / len) * (len * 0.25);
+      if (len === 0) {
+        return (
+          <Line key={key} points={[p1.x, p1.y, p2.x, p2.y]}
+            stroke={stroke} strokeWidth={sw} lineCap="round" />
+        );
+      }
+      const cpx = mx - (dy / len) * (len * 0.35);
+      const cpy = my + (dx / len) * (len * 0.35);
       return (
         <Line key={key}
           points={[p1.x, p1.y, cpx, cpy, p2.x, p2.y]}
           stroke={stroke} strokeWidth={sw}
-          bezier={true} lineCap="round" lineJoin="round"
+          tension={0.5} lineCap="round" lineJoin="round"
         />
       );
     }
@@ -446,16 +466,51 @@ export default function FieldCanvas() {
     const lastSeg = el.segments[el.segments.length - 1];
     if (el.style?.endArrow && lastSeg?.points?.length >= 2) {
       const pts = lastSeg.points;
-      const p1 = pts[pts.length - 2] || pts[0];
       const p2 = pts[pts.length - 1];
+      // For curved segments use control point to get correct arrow direction
+      // For straight segments use previous point
+      let arrowPoints;
+      if (lastSeg.curve) {
+        const cp = lastSeg.controlPoint;
+        // Derive tangent direction at endpoint, use a short tail for arrowhead only
+        let tx, ty;
+        if (cp) {
+          tx = cp.x;
+          ty = cp.y;
+        } else {
+          const mx = (pts[0].x + p2.x) / 2;
+          const my = (pts[0].y + p2.y) / 2;
+          const dx = p2.x - pts[0].x;
+          const dy = p2.y - pts[0].y;
+          const len = Math.sqrt(dx * dx + dy * dy);
+          tx = len > 0 ? mx - (dy / len) * (len * 0.35) : mx;
+          ty = len > 0 ? my + (dx / len) * (len * 0.35) : my;
+        }
+        // Short tail: 20px back from endpoint along tangent direction
+        const tdx = p2.x - tx;
+        const tdy = p2.y - ty;
+        const tlen = Math.sqrt(tdx * tdx + tdy * tdy);
+        const tailLen = 20;
+        const tailX = tlen > 0 ? p2.x - (tdx / tlen) * tailLen : p2.x;
+        const tailY = tlen > 0 ? p2.y - (tdy / tlen) * tailLen : p2.y;
+        arrowPoints = [tailX, tailY, p2.x, p2.y];
+      } else {
+        const p1 = pts[pts.length - 2] || pts[0];
+        arrowPoints = [p1.x, p1.y, p2.x, p2.y];
+      }
+      // Derive angle from tail to tip
+      const tailX = arrowPoints[0];
+      const tailY = arrowPoints[1];
+      const angle = Math.atan2(p2.y - tailY, p2.x - tailX) * (180 / Math.PI);
       rendered.push(
-        <Arrow key={`${el.id}_arrow`}
-          points={[p1.x, p1.y, p2.x, p2.y]}
-          stroke={isSelected ? '#ffff00' : color}
+        <RegularPolygon key={`${el.id}_arrow`}
+          x={p2.x} y={p2.y}
+          sides={3}
+          radius={10}
           fill={isSelected ? '#ffff00' : color}
-          strokeWidth={isSelected ? thick + 1 : thick}
-          pointerLength={12}
-          pointerWidth={10}
+          stroke={isSelected ? '#ffff00' : color}
+          strokeWidth={1}
+          rotation={angle + 90}
         />
       );
     }
@@ -564,7 +619,10 @@ export default function FieldCanvas() {
 
         <Layer>
           {renderScrimmage()}
-          {elements.filter(el => el.type === 'path').map(el => renderPath(el))}
+          {elements.filter(el => el.type === 'path').flatMap(el => {
+            const result = renderPath(el);
+            return Array.isArray(result) ? result : (result ? [result] : []);
+          })}
           {!presentMode && renderDrawingPreview()}
           {!presentMode && selectedEl?.type === 'path' && renderNodeHandles(selectedEl)}
         </Layer>

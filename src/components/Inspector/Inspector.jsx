@@ -2,7 +2,7 @@ import './Inspector.css';
 import useEditorStore from '../../store/useEditorStore';
 
 export default function Inspector() {
-  const { getActivePlay, selectedId, updateElement } = useEditorStore();
+  const { getActivePlay, selectedId, updateElement, updateSegment } = useEditorStore();
   const elements = getActivePlay()?.elements || [];
   const selected = elements.find(el => el.id === selectedId);
 
@@ -102,6 +102,25 @@ export default function Inspector() {
             />
             End Arrow
           </label>
+          {selected.segments?.length > 0 && (
+            <div className="inspector-segments">
+              <div className="inspector-segments-label">Segments</div>
+              {selected.segments.map((seg, i) => (
+                <div key={seg.id} className="inspector-segment-row">
+                  <span className="seg-label">
+                    {seg.curve ? '⌒' : '╱'} Seg {i + 1}
+                    {seg.preSnap ? ' · Pre-snap' : ''}
+                  </span>
+                  <button
+                    className={`seg-presnap-btn ${seg.preSnap ? 'active' : ''}`}
+                    onClick={() => updateSegment(selected.id, seg.id, { preSnap: !seg.preSnap })}
+                  >
+                    {seg.preSnap ? 'Pre-snap ✓' : 'Pre-snap'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

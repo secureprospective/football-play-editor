@@ -101,6 +101,46 @@
   gap: 0;
 }
 
+.inspector-segments {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 4px;
+  border-top: 1px solid #1a4a7a;
+  margin-top: 4px;
+}
+.inspector-segments-label {
+  font-size: 11px;
+  color: #808090;
+  font-weight: 600;
+}
+.inspector-segment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.seg-label {
+  font-size: 11px;
+  color: #a0a0b0;
+  flex: 1;
+}
+.seg-presnap-btn {
+  background: #0f3460;
+  border: 1px solid #1a4a7a;
+  border-radius: 4px;
+  color: #808090;
+  font-size: 10px;
+  padding: 3px 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.seg-presnap-btn.active {
+  background: #e94560;
+  border-color: #e94560;
+  color: #ffffff;
+}
 .inspector-footer {
   padding: 8px 12px;
   border-top: 1px solid #0f3460;
