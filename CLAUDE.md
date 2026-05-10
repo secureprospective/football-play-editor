@@ -19,7 +19,19 @@ Deploy: automatic on push to main
 - localStorage persistence
 - Export / Import playbook JSON
 - Player shapes: circle and square
-- Route drawing with node editing
+- Route drawing — segment-based data model
+  - Straight route tool (╱) and Curved route tool (⌒) as separate tools
+  - Each click adds a segment typed by the active tool
+  - Mixed straight/curve segments in a single route supported
+  - Multi-segment routes render correctly via Konva flatMap
+  - Triangle arrowhead at route end, direction-correct for curves
+  - Tension-based bezier curves (Konva tension prop)
+  - Node handles visible on selection, draggable
+- Pre-snap motion — segment-level property
+  - Toggle per segment in inspector
+  - Renders as zigzag line
+  - Carries animation intent for future phase
+- Data migration — old flat-points paths auto-convert to segment model on load and import
 - Undo / Redo, Flip H/V, Snap toggle, LOS toggle
 - Present Mode
 - Breadcrumb navigation — real buttons, active play name uncapped
@@ -39,9 +51,13 @@ Deploy: automatic on push to main
 2. Previous/Next play in Present Mode
 3. PWA — installable offline (Vite PWA plugin, own session)
 4. Inspector touch friendliness — input heights, label padding, color/checkbox hit areas
-5. Animation — future phase, major session
+5. Route branching (option route) — deferred, advanced feature, own session
+6. Animation — future phase, major session
 ## Known deferred items
+- Route branching — click on existing route to fork; deferred indefinitely
 - Duplicate play is Play view only — Formation and Playbook views have no duplicate concept by design
 - Chunk size warning on build — Konva bundle, address when animation phase requires code splitting
 - Drawing preview (route ghost line) only appears during touch contact — no hover state on touch, browser limitation
 - Right-click to finish route not available on touch — Done button covers this
+- Dashed Line toggle in inspector is wired but not honored per-segment — deferred
+- Curve control point drag (interactive Bézier) — curves use auto-tension, manual control point deferred
