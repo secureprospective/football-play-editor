@@ -34,21 +34,32 @@ export function flipPlayerVertical(player) {
 
 /**
  * Flip a path element horizontally.
- * Reflects all points' x coordinates and reverses point order
- * so arrow direction stays correct.
+ * Reflects all segment points' x coordinates.
  */
 export function flipPathHorizontal(path) {
-  const flipped = path.points.map(p => ({ x: flipX(p.x), y: p.y }));
-  return { ...path, points: flipped.reverse() };
+  return {
+    ...path,
+    segments: (path.segments || []).map(seg => ({
+      ...seg,
+      points: seg.points.map(p => ({ x: flipX(p.x), y: p.y })),
+      ...(seg.controlPoint ? { controlPoint: { x: flipX(seg.controlPoint.x), y: seg.controlPoint.y } } : {}),
+    })),
+  };
 }
 
 /**
  * Flip a path element vertically.
- * Reflects all points' y coordinates and reverses point order.
+ * Reflects all segment points' y coordinates.
  */
 export function flipPathVertical(path) {
-  const flipped = path.points.map(p => ({ x: p.x, y: flipY(p.y) }));
-  return { ...path, points: flipped.reverse() };
+  return {
+    ...path,
+    segments: (path.segments || []).map(seg => ({
+      ...seg,
+      points: seg.points.map(p => ({ x: p.x, y: flipY(p.y) })),
+      ...(seg.controlPoint ? { controlPoint: { x: seg.controlPoint.x, y: flipY(seg.controlPoint.y) } } : {}),
+    })),
+  };
 }
 
 /**

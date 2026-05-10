@@ -358,10 +358,8 @@ const useEditorStore = create((set, get) => ({
   setActiveTool: (tool) => set({ activeTool: tool }),
 
   selectedId: null,
-  selectedSegmentId: null,
-  setSelectedId: (id) => set({ selectedId: id, selectedSegmentId: null }),
-  setSelectedSegmentId: (pathId, segmentId) => set({ selectedId: pathId, selectedSegmentId: segmentId }),
-  clearSelection: () => set({ selectedId: null, selectedSegmentId: null }),
+  setSelectedId: (id) => set({ selectedId: id }),
+  clearSelection: () => set({ selectedId: null }),
 
   snapEnabled: true,
   snapIncrement: 19.28,
@@ -428,7 +426,7 @@ const useEditorStore = create((set, get) => ({
     get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
       elements: JSON.parse(JSON.stringify(prev))
     });
-    set({ historyIndex: historyIndex - 1, selectedId: null, selectedSegmentId: null });
+    set({ historyIndex: historyIndex - 1, selectedId: null });
   },
 
   redo: () => {
@@ -438,7 +436,7 @@ const useEditorStore = create((set, get) => ({
     get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
       elements: JSON.parse(JSON.stringify(next))
     });
-    set({ historyIndex: historyIndex + 1, selectedId: null, selectedSegmentId: null });
+    set({ historyIndex: historyIndex + 1, selectedId: null });
   },
 
   canUndo: () => get().historyIndex > 0,
@@ -490,7 +488,7 @@ const useEditorStore = create((set, get) => ({
     get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
       elements: play.elements.filter(el => el.id !== id)
     });
-    set(state => ({ selectedId: state.selectedId === id ? null : state.selectedId, selectedSegmentId: null }));
+    set(state => ({ selectedId: state.selectedId === id ? null : state.selectedId }));
   },
 
   clearElements: () => {
@@ -499,7 +497,7 @@ const useEditorStore = create((set, get) => ({
     get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
       elements: [createScrimmage()]
     });
-    set({ selectedId: null, selectedSegmentId: null, drawingPath: null, activePathId: null });
+    set({ selectedId: null, drawingPath: null, activePathId: null });
   },
 
   // --- Playbook Export/Import ---

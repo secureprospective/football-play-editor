@@ -49,10 +49,10 @@ function zigzagPoints(p1, p2, amplitude = 6, frequency = 8) {
 export default function FieldCanvas() {
   const {
     getActivePlay,
-    addElement, updateElement, updateSegment,
-    selectedId, selectedSegmentId,
-    setSelectedId, setSelectedSegmentId, clearSelection,
-    activeTool, setActiveTool,
+    addElement, updateElement,
+    selectedId,
+    setSelectedId, clearSelection,
+    activeTool,
     snapEnabled, snapIncrement,
     pushHistory,
     drawingPath, setDrawingPath, finishDrawing, cancelDrawing,
@@ -203,7 +203,6 @@ export default function FieldCanvas() {
           if (pathHit.hit) {
             // Insert branch node at click point on the existing path
             const branchOrigin = snapPoint(pathHit.point, snapIncrement, snapEnabled);
-            const { setDrawingPath: sdp, activePathId: apid } = useEditorStore.getState();
             useEditorStore.setState({ activePathId: selectedId });
             setDrawingPath({
               id: selectedId,
@@ -247,7 +246,7 @@ export default function FieldCanvas() {
 
     // Handle / player / path selection
     if (hit.type === 'handle') {
-      setSelectedSegmentId(hit.elementId, hit.segmentIndex !== null ? `seg_sel_${hit.segmentIndex}` : null);
+      setSelectedId(hit.elementId);
       dragTargetRef.current = hit;
       return;
     }
