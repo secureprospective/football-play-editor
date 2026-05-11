@@ -51,7 +51,7 @@ Deploy: automatic on push to main
 - Drag to reorder cards at all three levels — persists to localStorage via array position
 - Drag handle (⠿) on each card — explicit touch target, no accidental drag on tap
 - dnd-kit (PointerSensor + TouchSensor) with 8px activation distance / 200ms touch delay
-- Four-theme system (Sun-Cyan, Sun-Orange, Paper-Overcast, Paper-Newsprint) — CSS variables + colorIndex palette model, persisted in localStorage
+- Four-theme system (Sun-Cyan, Sun-Orange, Paper-Overcast, Paper-Newsprint) — CSS variables + colorIndex palette model, persisted in localStorage. Dot picker moved to bottom of left toolbox, pinned with margin-top: auto, 35px gap for touch targets.
 - PWA — installable on Chrome, service worker via vite-plugin-pwa, cache-first assets, network-first navigation, manifest with 192px + 512px icons
 
 ## What is next
