@@ -14,8 +14,10 @@
   align-items: center;
   gap: 4px;
   padding: 0 8px;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
   height: 100%;
+  overflow: hidden;
 }
 
 .toolbar-breadcrumb { display: flex; align-items: center; gap: 2px; }
@@ -46,7 +48,10 @@
   font-weight: 600;
   cursor: default;
   pointer-events: none;
-  max-width: none;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tb-crumb-sep { color: var(--color-border-mid); font-size: 14px; flex-shrink: 0; user-select: none; }

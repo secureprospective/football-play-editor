@@ -88,6 +88,7 @@ function loadFromStorage() {
             }
             // Migrate old path format
             pl.elements = pl.elements.map(el => migratePath(el));
+
           });
         });
       });

@@ -9,6 +9,7 @@ import Toolbar       from './components/Toolbar/Toolbar';
 import Toolbox       from './components/Toolbox/Toolbox';
 import Inspector     from './components/Inspector/Inspector';
 import FieldCanvas   from './components/Stage/FieldCanvas';
+import PresentOverlay from './components/PresentMode/PresentOverlay';
 
 export default function App() {
   const { viewMode, presentMode, togglePresentMode, theme } = useEditorStore();
@@ -31,13 +32,7 @@ export default function App() {
     return (
       <div className={`app-shell-present ${theme}`}>
         <FieldCanvas />
-        <div
-          className="present-exit-tab"
-          onClick={togglePresentMode}
-          title="Exit Present Mode"
-        >
-          EDIT
-        </div>
+        <PresentOverlay />
       </div>
     );
   }

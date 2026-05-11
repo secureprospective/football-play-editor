@@ -1,0 +1,83 @@
+.present-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.present-overlay-inner {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  pointer-events: all;
+}
+
+.present-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.present-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.present-input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 32px;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 8px 12px;
+  height: 56px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.present-input:focus {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.present-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.present-exit-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 0 16px;
+  height: 36px;
+  cursor: pointer;
+  pointer-events: all;
+  font-family: inherit;
+  touch-action: manipulation;
+}
+
+.present-exit-btn:hover {
+  background: rgba(0, 0, 0, 0.75);
+  color: #ffffff;
+}
