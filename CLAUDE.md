@@ -39,7 +39,7 @@ Deploy: automatic on push to main
 - Data migration — old flat-points paths auto-convert to segment model on load and import
 - Undo / Redo, Flip H/V, Snap toggle, LOS toggle
 - Present Mode
-- Breadcrumb navigation — real buttons, active play name uncapped
+- Breadcrumb navigation — real buttons, active play name capped at 160px with ellipsis (stays single-row)
 - Inline add, rename, duplicate, arm/confirm delete on all nav screens
 - No prompt() or confirm() dialogs anywhere
 - Touch event wiring on FieldCanvas (onTouchStart/Move/End)
@@ -52,11 +52,12 @@ Deploy: automatic on push to main
 - Drag handle (⠿) on each card — explicit touch target, no accidental drag on tap
 - dnd-kit (PointerSensor + TouchSensor) with 8px activation distance / 200ms touch delay
 - Four-theme system (Sun-Cyan, Sun-Orange, Paper-Overcast, Paper-Newsprint) — CSS variables + colorIndex palette model, persisted in localStorage. Dot picker moved to bottom of left toolbox, pinned with margin-top: auto, 35px gap for touch targets.
+- Present Mode text overlay — large bold editable caption, defaults to "Formation - Play" from breadcrumb names, resets on each open, EDIT button top-right
 - PWA — installable on Chrome, service worker via vite-plugin-pwa, cache-first assets, network-first navigation, manifest with 192px + 512px icons
 
 ## What is next
 1. Play thumbnails — mini field render on play cards (own session)
-2. Previous/Next play in Present Mode
+2. Previous/Next play in Present Mode — add key={play.id} on PresentOverlay when wiring this
 3. Inspector touch friendliness — input heights, label padding, color/checkbox hit areas
 4. Route branching (option route) — deferred, advanced feature, own session
 5. Animation — future phase, major session
