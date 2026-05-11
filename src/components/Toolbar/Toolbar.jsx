@@ -3,13 +3,6 @@ import useEditorStore from '../../store/useEditorStore';
 import { VIEW_MODES } from '../../constants/toolModes';
 import { flipPlayHorizontal, flipPlayVertical } from '../../utils/flipUtils';
 
-const THEMES = [
-  { id: 'theme-sun-cyan',       dot: '#00e5ff', title: 'Sun — Cyan'    },
-  { id: 'theme-sun-orange',     dot: '#ff6a00', title: 'Sun — Orange'  },
-  { id: 'theme-paper-overcast', dot: '#059669', title: 'Paper — Overcast' },
-  { id: 'theme-paper-newsprint',dot: '#dc2626', title: 'Paper — Newsprint' },
-];
-
 export default function Toolbar() {
   const {
     undo, redo, canUndo, canRedo,
@@ -22,7 +15,6 @@ export default function Toolbar() {
     presentMode, togglePresentMode,
     snapEnabled, setSnapEnabled,
     navigateTo, goBack,
-    theme, setTheme,
   } = useEditorStore();
 
   const play      = getActivePlay();
@@ -127,17 +119,6 @@ export default function Toolbar() {
           <div className="tb-divider-v" />
           <button className="tb-btn" onClick={handleExport} title="Export playbook">⬇ Export</button>
           <button className="tb-btn" onClick={handleImport} title="Import playbook">⬆ Import</button>
-          <div className="tb-divider-v" />
-          {THEMES.map(t => (
-            <button
-              key={t.id}
-              className="tb-theme-dot"
-              onClick={() => setTheme(t.id)}
-              title={t.title}
-              style={{ '--dot': t.dot }}
-              aria-pressed={theme === t.id}
-            />
-          ))}
           <div className="tb-divider-v" />
           <button className="tb-btn btn-danger" onClick={clearElements} title="Clear play">✕ Clear</button>
         </div>

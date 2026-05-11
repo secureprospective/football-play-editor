@@ -34,3 +34,34 @@
   color: var(--color-accent-text);
   border-color: var(--color-accent);
 }
+
+/* Theme dot picker — pinned to bottom of toolbox */
+.toolbox-theme-group {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 8px;
+}
+
+.tb-theme-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--dot);
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  touch-action: manipulation;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.tb-theme-dot:hover {
+  transform: scale(1.2);
+}
+
+.tb-theme-dot[aria-pressed="true"] {
+  border-color: var(--color-text);
+}
