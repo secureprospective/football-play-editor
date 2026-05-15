@@ -54,6 +54,12 @@ function FormationCard({ fm, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDo
           <button className="inline-save-btn" onClick={e => onRenameConfirm(e, fm)}>Save</button>
           <button className="inline-cancel-btn" onClick={e => { e.stopPropagation(); setRenamingId(null); setRenameValue(''); }}>✕</button>
         </div>
+      ) : deletingId === fm.id ? (
+        <div className="card-delete-float">
+          <span style={{ fontSize: '13px', color: 'var(--color-danger)', fontWeight: 600, flex: 1 }}>Delete formation?</span>
+          <button className="card-action-btn" onClick={e => { e.stopPropagation(); onDeleteCancel(e); }}>Cancel</button>
+          <button className="card-action-btn danger" onClick={e => onDeleteConfirm(e, fm.id)}>Delete</button>
+        </div>
       ) : (
         <div className="card-actions">
           <div
@@ -68,14 +74,6 @@ function FormationCard({ fm, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDo
             <button className="card-action-btn" onClick={e => onDuplicate(e, fm)}>Duplicate</button>
             <button className="card-action-btn danger" onClick={e => onDeleteArm(e, fm.id)}>Delete</button>
           </div>
-        </div>
-      )}
-
-      {deletingId === fm.id && (
-        <div className="card-delete-confirm">
-          <span>Delete formation?</span>
-          <button className="card-delete-cancel-btn" onClick={onDeleteCancel}>Cancel</button>
-          <button className="card-delete-confirm-btn" onClick={e => onDeleteConfirm(e, fm.id)}>Delete</button>
         </div>
       )}
     </div>

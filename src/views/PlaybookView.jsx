@@ -67,6 +67,12 @@ function PlaybookCard({
             onClick={e => { e.stopPropagation(); setRenamingId(null); setRenameValue(''); }}
           >✕</button>
         </div>
+      ) : deletingId === pb.id ? (
+        <div className="card-delete-float">
+          <span style={{ fontSize: '13px', color: 'var(--color-danger)', fontWeight: 600, flex: 1 }}>Delete playbook?</span>
+          <button className="card-action-btn" onClick={e => { e.stopPropagation(); onDeleteCancel(e); }}>Cancel</button>
+          <button className="card-action-btn danger" onClick={e => onDeleteConfirm(e, pb.id)}>Delete</button>
+        </div>
       ) : (
         <div className="card-actions">
           <div
@@ -80,14 +86,6 @@ function PlaybookCard({
             <button className="card-action-btn" onClick={e => onRenameArm(e, pb)}>Rename</button>
             <button className="card-action-btn danger" onClick={e => onDeleteArm(e, pb.id)}>Delete</button>
           </div>
-        </div>
-      )}
-
-      {deletingId === pb.id && (
-        <div className="card-delete-confirm">
-          <span>Delete playbook?</span>
-          <button className="card-delete-cancel-btn" onClick={onDeleteCancel}>Cancel</button>
-          <button className="card-delete-confirm-btn" onClick={e => onDeleteConfirm(e, pb.id)}>Delete</button>
         </div>
       )}
     </div>
