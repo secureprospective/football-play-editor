@@ -26,13 +26,6 @@
   margin: 0;
 }
 
-.view-subtitle {
-  font-size: 13px;
-  color: var(--color-text-muted);
-  padding: 6px 24px 0;
-  flex-shrink: 0;
-}
-
 .view-back-btn {
   background: var(--color-panel);
   color: var(--color-text);
@@ -283,45 +276,3 @@
 .card-action-btn.danger { color: var(--color-danger); border-color: var(--color-border); }
 .card-action-btn.danger:hover { border-color: var(--color-danger); }
 
-.card-delete-confirm {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
-  background: var(--color-delete-bg);
-  border-top: 1px solid var(--color-delete-border);
-  flex-shrink: 0;
-  min-height: 44px;
-}
-
-.card-delete-confirm span { font-size: 12px; color: var(--color-danger); flex: 1; }
-
-.card-delete-confirm-btn {
-  background: var(--color-danger);
-  color: #ffffff;
-  border: none;
-  border-radius: 5px;
-  padding: 8px 14px;
-  font-size: 12px;
-  cursor: pointer;
-  font-family: inherit;
-  min-height: 44px;
-  touch-action: manipulation;
-}
-
-.card-delete-confirm-btn:hover { opacity: 0.85; }
-
-.card-delete-cancel-btn {
-  background: transparent;
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
-  padding: 8px 12px;
-  font-size: 12px;
-  cursor: pointer;
-  font-family: inherit;
-  min-height: 44px;
-  touch-action: manipulation;
-}
-
-.card-delete-cancel-btn:hover { color: var(--color-text); }

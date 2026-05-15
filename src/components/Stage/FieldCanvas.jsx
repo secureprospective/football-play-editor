@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { Stage, Layer, Rect, Circle, Text, Line, Arrow, Group, RegularPolygon } from 'react-konva';
+import { Stage, Layer, Rect, Circle, Text, Line, RegularPolygon } from 'react-konva';
 import './FieldCanvas.css';
 import useEditorStore from '../../store/useEditorStore';
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
@@ -159,6 +159,7 @@ export default function FieldCanvas() {
 
   // --- Pointer down ---
   function handlePointerDown() {
+    if (!stageRef.current) return;
     if (presentMode) return;
 
     const pos = getScaledPos();
@@ -236,7 +237,6 @@ export default function FieldCanvas() {
         id: generateId(),
         type: 'path',
         segments: [],
-        branches: [],
         _startPoint: resolved,
         style: { stroke: colors.text, thickness: 3, endArrow: true },
       });
@@ -276,6 +276,7 @@ export default function FieldCanvas() {
 
   // --- Pointer move ---
   function handlePointerMove() {
+    if (!stageRef.current) return;
     if (presentMode) return;
 
     const pos = getScaledPos();

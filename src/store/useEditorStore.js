@@ -63,14 +63,7 @@ function migratePath(el) {
     });
   }
   const { points, ...rest } = el;
-  return { ...rest, segments, branches: [] };
-}
-
-function migratePlay(play) {
-  return {
-    ...play,
-    elements: play.elements.map(el => migratePath(el)),
-  };
+  return { ...rest, segments };
 }
 
 function loadFromStorage() {

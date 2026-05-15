@@ -52,7 +52,7 @@ function PlaybookCard({
       </div>
 
       {renamingId === pb.id ? (
-        <div className="inline-input-row" style={{ borderTop: '1px solid #0f3460', borderBottom: 'none', padding: '8px' }}>
+        <div className="inline-input-row" style={{ borderTop: '1px solid var(--color-border)', borderBottom: 'none', padding: '8px' }}>
           <input
             className="inline-input"
             value={renameValue}

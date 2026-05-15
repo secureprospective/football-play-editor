@@ -12,7 +12,7 @@ export default defineConfig({
         name: 'Football Play Editor',
         short_name: 'Play Editor',
         description: 'Draw and present football plays on the sideline.',
-        theme_color: '#0f172a',
+        theme_color: '#141414',
         background_color: '#0f172a',
         display: 'standalone',
         scope: '/',

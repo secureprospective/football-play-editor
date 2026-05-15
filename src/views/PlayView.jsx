@@ -44,7 +44,7 @@ function PlayCard({ pl, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDown, o
       </div>
 
       {renamingId === pl.id ? (
-        <div className="inline-input-row" style={{ borderTop: '1px solid #0f3460', borderBottom: 'none', padding: '8px' }}>
+        <div className="inline-input-row" style={{ borderTop: '1px solid var(--color-border)', borderBottom: 'none', padding: '8px' }}>
           <input
             className="inline-input"
             value={renameValue}
@@ -180,7 +180,7 @@ export default function PlayView() {
     <div className="view-container">
       <div className="view-header">
         <button className="view-back-btn" onClick={goBack}>← Back</button>
-        <h1 className="view-title">{formation.name}</h1>
+        <h1 className="view-title">{formation?.name}</h1>
         <button className="view-add-btn" onClick={handleAdd}>+ New Play</button>
       </div>
 

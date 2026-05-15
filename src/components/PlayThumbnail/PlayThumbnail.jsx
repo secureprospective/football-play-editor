@@ -1,5 +1,3 @@
-import React from 'react';
-
 const FIELD_WIDTH  = 1920;
 const FIELD_HEIGHT = 1080;
 

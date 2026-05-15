@@ -43,7 +43,7 @@ Deploy: automatic on push to main
 - Inline add, rename, duplicate, arm/confirm delete on all nav screens
 - No prompt() or confirm() dialogs anywhere
 - Touch event wiring on FieldCanvas (onTouchStart/Move/End)
-- 44px minimum touch targets throughout
+- 44px minimum touch targets on primary controls; card action buttons are 32px (secondary controls)
 - Single-row toolbar: nav left (Back, breadcrumb, Present), actions right (scrollable)
 - Present Mode button lives in nav context, immediately after breadcrumb
 - Card actions consistent across all levels: Playbook (Rename, Delete), Formation (Rename, Duplicate, Delete), Play (Rename, Duplicate, Delete)
@@ -56,6 +56,9 @@ Deploy: automatic on push to main
 - PWA — installable on Chrome, service worker via vite-plugin-pwa, cache-first assets, network-first navigation, manifest with 192px + 512px icons
 - Play thumbnails — static SVG mini field render on play cards; players (circle/square) and routes (straight/curve/motion) scaled from 1920×1080 field space; ▶ placeholder for empty plays
 - Card polish — floating shadow (--color-shadow per theme), 16px border radius, embossed action buttons, inline delete confirm (card-delete-float overlay) on all three nav layers (Playbook, Formation, Play)
+- Shift-key 45° angle constraint during player drag and route drawing
+- Whole-path drag — drag a route to translate all its segments together
+- Field grid with NFL yard lines and hash marks (FieldGrid component)
 
 ## What is next
 1. Previous/Next play in Present Mode — add key={play.id} on PresentOverlay when wiring this
