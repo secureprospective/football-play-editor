@@ -17,6 +17,7 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import PlayThumbnail from '../components/PlayThumbnail/PlayThumbnail';
 
 function PlayCard({ pl, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDown, onDuplicate, onDeleteArm, onDeleteConfirm, onDeleteCancel, deletingId, renamingId, renameValue, setRenameValue, setRenamingId }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: pl.id });
@@ -33,8 +34,8 @@ function PlayCard({ pl, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDown, o
       className={`card ${deletingId === pl.id ? 'deleting' : ''} ${isDragging ? 'dragging' : ''}`}
       onClick={() => onOpen(pl)}
     >
-      <div className="card-thumb card-thumb-play">
-        <span className="card-thumb-icon">▶</span>
+      <div className="card-thumb card-thumb-play" style={{ padding: 0, overflow: 'hidden' }}>
+        <PlayThumbnail elements={pl.elements} width={300} height={160} />
       </div>
       <div className="card-info">
         <div className="card-name">{pl.name}</div>
@@ -55,6 +56,12 @@ function PlayCard({ pl, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDown, o
           <button className="inline-save-btn" onClick={e => onRenameConfirm(e, pl)}>Save</button>
           <button className="inline-cancel-btn" onClick={e => { e.stopPropagation(); setRenamingId(null); setRenameValue(''); }}>✕</button>
         </div>
+      ) : deletingId === pl.id ? (
+        <div className="card-delete-float">
+          <span style={{ fontSize: '13px', color: 'var(--color-danger)', fontWeight: 600, flex: 1 }}>Delete play?</span>
+          <button className="card-action-btn" onClick={e => { e.stopPropagation(); onDeleteCancel(e); }}>Cancel</button>
+          <button className="card-action-btn danger" onClick={e => onDeleteConfirm(e, pl.id)}>Delete</button>
+        </div>
       ) : (
         <div className="card-actions">
           <div
@@ -69,14 +76,6 @@ function PlayCard({ pl, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDown, o
             <button className="card-action-btn" onClick={e => onDuplicate(e, pl)}>Duplicate</button>
             <button className="card-action-btn danger" onClick={e => onDeleteArm(e, pl.id)}>Delete</button>
           </div>
-        </div>
-      )}
-
-      {deletingId === pl.id && (
-        <div className="card-delete-confirm">
-          <span>Delete play?</span>
-          <button className="card-delete-cancel-btn" onClick={onDeleteCancel}>Cancel</button>
-          <button className="card-delete-confirm-btn" onClick={e => onDeleteConfirm(e, pl.id)}>Delete</button>
         </div>
       )}
     </div>

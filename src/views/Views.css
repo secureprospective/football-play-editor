@@ -132,6 +132,8 @@
 
 .card-grid {
   display: grid;
+  align-content: start;
+  grid-auto-rows: 268px;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   padding: 24px;
@@ -145,45 +147,62 @@
 
 .card {
   background: var(--color-panel);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border: 2px solid var(--color-border-mid);
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  transition: border-color 0.15s, transform 0.1s;
-  min-height: 160px;
+  transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
+  height: 268px;
   position: relative;
+  box-shadow: 0 2px 4px var(--color-shadow), 0 4px 12px var(--color-shadow);
 }
-
-.card:hover { border-color: var(--color-accent); transform: translateY(-2px); }
-.card:active { transform: translateY(0); }
-
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px var(--color-shadow), 0 2px 6px var(--color-shadow);
+}
+.card:active { transform: translateY(0); box-shadow: 0 2px 4px var(--color-shadow); }
 .card.deleting {
-  border-color: var(--color-danger);
+  box-shadow: 0 0 0 2px var(--color-danger), 0 4px 12px var(--color-shadow);
+  border-color: transparent;
   background: var(--color-delete-bg);
   transform: none;
 }
-
 .card.dragging {
   opacity: 0.4;
-  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent), 0 8px 24px var(--color-shadow);
+  border-color: transparent;
   transform: none;
   cursor: grabbing;
 }
 
+.card-delete-float {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--color-delete-bg);
+  border-top: 1px solid var(--color-danger);
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  gap: 8px;
+  z-index: 10;
+}
+
 .card-thumb {
   width: 100%;
-  height: 90px;
+  height: 160px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.card-thumb-playbook  { background: var(--color-panel-alt); }
-.card-thumb-formation { background: var(--color-panel-alt); }
-.card-thumb-play      { background: var(--color-panel-alt); }
+.card-thumb-playbook  { background: var(--color-panel-alt); border-radius: 14px 14px 0 0; overflow: hidden; }
+.card-thumb-formation { background: var(--color-panel-alt); border-radius: 14px 14px 0 0; overflow: hidden; }
+.card-thumb-play      { background: var(--color-panel-alt); border-radius: 14px 14px 0 0; overflow: hidden; }
 
 .card-thumb-icon { font-size: 32px; }
 
@@ -214,6 +233,7 @@
   border-top: 1px solid var(--color-border);
   background: var(--color-panel);
   flex-shrink: 0;
+  padding: 6px 8px;
 }
 
 .card-drag-handle {
@@ -248,16 +268,17 @@
   border: 1px solid var(--color-border);
   border-radius: 5px;
   color: var(--color-text-muted);
-  font-size: 11px;
-  padding: 10px 0;
+  font-size: 12px;
+  padding: 4px 8px;
   cursor: pointer;
   font-family: inherit;
-  transition: color 0.15s, border-color 0.15s;
-  min-height: 44px;
+  transition: color 0.15s, border-color 0.15s, box-shadow 0.15s;
+  min-height: 32px;
   touch-action: manipulation;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -2px 0 rgba(0,0,0,0.15);
 }
 
-.card-action-btn:hover { color: var(--color-text); border-color: var(--color-border-mid); }
+.card-action-btn:hover { color: var(--color-text); border-color: var(--color-border-mid); box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
 
 .card-action-btn.danger { color: var(--color-danger); border-color: var(--color-border); }
 .card-action-btn.danger:hover { border-color: var(--color-danger); }

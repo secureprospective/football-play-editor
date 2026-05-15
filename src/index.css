@@ -26,6 +26,7 @@ body {
   --color-field-line:  #222222;
   --color-delete-bg:   #1a0505;
   --color-delete-border:#ff3b3b;
+  --color-shadow:      rgba(0,0,0,0.45);
 }
 
 .theme-sun-orange {
@@ -45,6 +46,7 @@ body {
   --color-field-line:  #1c1c1c;
   --color-delete-bg:   #1a0800;
   --color-delete-border:#ff6a00;
+  --color-shadow:      rgba(0,0,0,0.45);
 }
 
 .theme-paper-overcast {
@@ -64,6 +66,7 @@ body {
   --color-field-line:  #c0ccd8;
   --color-delete-bg:   #fde8e8;
   --color-delete-border:#dc2626;
+  --color-shadow:      rgba(0,0,0,0.12);
 }
 
 .theme-paper-newsprint {
@@ -83,4 +86,5 @@ body {
   --color-field-line:  #c4beb4;
   --color-delete-bg:   #fde8e8;
   --color-delete-border:#dc2626;
+  --color-shadow:      rgba(0,0,0,0.12);
 }
