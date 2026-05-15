@@ -54,13 +54,14 @@ Deploy: automatic on push to main
 - Four-theme system (Sun-Cyan, Sun-Orange, Paper-Overcast, Paper-Newsprint) — CSS variables + colorIndex palette model, persisted in localStorage. Dot picker moved to bottom of left toolbox, pinned with margin-top: auto, 35px gap for touch targets.
 - Present Mode text overlay — large bold editable caption, defaults to "Formation - Play" from breadcrumb names, resets on each open, EDIT button top-right
 - PWA — installable on Chrome, service worker via vite-plugin-pwa, cache-first assets, network-first navigation, manifest with 192px + 512px icons
+- Play thumbnails — static SVG mini field render on play cards; players (circle/square) and routes (straight/curve/motion) scaled from 1920×1080 field space; ▶ placeholder for empty plays
+- Card polish — floating shadow (--color-shadow per theme), 16px border radius, embossed action buttons, inline delete confirm (card-delete-float overlay) on all three nav layers (Playbook, Formation, Play)
 
 ## What is next
-1. Play thumbnails — mini field render on play cards (own session)
-2. Previous/Next play in Present Mode — add key={play.id} on PresentOverlay when wiring this
-3. Inspector touch friendliness — input heights, label padding, color/checkbox hit areas
-4. Route branching (option route) — deferred, advanced feature, own session
-5. Animation — future phase, major session
+1. Previous/Next play in Present Mode — add key={play.id} on PresentOverlay when wiring this
+2. Inspector touch friendliness — input heights, label padding, color/checkbox hit areas; note card-action-btn min-height reduced to 32px (below 44px touch target standard) — revisit here
+3. Route branching (option route) — deferred, advanced feature, own session
+4. Animation — future phase, major session
 
 ## Known deferred items
 - Route branching — click on existing route to fork; deferred indefinitely
