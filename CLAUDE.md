@@ -67,6 +67,37 @@ Deploy: automatic on push to main
 2. Route branching (option route) — deferred, advanced feature, own session
 3. Animation — future phase, major session
 
+## Animation Phase — Pre-planning Notes
+*Resolve these before the animation planning session starts.*
+
+### Questions that must be answered first (Christopher decides)
+1. What does playback look like to a coach? — All players move simultaneously, or sequenced (snap → routes unfold one by one)?
+2. Where does animation live in the UI? — Field editor only, Present Mode only, or both?
+3. Minimum viable version — full choreographed timing with speed control, or players slide along routes at a fixed speed?
+
+### Code changes required before animation can start
+
+**1. Player-route linkage — critical, data model change**
+The `elements` array is flat. Players and routes have no data relationship. There is no `routeId` on a player or `playerId` on a path. Animation cannot work without knowing "player X follows route Y." Requires a design decision (one player owns one route? routes can be unowned?) and a data migration similar to the segment migration already in the store. Do this in its own session before animation.
+
+**2. FieldCanvas.jsx split — important, do before animation**
+677 lines mixing interaction events, drawing logic, rendering, and Konva state. Animation requires driving the render layer from a timeline, not React events. Plan a refactor session to separate rendering from interaction before the animation build starts.
+
+**3. Animation state must be a separate store — architecture decision**
+History (undo/redo) in useEditorStore snapshots full play element state. Animation playback state (isPlaying, currentTime, frame) must never touch this stack. Wire animation as a separate lightweight Zustand store. Plan this boundary explicitly during the architecture session.
+
+**4. Konva code splitting — bundle size**
+The chunk size warning is from Konva. Animation will add Konva tween/animation APIs and grow the bundle further. Address with dynamic import() code splitting before or during the animation phase.
+
+### Recommended session order before animation build
+1. QoL / UI polish (current focus)
+2. Player-route linkage (data model session)
+3. FieldCanvas refactor (render/interaction split)
+4. Animation architecture planning
+5. Animation build
+
+---
+
 ## Known deferred items
 - Route branching — click on existing route to fork; deferred indefinitely
 - Duplicate play is Play view only — Formation and Playbook views have no duplicate concept by design
