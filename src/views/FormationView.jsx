@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import './Views.css';
 import useEditorStore from '../store/useEditorStore';
+import PlayThumbnail from '../components/PlayThumbnail/PlayThumbnail';
 import { VIEW_MODES } from '../constants/toolModes';
 import {
   DndContext,
@@ -33,8 +34,8 @@ function FormationCard({ fm, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDo
       className={`card ${deletingId === fm.id ? 'deleting' : ''} ${isDragging ? 'dragging' : ''}`}
       onClick={() => onOpen(fm)}
     >
-      <div className="card-thumb card-thumb-formation">
-        <span className="card-thumb-icon">🏈</span>
+      <div className="card-thumb card-thumb-formation" style={{ padding: 0, overflow: 'hidden' }}>
+        <PlayThumbnail elements={fm.plays[0]?.elements} width={300} height={160} playersOnly />
       </div>
       <div className="card-info">
         <div className="card-name">{fm.name}</div>

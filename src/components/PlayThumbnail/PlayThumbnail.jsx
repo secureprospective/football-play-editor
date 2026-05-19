@@ -20,11 +20,13 @@ function curveCP(p1, p2) {
   };
 }
 
-export default function PlayThumbnail({ elements, width = 300, height = 160 }) {
+export default function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = false }) {
   const theme  = useEditorStore(s => s.theme);
   const colors = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
 
-  const hasContent = elements && elements.some(el => el.type !== 'scrimmage');
+  const hasContent = elements && elements.some(el =>
+    playersOnly ? el.type === 'player' : el.type !== 'scrimmage'
+  );
   if (!hasContent) return <span className="card-thumb-icon">▶</span>;
 
   const scrimmage = elements.find(el => el.type === 'scrimmage');
@@ -56,7 +58,7 @@ export default function PlayThumbnail({ elements, width = 300, height = 160 }) {
       )}
 
       {/* Routes */}
-      {paths.map(path => {
+      {!playersOnly && paths.map(path => {
         const ci         = path.style?.colorIndex ?? -1;
         const routeColor = ci >= 0 ? colors.palette[ci] : colors.text;
 
