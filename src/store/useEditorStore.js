@@ -378,7 +378,7 @@ const useEditorStore = create((set, get) => ({
   setDrawingPath: (path) => set({ drawingPath: path }),
 
   finishDrawing: () => {
-    const { drawingPath, activePathId, addElement, updateElement, getActivePlay, setSelectedId } = get();
+    const { drawingPath, activePathId, addElement, updateElement, getActivePlay, setSelectedId, pushHistory, setActiveTool } = get();
     if (!drawingPath) return;
 
     if (activePathId) {
@@ -386,6 +386,7 @@ const useEditorStore = create((set, get) => ({
       const play = getActivePlay();
       const existingPath = play?.elements.find(el => el.id === activePathId);
       if (existingPath && drawingPath.segments.length > 0) {
+        pushHistory();
         updateElement(activePathId, {
           segments: [...existingPath.segments, ...drawingPath.segments],
         });
@@ -400,6 +401,7 @@ const useEditorStore = create((set, get) => ({
       }
       set({ drawingPath: null, activePathId: null });
     }
+    setActiveTool(DEFAULT_TOOL);
   },
 
   cancelDrawing: () => set({ drawingPath: null, activePathId: null }),
