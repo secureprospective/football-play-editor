@@ -4,7 +4,7 @@ import './FieldCanvas.css';
 import useEditorStore from '../../store/useEditorStore';
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
 import { TOOL_MODES } from '../../constants/toolModes';
-import { masterHitTest, hitTestPathSegments, exceededDragThreshold } from '../../utils/hitTesting';
+import { masterHitTest, hitTestPathSegments, hitTestPlayer, exceededDragThreshold } from '../../utils/hitTesting';
 import { snapPoint, constrainToAngle } from '../../utils/snapToGrid';
 import { defaultCurveCP, bezierCtrl } from '../../utils/curveUtils';
 import FieldGrid from './FieldGrid';
@@ -48,10 +48,27 @@ function zigzagPoints(p1, p2, amplitude = 6, frequency = 8) {
   return pts;
 }
 
+// Returns IDs of elements where ALL points are inside the rect (all-or-nothing rule)
+function getElementsInRect(rect, elements) {
+  const minX = Math.min(rect.x, rect.x + rect.width);
+  const maxX = Math.max(rect.x, rect.x + rect.width);
+  const minY = Math.min(rect.y, rect.y + rect.height);
+  const maxY = Math.max(rect.y, rect.y + rect.height);
+  const inRect = p => p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY;
+  return elements
+    .filter(el => el.type !== 'scrimmage')
+    .filter(el => {
+      if (el.type === 'player') return inRect({ x: el.x, y: el.y });
+      if (el.type === 'path')   return el.segments?.length > 0 && el.segments.every(seg => seg.points.every(p => inRect(p)));
+      return false;
+    })
+    .map(el => el.id);
+}
+
 export default function FieldCanvas() {
   const {
     getActivePlay,
-    addElement, updateElement,
+    addElement, updateElement, updateElements,
     selectedId,
     setSelectedId, clearSelection,
     activeTool,
@@ -61,6 +78,7 @@ export default function FieldCanvas() {
     setActivePathId,
     scrimmageVisible,
     presentMode,
+    marqueeIds, setMarqueeIds, clearMarquee,
   } = useEditorStore();
 
   const theme = useEditorStore(s => s.theme);
@@ -70,14 +88,18 @@ export default function FieldCanvas() {
 
   const stageRef     = useRef(null);
   const containerRef = useRef(null);
-  const [stageSize, setStageSize] = useState({ width: 600, height: 800 });
-  const [mousePos, setMousePos]   = useState(null);
-  const [shiftHeld, setShiftHeld] = useState(false);
-  const [hoveredId, setHoveredId] = useState(null);
+  const [stageSize, setStageSize]       = useState({ width: 600, height: 800 });
+  const [mousePos, setMousePos]         = useState(null);
+  const [shiftHeld, setShiftHeld]       = useState(false);
+  const [hoveredId, setHoveredId]       = useState(null);
+  const [marqueeRect, setMarqueeRect]   = useState(null);
+  const [liveMarqueeIds, setLiveMarqueeIds] = useState([]);
   const dragStartRef    = useRef(null);
   const dragStartPos    = useRef(null);
   const isDraggingRef   = useRef(false);
   const dragTargetRef   = useRef(null);
+  const marqueeStartRef = useRef(null);
+  const groupStartRef   = useRef([]);
 
   // Resize observer
   useEffect(() => {
@@ -97,7 +119,13 @@ export default function FieldCanvas() {
     function handleKeyDown(e) {
       if (e.key === 'Shift') setShiftHeld(true);
       if (e.key === 'Enter')  { e.preventDefault(); finishDrawing(); }
-      if (e.key === 'Escape') { e.preventDefault(); cancelDrawing(); }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        cancelDrawing();
+        clearMarquee();
+        setLiveMarqueeIds([]);
+        setMarqueeRect(null);
+      }
       if ((e.key === 'Delete' || e.key === 'Backspace') && !drawingPath) {
         const { selectedId, deleteElement } = useEditorStore.getState();
         if (selectedId && selectedId !== 'scrimmage_line') deleteElement(selectedId);
@@ -242,6 +270,38 @@ export default function FieldCanvas() {
       return;
     }
 
+    // BOX SELECT tool
+    if (activeTool === TOOL_MODES.BOX_SELECT) {
+      const currentMarqueeIds = useEditorStore.getState().marqueeIds;
+      if (currentMarqueeIds.length > 0) {
+        const onGroup = elements.some(el =>
+          currentMarqueeIds.includes(el.id) && (
+            el.type === 'player' ? hitTestPlayer(pos.x, pos.y, el) :
+            el.type === 'path'   ? hitTestPathSegments(pos.x, pos.y, el.segments).hit : false
+          )
+        );
+        if (onGroup) {
+          // Record starting state of all group elements for the move
+          groupStartRef.current = elements
+            .filter(el => currentMarqueeIds.includes(el.id))
+            .map(el => ({
+              id: el.id, type: el.type,
+              ...(el.type === 'player' ? { x: el.x, y: el.y } : {}),
+              ...(el.type === 'path'   ? { segments: JSON.parse(JSON.stringify(el.segments)) } : {}),
+            }));
+          dragTargetRef.current = { type: 'groupMove' };
+          return;
+        }
+      }
+      // Start a new marquee rect
+      clearMarquee();
+      setLiveMarqueeIds([]);
+      marqueeStartRef.current = pos;
+      setMarqueeRect({ x: pos.x, y: pos.y, width: 0, height: 0 });
+      dragTargetRef.current = null;
+      return;
+    }
+
     // SCRIMMAGE drag
     if (scrimmageVisible) {
       const scrimmage = elements.find(el => el.id === 'scrimmage_line');
@@ -314,6 +374,34 @@ export default function FieldCanvas() {
     if (isDraggingRef.current && dragTargetRef.current) {
       const { type, elementId } = dragTargetRef.current;
 
+      if (type === 'groupMove') {
+        const delta = resolveDragDelta(dragStartRef.current, pos);
+        const updates = groupStartRef.current.map(start => {
+          if (start.type === 'player') {
+            const newPos = snapPoint(
+              { x: start.x + delta.x, y: start.y + delta.y },
+              snapIncrement, snapEnabled
+            );
+            return { id: start.id, changes: { x: newPos.x, y: newPos.y } };
+          }
+          if (start.type === 'path') {
+            return {
+              id: start.id,
+              changes: {
+                segments: start.segments.map(seg => ({
+                  ...seg,
+                  points: seg.points.map(p => ({ x: p.x + delta.x, y: p.y + delta.y })),
+                  ...(seg.controlPoint ? { controlPoint: { x: seg.controlPoint.x + delta.x, y: seg.controlPoint.y + delta.y } } : {}),
+                })),
+              },
+            };
+          }
+          return null;
+        }).filter(Boolean);
+        updateElements(updates);
+        return;
+      }
+
       if (type === 'controlPoint') {
         const el = elements.find(e => e.id === elementId);
         if (!el?.segments) return;
@@ -373,15 +461,35 @@ export default function FieldCanvas() {
         return;
       }
     }
+
+    // Marquee rect drawing (BOX_SELECT, no dragTarget)
+    if (activeTool === TOOL_MODES.BOX_SELECT && marqueeStartRef.current && !dragTargetRef.current) {
+      const rect = {
+        x: marqueeStartRef.current.x,
+        y: marqueeStartRef.current.y,
+        width:  pos.x - marqueeStartRef.current.x,
+        height: pos.y - marqueeStartRef.current.y,
+      };
+      setMarqueeRect(rect);
+      setLiveMarqueeIds(getElementsInRect(rect, elements));
+    }
   }
 
   // --- Pointer up ---
   function handlePointerUp() {
     if (isDraggingRef.current && dragTargetRef.current) pushHistory();
-    dragStartRef.current  = null;
-    dragStartPos.current  = null;
-    isDraggingRef.current = false;
-    dragTargetRef.current = null;
+
+    // Finalize marquee selection on release
+    if (activeTool === TOOL_MODES.BOX_SELECT && marqueeStartRef.current && !dragTargetRef.current) {
+      setMarqueeIds(isDraggingRef.current ? liveMarqueeIds : []);
+    }
+
+    setMarqueeRect(null);
+    marqueeStartRef.current = null;
+    dragStartRef.current    = null;
+    dragStartPos.current    = null;
+    isDraggingRef.current   = false;
+    dragTargetRef.current   = null;
   }
 
   // Mouse handlers
@@ -614,10 +722,39 @@ export default function FieldCanvas() {
     return <>{committed}{ghost}{nodes}</>;
   }
 
+  // In BOX_SELECT mode: all path nodes visible (muted), live-captured ones fully lit
+  function renderAllNodes() {
+    if (!isBoxSelect || presentMode) return null;
+    const seen = new Set();
+    return elements.filter(el => el.type === 'path').flatMap(el => {
+      const isLive = liveMarqueeIds.includes(el.id) || marqueeIds.includes(el.id);
+      return el.segments.flatMap((seg, si) =>
+        seg.points.filter(p => {
+          const key = `${Math.round(p.x)}_${Math.round(p.y)}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        }).map((p, pi) => (
+          <Circle key={`mn_${el.id}_${si}_${pi}`}
+            x={p.x} y={p.y}
+            radius={isLive ? 6 : 4}
+            fill={isLive ? colors.accent : colors.text}
+            stroke={isLive ? colors.field : colors.accent}
+            strokeWidth={isLive ? 2 : 1}
+            opacity={isLive ? 1 : 0.3}
+          />
+        ))
+      );
+    });
+  }
+
   const selectedEl = elements.find(el => el.id === selectedId);
+  const isBoxSelect = activeTool === TOOL_MODES.BOX_SELECT;
   const cursorStyle = presentMode
     ? 'default'
-    : hoveredId === 'scrimmage_line' ? 'ns-resize' : 'crosshair';
+    : hoveredId === 'scrimmage_line' ? 'ns-resize'
+    : isBoxSelect && marqueeIds.length > 0 ? 'move'
+    : 'crosshair';
 
   return (
     <div className="field-canvas-container" ref={containerRef} style={{ cursor: cursorStyle }}>
@@ -645,18 +782,34 @@ export default function FieldCanvas() {
             return Array.isArray(result) ? result : (result ? [result] : []);
           })}
           {!presentMode && renderDrawingPreview()}
-          {!presentMode && selectedEl?.type === 'path' && renderNodeHandles(selectedEl)}
+          {!presentMode && !isBoxSelect && selectedEl?.type === 'path' && renderNodeHandles(selectedEl)}
+          {renderAllNodes()}
+          {/* Marquee selection rect */}
+          {marqueeRect && (
+            <Rect
+              x={Math.min(marqueeRect.x, marqueeRect.x + marqueeRect.width)}
+              y={Math.min(marqueeRect.y, marqueeRect.y + marqueeRect.height)}
+              width={Math.abs(marqueeRect.width)}
+              height={Math.abs(marqueeRect.height)}
+              stroke={colors.accent}
+              strokeWidth={1}
+              dash={[6, 4]}
+              fill={colors.accent}
+              opacity={0.08}
+            />
+          )}
         </Layer>
 
         <Layer>
           {elements.filter(el => el.type === 'player').map(el => {
-            const isSelected = !presentMode && el.id === selectedId;
+            const isSelected  = !presentMode && el.id === selectedId;
+            const inMarquee   = !presentMode && (liveMarqueeIds.includes(el.id) || marqueeIds.includes(el.id));
             const shape  = el.style?.shape  || 'circle';
             const ci = el.style?.colorIndex ?? -1;
             const fill   = ci >= 0 ? colors.palette[ci] : colors.accent;
             const labelColor = ci >= 0 ? colors.labels[ci] : colors.text;
-            const stroke = isSelected ? '#ffff00' : labelColor;
-            const sw     = isSelected ? 3 : 2;
+            const stroke = isSelected ? '#ffff00' : inMarquee ? colors.accent : labelColor;
+            const sw     = isSelected || inMarquee ? 3 : 2;
             const r      = FIELD_CONFIG.PLAYER_RADIUS;
             if (shape === 'square') {
               return (

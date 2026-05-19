@@ -1,5 +1,6 @@
 export const TOOL_MODES = {
   SELECT:            'SELECT',
+  BOX_SELECT:        'BOX_SELECT',
   ADD_PLAYER:        'ADD_PLAYER',
   ADD_LINE_STRAIGHT: 'ADD_LINE_STRAIGHT',
   ADD_LINE_CURVE:    'ADD_LINE_CURVE',

@@ -351,11 +351,15 @@ const useEditorStore = create((set, get) => ({
 
   // --- Element Operations ---
   activeTool: DEFAULT_TOOL,
-  setActiveTool: (tool) => set({ activeTool: tool }),
+  setActiveTool: (tool) => set({ activeTool: tool, marqueeIds: [] }),
 
   selectedId: null,
   setSelectedId: (id) => set({ selectedId: id }),
   clearSelection: () => set({ selectedId: null }),
+
+  marqueeIds: [],
+  setMarqueeIds: (ids) => set({ marqueeIds: ids }),
+  clearMarquee: () => set({ marqueeIds: [] }),
 
   snapEnabled: true,
   snapIncrement: FIELD_CONFIG.SNAP_HALF_YARD,
@@ -428,7 +432,7 @@ const useEditorStore = create((set, get) => ({
     get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
       elements: JSON.parse(JSON.stringify(prev))
     });
-    set({ historyIndex: historyIndex - 1, selectedId: null });
+    set({ historyIndex: historyIndex - 1, selectedId: null, marqueeIds: [] });
   },
 
   redo: () => {
@@ -438,7 +442,7 @@ const useEditorStore = create((set, get) => ({
     get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
       elements: JSON.parse(JSON.stringify(next))
     });
-    set({ historyIndex: historyIndex + 1, selectedId: null });
+    set({ historyIndex: historyIndex + 1, selectedId: null, marqueeIds: [] });
   },
 
   canUndo: () => get().historyIndex > 0,
@@ -460,6 +464,17 @@ const useEditorStore = create((set, get) => ({
     if (!play) return;
     get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
       elements: play.elements.map(el => el.id === id ? { ...el, ...changes } : el)
+    });
+  },
+
+  // Batch update — one store write and one persist for multiple elements (used by group move)
+  updateElements: (updates) => {
+    const { activePlaybookId, activeFormationId, activePlayId, getActivePlay } = get();
+    const play = getActivePlay();
+    if (!play) return;
+    const map = new Map(updates.map(u => [u.id, u.changes]));
+    get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
+      elements: play.elements.map(el => map.has(el.id) ? { ...el, ...map.get(el.id) } : el)
     });
   },
 
