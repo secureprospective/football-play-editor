@@ -62,6 +62,10 @@ Deploy: automatic on push to main
 - Field grid with NFL yard lines and hash marks (FieldGrid component)
 - Previous/Next play in Present Mode — buttons step through plays in active formation; key={activePlayId} resets caption on each change
 - Inspector touch improvements — text/select inputs 44px min-height, checkbox rows 44px, range slider 28px, seg-presnap-btn 36px
+- Drawing tool fixes — curve preview renders correctly during draw; branch/extend path is undoable; dashed line style applied to rendered lines; Inspector palette derives from shared THEME_COLORS; auto-switch to SELECT after placing player or finishing route; new elements default to colorIndex 0
+- Curve control point — draggable middle handle on every curve segment; default position is perpendicular midpoint; drag reshapes curve in real time; Shift constrains to 45° angles from segment midpoint; accent dot + dashed arm line shows handle when selected
+- Curve hit testing — samples 20 points along actual arc path (pass-through bezier formula) so clicking anywhere on the curve body selects it
+- Curve arrowhead — uses analytical tangent at t=1 (p2 - ctrl) for correct exit angle regardless of bend amount
 - AppHeader component — unified header bar on Playbook, Formation, and Play layers; reuses tb-btn/tb-crumb CSS classes from Toolbar.css; back button + breadcrumb crumbs + add button
 - Breadcrumb buttons styled to match toolbar buttons — bordered (1px border-mid), panel-alt background, 36px height, 5px radius; active crumb uses accent border/color
 - Present Mode breadcrumbs — floating absolute-positioned crumb buttons only (no header bar), 50% opacity; clicking exits present and navigates to that layer
@@ -69,6 +73,9 @@ Deploy: automatic on push to main
 ## What is next
 1. Route branching (option route) — deferred, advanced feature, own session
 2. Animation — future phase, major session (see pre-planning notes below)
+
+## Flagged for next session
+- Curve route UX improvement — Christopher has a follow-up feature idea for the curve tool (flagged during session/curve-control-point, details TBD)
 
 ## Animation Phase — Pre-planning Notes
 *Resolve these before the animation planning session starts.*
