@@ -59,12 +59,12 @@ Deploy: automatic on push to main
 - Shift-key 45° angle constraint during player drag and route drawing
 - Whole-path drag — drag a route to translate all its segments together
 - Field grid with NFL yard lines and hash marks (FieldGrid component)
+- Previous/Next play in Present Mode — buttons step through plays in active formation; key={activePlayId} resets caption on each change
 
 ## What is next
-1. Previous/Next play in Present Mode — add key={play.id} on PresentOverlay when wiring this
-2. Inspector touch friendliness — input heights, label padding, color/checkbox hit areas; note card-action-btn min-height reduced to 32px (below 44px touch target standard) — revisit here
-3. Route branching (option route) — deferred, advanced feature, own session
-4. Animation — future phase, major session
+1. Inspector touch friendliness — input heights, label padding, color/checkbox hit areas; note card-action-btn min-height reduced to 32px (below 44px touch target standard) — revisit here
+2. Route branching (option route) — deferred, advanced feature, own session
+3. Animation — future phase, major session
 
 ## Known deferred items
 - Route branching — click on existing route to fork; deferred indefinitely
