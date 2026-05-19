@@ -10,15 +10,20 @@ export function hitTestCircle(px, py, cx, cy, radius) {
   return Math.sqrt(dx * dx + dy * dy) <= radius;
 }
 
-// Sample points along a quadratic bezier (p1, cp, p2) for curve hit testing
-function sampleBezier(p1, cp, p2, samples = 16) {
+// Sample a quadratic bezier that passes THROUGH cp at t=0.5
+// Standard bezier uses cp as an attractor; adjusting ctrl makes it a through-point
+function sampleBezier(p1, cp, p2, samples = 20) {
+  const ctrl = {
+    x: 2 * cp.x - 0.5 * (p1.x + p2.x),
+    y: 2 * cp.y - 0.5 * (p1.y + p2.y),
+  };
   const pts = [];
   for (let i = 0; i <= samples; i++) {
     const t = i / samples;
     const mt = 1 - t;
     pts.push({
-      x: mt * mt * p1.x + 2 * mt * t * cp.x + t * t * p2.x,
-      y: mt * mt * p1.y + 2 * mt * t * cp.y + t * t * p2.y,
+      x: mt * mt * p1.x + 2 * mt * t * ctrl.x + t * t * p2.x,
+      y: mt * mt * p1.y + 2 * mt * t * ctrl.y + t * t * p2.y,
     });
   }
   return pts;
@@ -41,8 +46,6 @@ export function hitTestPathSegments(px, py, segments) {
     const p2 = pts[pts.length - 1];
 
     if (seg.curve) {
-      // Konva renders tension curves through all points (Catmull-Rom), so the
-      // visible curve passes through p1 → cp → p2. Test both arms.
       let cp = seg.controlPoint;
       if (!cp) {
         const mx = (p1.x + p2.x) / 2;
@@ -54,7 +57,10 @@ export function hitTestPathSegments(px, py, segments) {
           ? { x: mx - (dy / len) * (len * 0.35), y: my + (dx / len) * (len * 0.35) }
           : { x: mx, y: my };
       }
-      for (const [a, b] of [[p1, cp], [cp, p2]]) {
+      const samples = sampleBezier(p1, cp, p2);
+      for (let j = 0; j < samples.length - 1; j++) {
+        const a = samples[j];
+        const b = samples[j + 1];
         const dx = b.x - a.x;
         const dy = b.y - a.y;
         const lenSq = dx * dx + dy * dy;
@@ -66,7 +72,7 @@ export function hitTestPathSegments(px, py, segments) {
           cy = a.y + t * dy;
         }
         if (Math.sqrt((px - cx) ** 2 + (py - cy) ** 2) <= LINE_HIT_TOLERANCE) {
-          return { hit: true, segmentIndex: i, t, point: { x: cx, y: cy } };
+          return { hit: true, segmentIndex: i, t: (j + t) / samples.length, point: { x: cx, y: cy } };
         }
       }
       continue;
