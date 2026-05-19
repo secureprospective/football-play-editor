@@ -7,6 +7,7 @@ import { TOOL_MODES } from '../../constants/toolModes';
 import { masterHitTest, hitTestPathSegments, exceededDragThreshold } from '../../utils/hitTesting';
 import { snapPoint, constrainToAngle } from '../../utils/snapToGrid';
 import FieldGrid from './FieldGrid';
+import { THEME_COLORS } from '../../constants/themeColors';
 
 function generateId() {
   return 'el_' + Math.random().toString(36).slice(2, 9);
@@ -62,12 +63,6 @@ export default function FieldCanvas() {
   } = useEditorStore();
 
   const theme = useEditorStore(s => s.theme);
-  const THEME_COLORS = {
-    'theme-sun-cyan':        { accent: '#00e5ff', text: '#ffffff', palette: ['#00e5ff','#ffffff','#ffd600','#ff4444'], labels: ['#000000','#000000','#000000','#ffffff'] },
-    'theme-sun-orange':      { accent: '#ff6a00', text: '#f8f8f8', palette: ['#ff6a00','#ffffff','#ffd600','#00e676'], labels: ['#000000','#000000','#000000','#000000'] },
-    'theme-paper-overcast':  { accent: '#059669', text: '#141e28', palette: ['#1565c0','#b71c1c','#1b5e20','#4a148c'], labels: ['#ffffff','#ffffff','#ffffff','#ffffff'] },
-    'theme-paper-newsprint': { accent: '#dc2626', text: '#0a0806', palette: ['#bf360c','#0d47a1','#1a237e','#33691e'], labels: ['#ffffff','#ffffff','#ffffff','#ffffff'] },
-  };
   const colors = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
 
   const elements = getActivePlay()?.elements || [];
