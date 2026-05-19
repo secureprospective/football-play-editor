@@ -11,6 +11,7 @@ const THEMES = [
 
 const TOOLS = [
   { mode: TOOL_MODES.SELECT,            label: '↖', title: 'Select / Move'       },
+  { mode: TOOL_MODES.BOX_SELECT,        label: '⬚', title: 'Box Select'           },
   { mode: TOOL_MODES.ADD_PLAYER,        label: '●', title: 'Add Player'           },
   { mode: TOOL_MODES.ADD_LINE_STRAIGHT, label: '╱', title: 'Draw Straight Route'  },
   { mode: TOOL_MODES.ADD_LINE_CURVE,    label: '⌒', title: 'Draw Curved Route'    },

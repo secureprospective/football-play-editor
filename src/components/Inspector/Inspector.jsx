@@ -3,11 +3,23 @@ import useEditorStore from '../../store/useEditorStore';
 import { THEME_COLORS } from '../../constants/themeColors';
 
 export default function Inspector() {
-  const { getActivePlay, selectedId, updateElement, updateSegment, theme } = useEditorStore();
+  const { getActivePlay, selectedId, updateElement, updateSegment, theme, marqueeIds } = useEditorStore();
   const elements = getActivePlay()?.elements || [];
   const selected = elements.find(el => el.id === selectedId);
   const tc = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
   const palette = tc.palette.map((fill, i) => ({ fill, label: tc.labels[i] }));
+
+  if (marqueeIds.length > 0) {
+    return (
+      <div className="inspector">
+        <div className="inspector-header">Group Selected</div>
+        <div className="inspector-empty">
+          <div>{marqueeIds.length} element{marqueeIds.length !== 1 ? 's' : ''} selected</div>
+          <div>Drag to move the group</div>
+        </div>
+      </div>
+    );
+  }
 
   if (!selected || selected.type === 'scrimmage') {
     return (
