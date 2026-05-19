@@ -68,6 +68,7 @@ Deploy: automatic on push to main
 - Curve arrowhead — uses analytical tangent at t=1 (p2 - ctrl) for correct exit angle regardless of bend amount
 - Audit cleanup — dead code removed (unused CSS, fieldConfig constants, Toolbar.css class conflict); curve math extracted to src/utils/curveUtils.js (defaultCurveCP + bezierCtrl) used by FieldCanvas, hitTesting, PlayThumbnail; FieldGrid uses THEME_COLORS instead of its own table; App.jsx redundant theme class removed; direct useEditorStore.setState() calls replaced with setActivePathId store action; snapIncrement references FIELD_CONFIG.SNAP_HALF_YARD; net -102 lines
 - Performance — Konva code-split via React.lazy (FieldCanvas); card views load 260KB instead of 590KB; Konva chunk (317KB) loads only when field editor opens and caches permanently; vendor-konva and vendor-react in stable named chunks for cache efficiency; PlayThumbnail wrapped with React.memo to prevent re-renders during DnD and rename interactions
+- Marquee box-select tool (⬚) — drag to draw selection rect; all-or-nothing rule (all element points must be inside); live node highlighting as rect captures elements; group drag with Shift-45° constraint; one-step undo; inspector shows count + hint; updateElements() store action for atomic batch updates
 - AppHeader component — unified header bar on Playbook, Formation, and Play layers; reuses tb-btn/tb-crumb CSS classes from Toolbar.css; back button + breadcrumb crumbs + add button
 - Breadcrumb buttons styled to match toolbar buttons — bordered (1px border-mid), panel-alt background, 36px height, 5px radius; active crumb uses accent border/color
 - Present Mode breadcrumbs — floating absolute-positioned crumb buttons only (no header bar), 50% opacity; clicking exits present and navigates to that layer
@@ -75,7 +76,8 @@ Deploy: automatic on push to main
 ## What is next
 1. Card refactor — useCardInteraction hook + CardShell; cuts ~240 lines of duplicated state logic
 2. Route branching (option route) — deferred, advanced feature, own session
-3. Animation — future phase, major session (see pre-planning notes below)
+3. Player-route linkage data model — required before animation (own session)
+4. Animation — future phase, major session (see pre-planning notes below)
 
 ## Animation Phase — Pre-planning Notes
 *Resolve these before the animation planning session starts.*
