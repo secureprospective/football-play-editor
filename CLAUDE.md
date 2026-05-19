@@ -61,11 +61,14 @@ Deploy: automatic on push to main
 - Whole-path drag — drag a route to translate all its segments together
 - Field grid with NFL yard lines and hash marks (FieldGrid component)
 - Previous/Next play in Present Mode — buttons step through plays in active formation; key={activePlayId} resets caption on each change
+- Inspector touch improvements — text/select inputs 44px min-height, checkbox rows 44px, range slider 28px, seg-presnap-btn 36px
+- AppHeader component — unified header bar on Playbook, Formation, and Play layers; reuses tb-btn/tb-crumb CSS classes from Toolbar.css; back button + breadcrumb crumbs + add button
+- Breadcrumb buttons styled to match toolbar buttons — bordered (1px border-mid), panel-alt background, 36px height, 5px radius; active crumb uses accent border/color
+- Present Mode breadcrumbs — floating absolute-positioned crumb buttons only (no header bar), 50% opacity; clicking exits present and navigates to that layer
 
 ## What is next
-1. Inspector touch friendliness — input heights, label padding, color/checkbox hit areas; note card-action-btn min-height reduced to 32px (below 44px touch target standard) — revisit here
-2. Route branching (option route) — deferred, advanced feature, own session
-3. Animation — future phase, major session
+1. Route branching (option route) — deferred, advanced feature, own session
+2. Animation — future phase, major session (see pre-planning notes below)
 
 ## Animation Phase — Pre-planning Notes
 *Resolve these before the animation planning session starts.*
