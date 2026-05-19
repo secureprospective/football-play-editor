@@ -45,7 +45,7 @@
   padding-bottom: 8px;
 }
 
-.tb-theme-dot {
+.toolbox-dot {
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -58,10 +58,10 @@
   transition: border-color 0.15s, transform 0.15s;
 }
 
-.tb-theme-dot:hover {
+.toolbox-dot:hover {
   transform: scale(1.2);
 }
 
-.tb-theme-dot[aria-pressed="true"] {
+.toolbox-dot[aria-pressed="true"] {
   border-color: var(--color-text);
 }

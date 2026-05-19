@@ -138,36 +138,3 @@
 
 .tb-divider-v { width: 1px; height: 24px; background: var(--color-border); margin: 0 2px; flex-shrink: 0; }
 
-.tb-theme-dot {
-  width: 44px;
-  height: 36px;
-  border-radius: 5px;
-  border: 2px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  flex-shrink: 0;
-  touch-action: manipulation;
-  transition: border-color 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-
-.tb-theme-dot::after {
-  content: '';
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--dot);
-  display: block;
-  transition: transform 0.15s;
-}
-
-.tb-theme-dot:hover::after { transform: scale(1.2); }
-
-.tb-theme-dot[aria-pressed="true"] {
-  border-color: var(--color-text);
-}
-
-.tb-theme-dot[aria-pressed="true"]::after { transform: scale(1.2); }

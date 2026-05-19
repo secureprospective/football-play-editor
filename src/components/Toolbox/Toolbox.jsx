@@ -36,7 +36,7 @@ export default function Toolbox() {
         {THEMES.map(t => (
           <button
             key={t.id}
-            className="tb-theme-dot"
+            className="toolbox-dot"
             onClick={() => setTheme(t.id)}
             title={t.title}
             style={{ '--dot': t.dot }}

@@ -4,7 +4,7 @@ import { FIELD_CONFIG } from '../constants/fieldConfig';
  * Flip a single x coordinate across the field midpoint.
  * x_new = 2 * midX - x_old
  */
-export function flipX(x) {
+function flipX(x) {
   return 2 * FIELD_CONFIG.MIDPOINT_X - x;
 }
 
@@ -12,7 +12,7 @@ export function flipX(x) {
  * Flip a single y coordinate across the field midpoint.
  * y_new = 2 * midY - y_old
  */
-export function flipY(y) {
+function flipY(y) {
   return 2 * FIELD_CONFIG.MIDPOINT_Y - y;
 }
 
