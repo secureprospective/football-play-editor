@@ -12,7 +12,7 @@ import FieldCanvas   from './components/Stage/FieldCanvas';
 import PresentOverlay from './components/PresentMode/PresentOverlay';
 
 export default function App() {
-  const { viewMode, presentMode, togglePresentMode, theme } = useEditorStore();
+  const { viewMode, presentMode, togglePresentMode, theme, activePlayId } = useEditorStore();
   useEffect(() => {
     document.documentElement.className = theme;
   }, [theme]);
@@ -32,7 +32,7 @@ export default function App() {
     return (
       <div className={`app-shell-present ${theme}`}>
         <FieldCanvas />
-        <PresentOverlay />
+        <PresentOverlay key={activePlayId} />
       </div>
     );
   }
