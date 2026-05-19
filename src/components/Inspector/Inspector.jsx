@@ -1,38 +1,13 @@
 import './Inspector.css';
 import useEditorStore from '../../store/useEditorStore';
-
-const THEME_PALETTES = {
-  'theme-sun-cyan': [
-    { fill: '#00e5ff', label: '#000000' },
-    { fill: '#ffffff', label: '#000000' },
-    { fill: '#ffd600', label: '#000000' },
-    { fill: '#ff4444', label: '#ffffff' },
-  ],
-  'theme-sun-orange': [
-    { fill: '#ff6a00', label: '#000000' },
-    { fill: '#ffffff', label: '#000000' },
-    { fill: '#ffd600', label: '#000000' },
-    { fill: '#00e676', label: '#000000' },
-  ],
-  'theme-paper-overcast': [
-    { fill: '#1565c0', label: '#ffffff' },
-    { fill: '#b71c1c', label: '#ffffff' },
-    { fill: '#1b5e20', label: '#ffffff' },
-    { fill: '#4a148c', label: '#ffffff' },
-  ],
-  'theme-paper-newsprint': [
-    { fill: '#bf360c', label: '#ffffff' },
-    { fill: '#0d47a1', label: '#ffffff' },
-    { fill: '#1a237e', label: '#ffffff' },
-    { fill: '#33691e', label: '#ffffff' },
-  ],
-};
+import { THEME_COLORS } from '../../constants/themeColors';
 
 export default function Inspector() {
   const { getActivePlay, selectedId, updateElement, updateSegment, theme } = useEditorStore();
   const elements = getActivePlay()?.elements || [];
   const selected = elements.find(el => el.id === selectedId);
-  const palette = THEME_PALETTES[theme] || THEME_PALETTES['theme-sun-cyan'];
+  const tc = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
+  const palette = tc.palette.map((fill, i) => ({ fill, label: tc.labels[i] }));
 
   if (!selected || selected.type === 'scrimmage') {
     return (

@@ -171,11 +171,12 @@ export default function FieldCanvas() {
         id: generateId(), type: 'player',
         x: snapped.x, y: snapped.y,
         label: 'X',
-        style: { fill: colors.accent, stroke: colors.text, shape: 'circle' },
+        style: { shape: 'circle', colorIndex: 0 },
         groupId: null,
       };
       addElement(newPlayer);
       setSelectedId(newPlayer.id);
+      useEditorStore.getState().setActiveTool(TOOL_MODES.SELECT);
       return;
     }
 
@@ -233,7 +234,7 @@ export default function FieldCanvas() {
         type: 'path',
         segments: [],
         _startPoint: resolved,
-        style: { stroke: colors.text, thickness: 3, endArrow: true },
+        style: { thickness: 3, endArrow: true, colorIndex: 0 },
       });
       return;
     }
@@ -394,13 +395,14 @@ export default function FieldCanvas() {
   }
 
   // Render a single segment — straight, curved, or pre-snap zigzag
-  function renderSegment(seg, color, thick, isPathSelected, key) {
+  function renderSegment(seg, color, thick, isPathSelected, key, isDashed = false) {
     const pts = seg.points;
     if (!pts || pts.length < 2) return null;
     const p1 = pts[0];
     const p2 = pts[pts.length - 1];
     const stroke = isPathSelected ? '#ffff00' : color;
     const sw = isPathSelected ? thick + 1 : thick;
+    const dashProp = isDashed ? [8, 6] : undefined;
 
     if (seg.preSnap) {
       const zz = zigzagPoints(p1, p2);
@@ -413,16 +415,14 @@ export default function FieldCanvas() {
     if (seg.curve) {
       const cp = seg.controlPoint;
       if (cp) {
-        // User-defined control point — cubic bezier via tension through midpoint
         return (
           <Line key={key}
             points={[p1.x, p1.y, cp.x, cp.y, p2.x, p2.y]}
             stroke={stroke} strokeWidth={sw}
-            tension={0.5} lineCap="round" lineJoin="round"
+            tension={0.5} lineCap="round" lineJoin="round" dash={dashProp}
           />
         );
       }
-      // Auto-curve: add a perpendicular midpoint and use tension
       const mx = (p1.x + p2.x) / 2;
       const my = (p1.y + p2.y) / 2;
       const dx = p2.x - p1.x;
@@ -431,7 +431,7 @@ export default function FieldCanvas() {
       if (len === 0) {
         return (
           <Line key={key} points={[p1.x, p1.y, p2.x, p2.y]}
-            stroke={stroke} strokeWidth={sw} lineCap="round" />
+            stroke={stroke} strokeWidth={sw} lineCap="round" dash={dashProp} />
         );
       }
       const cpx = mx - (dy / len) * (len * 0.35);
@@ -440,7 +440,7 @@ export default function FieldCanvas() {
         <Line key={key}
           points={[p1.x, p1.y, cpx, cpy, p2.x, p2.y]}
           stroke={stroke} strokeWidth={sw}
-          tension={0.5} lineCap="round" lineJoin="round"
+          tension={0.5} lineCap="round" lineJoin="round" dash={dashProp}
         />
       );
     }
@@ -448,7 +448,7 @@ export default function FieldCanvas() {
     return (
       <Line key={key} points={[p1.x, p1.y, p2.x, p2.y]}
         stroke={stroke} strokeWidth={sw}
-        lineCap="round" lineJoin="round"
+        lineCap="round" lineJoin="round" dash={dashProp}
       />
     );
   }
@@ -459,12 +459,13 @@ export default function FieldCanvas() {
     const ci = el.style?.colorIndex ?? -1;
     const color = ci >= 0 ? colors.palette[ci] : colors.text;
     const thick = el.style?.thickness || 3;
+    const isDashed = el.style?.dash || false;
 
     // Collect all rendered segments as an array of Konva elements
     const rendered = [];
 
     el.segments.forEach((seg, i) => {
-      rendered.push(renderSegment(seg, color, thick, isSelected, `${el.id}_seg_${i}`));
+      rendered.push(renderSegment(seg, color, thick, isSelected, `${el.id}_seg_${i}`, isDashed));
     });
 
     // Arrow on the last segment end point
@@ -556,17 +557,9 @@ export default function FieldCanvas() {
     const thick = 3;
 
     // Already-committed segments in this drawing session
-    const committed = drawingPath.segments.map((seg, i) => {
-      const pts = seg.points;
-      if (!pts || pts.length < 2) return null;
-      return (
-        <Line key={`preview_seg_${i}`}
-          points={[pts[0].x, pts[0].y, pts[pts.length-1].x, pts[pts.length-1].y]}
-          stroke={color} strokeWidth={thick}
-          dash={[6, 4]} lineCap="round" opacity={0.7}
-        />
-      );
-    });
+    const committed = drawingPath.segments.map((seg, i) =>
+      renderSegment(seg, color, thick, false, `preview_seg_${i}`)
+    );
 
     // Ghost line from tail to mouse
     const ghost = (
