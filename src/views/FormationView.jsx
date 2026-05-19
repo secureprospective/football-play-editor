@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import './Views.css';
 import useEditorStore from '../store/useEditorStore';
+import AppHeader from '../components/AppHeader/AppHeader';
 import PlayThumbnail from '../components/PlayThumbnail/PlayThumbnail';
 import { VIEW_MODES } from '../constants/toolModes';
 import {
@@ -175,11 +176,12 @@ export default function FormationView() {
 
   return (
     <div className="view-container">
-      <div className="view-header">
-        <button className="view-back-btn" onClick={goBack}>← Back</button>
-        <h1 className="view-title">{playbook?.name}</h1>
-        <button className="view-add-btn" onClick={handleAdd}>+ New Formation</button>
-      </div>
+      <AppHeader
+        crumbs={[{ label: playbook?.name || '…', onClick: () => navigateTo(VIEW_MODES.PLAYBOOK) }]}
+        active="Formations"
+        onAdd={handleAdd}
+        addLabel="+ New Formation"
+      />
 
       {showInput && (
         <div className="inline-input-row">

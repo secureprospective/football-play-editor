@@ -23,14 +23,14 @@
 .toolbar-breadcrumb { display: flex; align-items: center; gap: 2px; }
 
 .tb-crumb {
-  background: none;
-  border: none;
+  background: var(--color-panel-alt);
+  border: 1px solid var(--color-border-mid);
   border-radius: 5px;
-  color: var(--color-text-muted);
+  color: var(--color-text);
   font-size: 13px;
   font-family: inherit;
   cursor: pointer;
-  padding: 6px 8px;
+  padding: 0 12px;
   height: 36px;
   white-space: nowrap;
   max-width: 140px;
@@ -39,11 +39,15 @@
   touch-action: manipulation;
   transition: background 0.15s, color 0.15s;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
-.tb-crumb:hover { background: var(--color-panel-alt); color: var(--color-text); }
+.tb-crumb:hover { background: var(--color-border); }
 
 .tb-crumb-active {
+  background: var(--color-panel-alt);
+  border: 1px solid var(--color-accent);
   color: var(--color-accent);
   font-weight: 600;
   cursor: default;
@@ -52,6 +56,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  padding: 0 12px;
+  height: 36px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
 }
 
 .tb-crumb-sep { color: var(--color-border-mid); font-size: 14px; flex-shrink: 0; user-select: none; }
