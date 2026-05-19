@@ -72,6 +72,47 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
+.present-crumbs {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0.5;
+  pointer-events: all;
+  z-index: 11;
+}
+
+.present-crumb-btn {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  color: #ffffff;
+  font-size: 13px;
+  font-family: inherit;
+  padding: 0 10px;
+  height: 32px;
+  cursor: pointer;
+  white-space: nowrap;
+  touch-action: manipulation;
+  transition: background 0.15s;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.present-crumb-btn:hover {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.present-crumb-sep {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  user-select: none;
+  padding: 0 2px;
+}
+
 .present-exit-btn {
   position: absolute;
   top: 12px;

@@ -5,12 +5,13 @@ import './PresentOverlay.css';
 
 export default function PresentOverlay() {
   const {
-    getActivePlay, getActiveFormation, togglePresentMode,
-    activePlayId, navigateTo,
+    getActivePlay, getActiveFormation, getActivePlaybook,
+    togglePresentMode, activePlayId, navigateTo,
   } = useEditorStore();
 
   const play      = getActivePlay();
   const formation = getActiveFormation();
+  const playbook  = getActivePlaybook();
   const plays     = formation?.plays || [];
   const currentIndex = plays.findIndex(pl => pl.id === activePlayId);
 
@@ -35,8 +36,33 @@ export default function PresentOverlay() {
     navigateTo(VIEW_MODES.FIELD, { playId: plays[currentIndex + 1].id });
   }
 
+  function exitAndNavigate(viewMode, ids) {
+    togglePresentMode();
+    navigateTo(viewMode, ids);
+  }
+
   return (
     <div className="present-overlay">
+
+      {/* Floating breadcrumb — no bar, 50% opacity */}
+      <div className="present-crumbs">
+        <button
+          className="present-crumb-btn"
+          onClick={() => exitAndNavigate(VIEW_MODES.PLAYBOOK)}
+        >{playbook?.name}</button>
+        <span className="present-crumb-sep">›</span>
+        <button
+          className="present-crumb-btn"
+          onClick={() => exitAndNavigate(VIEW_MODES.FORMATION)}
+        >{formation?.name}</button>
+        <span className="present-crumb-sep">›</span>
+        <button
+          className="present-crumb-btn"
+          onClick={() => exitAndNavigate(VIEW_MODES.PLAY)}
+        >{play?.name}</button>
+      </div>
+
+      {/* Caption + prev/next */}
       <div className="present-overlay-inner">
         <button
           className="present-nav-btn"
@@ -57,6 +83,7 @@ export default function PresentOverlay() {
           aria-label="Next play"
         >›</button>
       </div>
+
       <button className="present-exit-btn" onClick={togglePresentMode}>
         EDIT
       </button>

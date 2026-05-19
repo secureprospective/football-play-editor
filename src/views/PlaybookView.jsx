@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import './Views.css';
 import useEditorStore from '../store/useEditorStore';
+import AppHeader from '../components/AppHeader/AppHeader';
 import { VIEW_MODES } from '../constants/toolModes';
 import {
   DndContext,
@@ -172,10 +173,11 @@ export default function PlaybookView() {
 
   return (
     <div className="view-container">
-      <div className="view-header">
-        <h1 className="view-title">My Playbooks</h1>
-        <button className="view-add-btn" onClick={handleAdd}>+ New Playbook</button>
-      </div>
+      <AppHeader
+        active="My Playbooks"
+        onAdd={handleAdd}
+        addLabel="+ New Playbook"
+      />
 
       {showInput && (
         <div className="inline-input-row">

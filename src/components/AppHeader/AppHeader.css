@@ -1,0 +1,42 @@
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-panel);
+  border-bottom: 2px solid var(--color-border);
+  height: 48px;
+  width: 100%;
+  padding: 0 8px;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.app-header-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.tb-crumb-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.app-header-add-btn {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-text);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.app-header-add-btn:hover:not(:disabled) {
+  opacity: 0.85;
+  background: var(--color-accent) !important;
+}

@@ -1,0 +1,33 @@
+import '../Toolbar/Toolbar.css';
+import './AppHeader.css';
+import useEditorStore from '../../store/useEditorStore';
+
+export default function AppHeader({ crumbs = [], active, onAdd, addLabel }) {
+  const { goBack } = useEditorStore();
+
+  return (
+    <div className="app-header">
+      <div className="app-header-nav">
+        {crumbs.length > 0 && (
+          <>
+            <button className="tb-btn tb-back" onClick={goBack}>←</button>
+            <div className="tb-divider-v" />
+          </>
+        )}
+        <nav className="toolbar-breadcrumb">
+          {crumbs.map((crumb, i) => (
+            <span key={i} className="tb-crumb-group">
+              <button className="tb-crumb" onClick={crumb.onClick}>{crumb.label}</button>
+              <span className="tb-crumb-sep">›</span>
+            </span>
+          ))}
+          <span className="tb-crumb tb-crumb-active">{active}</span>
+        </nav>
+      </div>
+
+      {onAdd && (
+        <button className="tb-btn app-header-add-btn" onClick={onAdd}>{addLabel}</button>
+      )}
+    </div>
+  );
+}
