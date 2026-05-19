@@ -510,29 +510,32 @@ export default function FieldCanvas() {
       // For straight segments use previous point
       let arrowPoints;
       if (lastSeg.curve) {
-        const cp = lastSeg.controlPoint;
-        // Derive tangent direction at endpoint, use a short tail for arrowhead only
-        let tx, ty;
-        if (cp) {
-          tx = cp.x;
-          ty = cp.y;
-        } else {
-          const mx = (pts[0].x + p2.x) / 2;
-          const my = (pts[0].y + p2.y) / 2;
-          const dx = p2.x - pts[0].x;
-          const dy = p2.y - pts[0].y;
+        const p0 = pts[0];
+        // Compute the actual bezier ctrl from the user's through-point
+        // using the same pass-through formula as hit testing and rendering
+        let cpThrough = lastSeg.controlPoint;
+        if (!cpThrough) {
+          const mx = (p0.x + p2.x) / 2;
+          const my = (p0.y + p2.y) / 2;
+          const dx = p2.x - p0.x;
+          const dy = p2.y - p0.y;
           const len = Math.sqrt(dx * dx + dy * dy);
-          tx = len > 0 ? mx - (dy / len) * (len * 0.35) : mx;
-          ty = len > 0 ? my + (dx / len) * (len * 0.35) : my;
+          cpThrough = len > 0
+            ? { x: mx - (dy / len) * (len * 0.35), y: my + (dx / len) * (len * 0.35) }
+            : { x: mx, y: my };
         }
-        // Short tail: 20px back from endpoint along tangent direction
-        const tdx = p2.x - tx;
-        const tdy = p2.y - ty;
+        const ctrl = {
+          x: 2 * cpThrough.x - 0.5 * (p0.x + p2.x),
+          y: 2 * cpThrough.y - 0.5 * (p0.y + p2.y),
+        };
+        // Analytical tangent at t=1 for quadratic bezier: direction = p2 - ctrl
+        const tdx = p2.x - ctrl.x;
+        const tdy = p2.y - ctrl.y;
         const tlen = Math.sqrt(tdx * tdx + tdy * tdy);
         const tailLen = 20;
-        const tailX = tlen > 0 ? p2.x - (tdx / tlen) * tailLen : p2.x;
-        const tailY = tlen > 0 ? p2.y - (tdy / tlen) * tailLen : p2.y;
-        arrowPoints = [tailX, tailY, p2.x, p2.y];
+        arrowPoints = tlen > 0
+          ? [p2.x - (tdx / tlen) * tailLen, p2.y - (tdy / tlen) * tailLen, p2.x, p2.y]
+          : [p0.x, p0.y, p2.x, p2.y];
       } else {
         const p1 = pts[pts.length - 2] || pts[0];
         arrowPoints = [p1.x, p1.y, p2.x, p2.y];
