@@ -66,16 +66,17 @@ Deploy: automatic on push to main
 - Curve control point — draggable middle handle on every curve segment; default position is perpendicular midpoint; drag reshapes curve in real time; Shift constrains to 45° angles from segment midpoint; accent dot + dashed arm line shows handle when selected
 - Curve hit testing — samples 20 points along actual arc path (pass-through bezier formula) so clicking anywhere on the curve body selects it
 - Curve arrowhead — uses analytical tangent at t=1 (p2 - ctrl) for correct exit angle regardless of bend amount
+- Audit cleanup — dead code removed (unused CSS, fieldConfig constants, Toolbar.css class conflict); curve math extracted to src/utils/curveUtils.js (defaultCurveCP + bezierCtrl) used by FieldCanvas, hitTesting, PlayThumbnail; FieldGrid uses THEME_COLORS instead of its own table; App.jsx redundant theme class removed; direct useEditorStore.setState() calls replaced with setActivePathId store action; snapIncrement references FIELD_CONFIG.SNAP_HALF_YARD; net -102 lines
 - AppHeader component — unified header bar on Playbook, Formation, and Play layers; reuses tb-btn/tb-crumb CSS classes from Toolbar.css; back button + breadcrumb crumbs + add button
 - Breadcrumb buttons styled to match toolbar buttons — bordered (1px border-mid), panel-alt background, 36px height, 5px radius; active crumb uses accent border/color
 - Present Mode breadcrumbs — floating absolute-positioned crumb buttons only (no header bar), 50% opacity; clicking exits present and navigates to that layer
 
 ## What is next
-1. Route branching (option route) — deferred, advanced feature, own session
-2. Animation — future phase, major session (see pre-planning notes below)
-
-## Flagged for next session
-- Curve route UX improvement — Christopher has a follow-up feature idea for the curve tool (flagged during session/curve-control-point, details TBD)
+1. Code splitting — dynamic import() for Konva; biggest load/battery win for old hardware
+2. React.memo pass — PlayThumbnail and FieldGrid re-render on every store write; memo stops that
+3. Card refactor — useCardInteraction hook + CardShell; cuts ~240 lines of duplicated state logic
+4. Route branching (option route) — deferred, advanced feature, own session
+5. Animation — future phase, major session (see pre-planning notes below)
 
 ## Animation Phase — Pre-planning Notes
 *Resolve these before the animation planning session starts.*
