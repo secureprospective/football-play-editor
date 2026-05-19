@@ -6,6 +6,7 @@ import { FIELD_CONFIG } from '../../constants/fieldConfig';
 import { TOOL_MODES } from '../../constants/toolModes';
 import { masterHitTest, hitTestPathSegments, exceededDragThreshold } from '../../utils/hitTesting';
 import { snapPoint, constrainToAngle } from '../../utils/snapToGrid';
+import { defaultCurveCP, bezierCtrl } from '../../utils/curveUtils';
 import FieldGrid from './FieldGrid';
 import { THEME_COLORS } from '../../constants/themeColors';
 
@@ -57,7 +58,7 @@ export default function FieldCanvas() {
     snapEnabled, snapIncrement,
     pushHistory,
     drawingPath, setDrawingPath, finishDrawing, cancelDrawing,
-    activePathId,
+    setActivePathId,
     scrimmageVisible,
     presentMode,
   } = useEditorStore();
@@ -188,17 +189,7 @@ export default function FieldCanvas() {
       if (currentDrawingPath) {
         const tail = getPathTailPoint(currentDrawingPath) ?? currentDrawingPath._branchOrigin ?? currentDrawingPath._startPoint;
         const resolved = resolveRoutePoint(pos, tail);
-        let controlPoint = undefined;
-        if (isCurve) {
-          const mx = (tail.x + resolved.x) / 2;
-          const my = (tail.y + resolved.y) / 2;
-          const dx = resolved.x - tail.x;
-          const dy = resolved.y - tail.y;
-          const len = Math.sqrt(dx * dx + dy * dy);
-          controlPoint = len > 0
-            ? { x: mx - (dy / len) * (len * 0.35), y: my + (dx / len) * (len * 0.35) }
-            : { x: mx, y: my };
-        }
+        const controlPoint = isCurve ? defaultCurveCP(tail, resolved) : undefined;
         const newSeg = {
           id: generateSegId(),
           points: [tail, resolved],
@@ -221,7 +212,7 @@ export default function FieldCanvas() {
           if (pathHit.hit) {
             // Insert branch node at click point on the existing path
             const branchOrigin = snapPoint(pathHit.point, snapIncrement, snapEnabled);
-            useEditorStore.setState({ activePathId: selectedId });
+            setActivePathId(selectedId);
             setDrawingPath({
               id: selectedId,
               type: 'path',
@@ -240,7 +231,7 @@ export default function FieldCanvas() {
       // Case 3: Nothing selected or clicked off existing path — start new route
       const resolved = resolveRoutePoint(pos, null);
       clearSelection();
-      useEditorStore.setState({ activePathId: null });
+      setActivePathId(null);
       setDrawingPath({
         id: generateId(),
         type: 'path',
@@ -456,19 +447,7 @@ export default function FieldCanvas() {
           />
         );
       }
-      const mx = (p1.x + p2.x) / 2;
-      const my = (p1.y + p2.y) / 2;
-      const dx = p2.x - p1.x;
-      const dy = p2.y - p1.y;
-      const len = Math.sqrt(dx * dx + dy * dy);
-      if (len === 0) {
-        return (
-          <Line key={key} points={[p1.x, p1.y, p2.x, p2.y]}
-            stroke={stroke} strokeWidth={sw} lineCap="round" dash={dashProp} />
-        );
-      }
-      const cpx = mx - (dy / len) * (len * 0.35);
-      const cpy = my + (dx / len) * (len * 0.35);
+      const { x: cpx, y: cpy } = defaultCurveCP(p1, p2);
       return (
         <Line key={key}
           points={[p1.x, p1.y, cpx, cpy, p2.x, p2.y]}
@@ -511,23 +490,8 @@ export default function FieldCanvas() {
       let arrowPoints;
       if (lastSeg.curve) {
         const p0 = pts[0];
-        // Compute the actual bezier ctrl from the user's through-point
-        // using the same pass-through formula as hit testing and rendering
-        let cpThrough = lastSeg.controlPoint;
-        if (!cpThrough) {
-          const mx = (p0.x + p2.x) / 2;
-          const my = (p0.y + p2.y) / 2;
-          const dx = p2.x - p0.x;
-          const dy = p2.y - p0.y;
-          const len = Math.sqrt(dx * dx + dy * dy);
-          cpThrough = len > 0
-            ? { x: mx - (dy / len) * (len * 0.35), y: my + (dx / len) * (len * 0.35) }
-            : { x: mx, y: my };
-        }
-        const ctrl = {
-          x: 2 * cpThrough.x - 0.5 * (p0.x + p2.x),
-          y: 2 * cpThrough.y - 0.5 * (p0.y + p2.y),
-        };
+        const cp = lastSeg.controlPoint || defaultCurveCP(p0, p2);
+        const ctrl = bezierCtrl(cp, p0, p2);
         // Analytical tangent at t=1 for quadratic bezier: direction = p2 - ctrl
         const tdx = p2.x - ctrl.x;
         const tdy = p2.y - ctrl.y;

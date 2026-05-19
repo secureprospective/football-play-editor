@@ -20,7 +20,7 @@ export default function App() {
 
   if (!isFieldView) {
     return (
-      <div className={`app-shell-nav ${theme}`}>
+      <div className="app-shell-nav">
         {viewMode === VIEW_MODES.PLAYBOOK  && <PlaybookView />}
         {viewMode === VIEW_MODES.FORMATION && <FormationView />}
         {viewMode === VIEW_MODES.PLAY      && <PlayView />}
@@ -30,7 +30,7 @@ export default function App() {
 
   if (presentMode) {
     return (
-      <div className={`app-shell-present ${theme}`}>
+      <div className="app-shell-present">
         <FieldCanvas />
         <PresentOverlay key={activePlayId} />
       </div>
@@ -38,7 +38,7 @@ export default function App() {
   }
 
   return (
-    <div className={`app-shell ${theme}`}>
+    <div className="app-shell">
       <div className="toolbar-area">
         <Toolbar />
       </div>

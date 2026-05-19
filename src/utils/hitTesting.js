@@ -1,4 +1,5 @@
 import { FIELD_CONFIG } from '../constants/fieldConfig';
+import { defaultCurveCP, bezierCtrl } from './curveUtils';
 
 const HANDLE_HIT_RADIUS = 12;
 const LINE_HIT_TOLERANCE = 10;
@@ -11,12 +12,8 @@ export function hitTestCircle(px, py, cx, cy, radius) {
 }
 
 // Sample a quadratic bezier that passes THROUGH cp at t=0.5
-// Standard bezier uses cp as an attractor; adjusting ctrl makes it a through-point
 function sampleBezier(p1, cp, p2, samples = 20) {
-  const ctrl = {
-    x: 2 * cp.x - 0.5 * (p1.x + p2.x),
-    y: 2 * cp.y - 0.5 * (p1.y + p2.y),
-  };
+  const ctrl = bezierCtrl(cp, p1, p2);
   const pts = [];
   for (let i = 0; i <= samples; i++) {
     const t = i / samples;
@@ -46,17 +43,7 @@ export function hitTestPathSegments(px, py, segments) {
     const p2 = pts[pts.length - 1];
 
     if (seg.curve) {
-      let cp = seg.controlPoint;
-      if (!cp) {
-        const mx = (p1.x + p2.x) / 2;
-        const my = (p1.y + p2.y) / 2;
-        const dx = p2.x - p1.x;
-        const dy = p2.y - p1.y;
-        const len = Math.sqrt(dx * dx + dy * dy);
-        cp = len > 0
-          ? { x: mx - (dy / len) * (len * 0.35), y: my + (dx / len) * (len * 0.35) }
-          : { x: mx, y: my };
-      }
+      const cp = seg.controlPoint || defaultCurveCP(p1, p2);
       const samples = sampleBezier(p1, cp, p2);
       for (let j = 0; j < samples.length - 1; j++) {
         const a = samples[j];

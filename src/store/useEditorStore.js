@@ -358,7 +358,7 @@ const useEditorStore = create((set, get) => ({
   clearSelection: () => set({ selectedId: null }),
 
   snapEnabled: true,
-  snapIncrement: 19.28,
+  snapIncrement: FIELD_CONFIG.SNAP_HALF_YARD,
   setSnapEnabled: (val) => set({ snapEnabled: val }),
   setSnapIncrement: (val) => set({ snapIncrement: val }),
 
@@ -376,6 +376,7 @@ const useEditorStore = create((set, get) => ({
   drawingPath: null,
   activePathId: null,
   setDrawingPath: (path) => set({ drawingPath: path }),
+  setActivePathId: (id) => set({ activePathId: id }),
 
   finishDrawing: () => {
     const { drawingPath, activePathId, addElement, updateElement, getActivePlay, setSelectedId, pushHistory, setActiveTool } = get();
