@@ -55,6 +55,7 @@ Deploy: automatic on push to main
 - Present Mode text overlay — large bold editable caption, defaults to "Formation - Play" from breadcrumb names, resets on each open, EDIT button top-right
 - PWA — installable on Chrome, service worker via vite-plugin-pwa, cache-first assets, network-first navigation, manifest with 192px + 512px icons
 - Play thumbnails — static SVG mini field render on play cards; players (circle/square) and routes (straight/curve/motion) scaled from 1920×1080 field space; ▶ placeholder for empty plays; fully theme-aware (field background, player fill, route color all resolve from active theme)
+- Formation thumbnails — formation cards show first play's players + LOS (no routes) via PlayThumbnail playersOnly prop; ▶ placeholder for empty formations; fully theme-aware
 - Card polish — floating shadow (--color-shadow per theme), 16px border radius, embossed action buttons, inline delete confirm (card-delete-float overlay) on all three nav layers (Playbook, Formation, Play)
 - Shift-key 45° angle constraint during player drag and route drawing
 - Whole-path drag — drag a route to translate all its segments together
