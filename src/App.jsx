@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import './App.css';
 import useEditorStore from './store/useEditorStore';
 import { VIEW_MODES } from './constants/toolModes';
@@ -8,8 +8,10 @@ import PlayView      from './views/PlayView';
 import Toolbar       from './components/Toolbar/Toolbar';
 import Toolbox       from './components/Toolbox/Toolbox';
 import Inspector     from './components/Inspector/Inspector';
-import FieldCanvas   from './components/Stage/FieldCanvas';
 import PresentOverlay from './components/PresentMode/PresentOverlay';
+
+// Konva is large — lazy load so card views don't pay the parse cost
+const FieldCanvas = lazy(() => import('./components/Stage/FieldCanvas'));
 
 export default function App() {
   const { viewMode, presentMode, togglePresentMode, theme, activePlayId } = useEditorStore();
@@ -31,7 +33,9 @@ export default function App() {
   if (presentMode) {
     return (
       <div className="app-shell-present">
-        <FieldCanvas />
+        <Suspense fallback={null}>
+          <FieldCanvas />
+        </Suspense>
         <PresentOverlay key={activePlayId} />
       </div>
     );
@@ -46,7 +50,9 @@ export default function App() {
         <Toolbox />
       </div>
       <div className="stage-area">
-        <FieldCanvas />
+        <Suspense fallback={<div className="stage-loading" />}>
+          <FieldCanvas />
+        </Suspense>
       </div>
       <div className="inspector-area">
         <Inspector />

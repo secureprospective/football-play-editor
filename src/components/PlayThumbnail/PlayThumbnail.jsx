@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import useEditorStore from '../../store/useEditorStore';
 import { THEME_COLORS } from '../../constants/themeColors';
 import { defaultCurveCP } from '../../utils/curveUtils';
@@ -6,7 +7,7 @@ import { FIELD_CONFIG } from '../../constants/fieldConfig';
 function scaleX(x, w) { return (x / FIELD_CONFIG.STAGE_WIDTH)  * w; }
 function scaleY(y, h) { return (y / FIELD_CONFIG.STAGE_HEIGHT) * h; }
 
-export default function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = false }) {
+function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = false }) {
   const theme  = useEditorStore(s => s.theme);
   const colors = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
 
@@ -111,3 +112,5 @@ export default function PlayThumbnail({ elements, width = 300, height = 160, pla
     </svg>
   );
 }
+
+export default memo(PlayThumbnail);
