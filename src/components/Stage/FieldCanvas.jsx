@@ -188,11 +188,23 @@ export default function FieldCanvas() {
       if (currentDrawingPath) {
         const tail = getPathTailPoint(currentDrawingPath) ?? currentDrawingPath._branchOrigin ?? currentDrawingPath._startPoint;
         const resolved = resolveRoutePoint(pos, tail);
+        let controlPoint = undefined;
+        if (isCurve) {
+          const mx = (tail.x + resolved.x) / 2;
+          const my = (tail.y + resolved.y) / 2;
+          const dx = resolved.x - tail.x;
+          const dy = resolved.y - tail.y;
+          const len = Math.sqrt(dx * dx + dy * dy);
+          controlPoint = len > 0
+            ? { x: mx - (dy / len) * (len * 0.35), y: my + (dx / len) * (len * 0.35) }
+            : { x: mx, y: my };
+        }
         const newSeg = {
           id: generateSegId(),
           points: [tail, resolved],
           curve: isCurve,
           preSnap: false,
+          ...(controlPoint && { controlPoint }),
         };
         setDrawingPath({
           ...currentDrawingPath,
@@ -250,6 +262,11 @@ export default function FieldCanvas() {
     }
 
     // Handle / player / path selection
+    if (hit.type === 'controlPoint') {
+      setSelectedId(hit.elementId);
+      dragTargetRef.current = hit;
+      return;
+    }
     if (hit.type === 'handle') {
       setSelectedId(hit.elementId);
       dragTargetRef.current = hit;
@@ -305,6 +322,22 @@ export default function FieldCanvas() {
 
     if (isDraggingRef.current && dragTargetRef.current) {
       const { type, elementId } = dragTargetRef.current;
+
+      if (type === 'controlPoint') {
+        const el = elements.find(e => e.id === elementId);
+        if (!el?.segments) return;
+        const { segmentIndex } = dragTargetRef.current;
+        const seg = el.segments[segmentIndex];
+        const p1 = seg.points[0];
+        const p2 = seg.points[seg.points.length - 1];
+        const midpoint = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+        const newCp = shiftHeld ? constrainToAngle(midpoint, pos) : pos;
+        const newSegments = el.segments.map((s, si) =>
+          si !== segmentIndex ? s : { ...s, controlPoint: newCp }
+        );
+        updateElement(elementId, { segments: newSegments });
+        return;
+      }
 
       if (type === 'handle') {
         const snapped = snapPoint(pos, snapIncrement, snapEnabled);
@@ -477,29 +510,32 @@ export default function FieldCanvas() {
       // For straight segments use previous point
       let arrowPoints;
       if (lastSeg.curve) {
-        const cp = lastSeg.controlPoint;
-        // Derive tangent direction at endpoint, use a short tail for arrowhead only
-        let tx, ty;
-        if (cp) {
-          tx = cp.x;
-          ty = cp.y;
-        } else {
-          const mx = (pts[0].x + p2.x) / 2;
-          const my = (pts[0].y + p2.y) / 2;
-          const dx = p2.x - pts[0].x;
-          const dy = p2.y - pts[0].y;
+        const p0 = pts[0];
+        // Compute the actual bezier ctrl from the user's through-point
+        // using the same pass-through formula as hit testing and rendering
+        let cpThrough = lastSeg.controlPoint;
+        if (!cpThrough) {
+          const mx = (p0.x + p2.x) / 2;
+          const my = (p0.y + p2.y) / 2;
+          const dx = p2.x - p0.x;
+          const dy = p2.y - p0.y;
           const len = Math.sqrt(dx * dx + dy * dy);
-          tx = len > 0 ? mx - (dy / len) * (len * 0.35) : mx;
-          ty = len > 0 ? my + (dx / len) * (len * 0.35) : my;
+          cpThrough = len > 0
+            ? { x: mx - (dy / len) * (len * 0.35), y: my + (dx / len) * (len * 0.35) }
+            : { x: mx, y: my };
         }
-        // Short tail: 20px back from endpoint along tangent direction
-        const tdx = p2.x - tx;
-        const tdy = p2.y - ty;
+        const ctrl = {
+          x: 2 * cpThrough.x - 0.5 * (p0.x + p2.x),
+          y: 2 * cpThrough.y - 0.5 * (p0.y + p2.y),
+        };
+        // Analytical tangent at t=1 for quadratic bezier: direction = p2 - ctrl
+        const tdx = p2.x - ctrl.x;
+        const tdy = p2.y - ctrl.y;
         const tlen = Math.sqrt(tdx * tdx + tdy * tdy);
         const tailLen = 20;
-        const tailX = tlen > 0 ? p2.x - (tdx / tlen) * tailLen : p2.x;
-        const tailY = tlen > 0 ? p2.y - (tdy / tlen) * tailLen : p2.y;
-        arrowPoints = [tailX, tailY, p2.x, p2.y];
+        arrowPoints = tlen > 0
+          ? [p2.x - (tdx / tlen) * tailLen, p2.y - (tdy / tlen) * tailLen, p2.x, p2.y]
+          : [p0.x, p0.y, p2.x, p2.y];
       } else {
         const p1 = pts[pts.length - 2] || pts[0];
         arrowPoints = [p1.x, p1.y, p2.x, p2.y];
@@ -528,7 +564,28 @@ export default function FieldCanvas() {
     if (!el?.segments) return null;
     const seen = new Set();
     const handles = [];
+
     el.segments.forEach((seg, si) => {
+      // Control point handle for curve segments
+      if (seg.curve && seg.controlPoint) {
+        const p1 = seg.points[0];
+        const p2 = seg.points[seg.points.length - 1];
+        const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+        const cp = seg.controlPoint;
+        handles.push(
+          <Line key={`${el.id}_cp_arm_${si}`}
+            points={[mid.x, mid.y, cp.x, cp.y]}
+            stroke={colors.accent} strokeWidth={1}
+            dash={[4, 4]} opacity={0.6}
+          />,
+          <Circle key={`${el.id}_cp_${si}`}
+            x={cp.x} y={cp.y} radius={5}
+            fill={colors.accent} stroke={colors.field} strokeWidth={2}
+          />
+        );
+      }
+
+      // Endpoint node handles
       seg.points?.forEach((p, pi) => {
         const key = `${Math.round(p.x)}_${Math.round(p.y)}`;
         if (seen.has(key)) return;
@@ -541,6 +598,7 @@ export default function FieldCanvas() {
         );
       });
     });
+
     return handles;
   }
 
