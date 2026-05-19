@@ -262,6 +262,11 @@ export default function FieldCanvas() {
     }
 
     // Handle / player / path selection
+    if (hit.type === 'controlPoint') {
+      setSelectedId(hit.elementId);
+      dragTargetRef.current = hit;
+      return;
+    }
     if (hit.type === 'handle') {
       setSelectedId(hit.elementId);
       dragTargetRef.current = hit;

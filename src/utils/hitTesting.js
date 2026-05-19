@@ -41,7 +41,8 @@ export function hitTestPathSegments(px, py, segments) {
     const p2 = pts[pts.length - 1];
 
     if (seg.curve) {
-      // Derive control point — same logic as renderSegment
+      // Konva renders tension curves through all points (Catmull-Rom), so the
+      // visible curve passes through p1 → cp → p2. Test both arms.
       let cp = seg.controlPoint;
       if (!cp) {
         const mx = (p1.x + p2.x) / 2;
@@ -53,21 +54,19 @@ export function hitTestPathSegments(px, py, segments) {
           ? { x: mx - (dy / len) * (len * 0.35), y: my + (dx / len) * (len * 0.35) }
           : { x: mx, y: my };
       }
-      const samples = sampleBezier(p1, cp, p2);
-      for (let j = 0; j < samples.length - 1; j++) {
-        const a = samples[j];
-        const b = samples[j + 1];
+      for (const [a, b] of [[p1, cp], [cp, p2]]) {
         const dx = b.x - a.x;
         const dy = b.y - a.y;
         const lenSq = dx * dx + dy * dy;
         let t = 0;
+        let cx = a.x, cy = a.y;
         if (lenSq > 0) {
           t = Math.max(0, Math.min(1, ((px - a.x) * dx + (py - a.y) * dy) / lenSq));
+          cx = a.x + t * dx;
+          cy = a.y + t * dy;
         }
-        const cx = a.x + t * dx;
-        const cy = a.y + t * dy;
         if (Math.sqrt((px - cx) ** 2 + (py - cy) ** 2) <= LINE_HIT_TOLERANCE) {
-          return { hit: true, segmentIndex: i, t: (j + t) / samples.length, point: { x: cx, y: cy } };
+          return { hit: true, segmentIndex: i, t, point: { x: cx, y: cy } };
         }
       }
       continue;
