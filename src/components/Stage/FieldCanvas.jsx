@@ -188,11 +188,23 @@ export default function FieldCanvas() {
       if (currentDrawingPath) {
         const tail = getPathTailPoint(currentDrawingPath) ?? currentDrawingPath._branchOrigin ?? currentDrawingPath._startPoint;
         const resolved = resolveRoutePoint(pos, tail);
+        let controlPoint = undefined;
+        if (isCurve) {
+          const mx = (tail.x + resolved.x) / 2;
+          const my = (tail.y + resolved.y) / 2;
+          const dx = resolved.x - tail.x;
+          const dy = resolved.y - tail.y;
+          const len = Math.sqrt(dx * dx + dy * dy);
+          controlPoint = len > 0
+            ? { x: mx - (dy / len) * (len * 0.35), y: my + (dx / len) * (len * 0.35) }
+            : { x: mx, y: my };
+        }
         const newSeg = {
           id: generateSegId(),
           points: [tail, resolved],
           curve: isCurve,
           preSnap: false,
+          ...(controlPoint && { controlPoint }),
         };
         setDrawingPath({
           ...currentDrawingPath,
@@ -305,6 +317,22 @@ export default function FieldCanvas() {
 
     if (isDraggingRef.current && dragTargetRef.current) {
       const { type, elementId } = dragTargetRef.current;
+
+      if (type === 'controlPoint') {
+        const el = elements.find(e => e.id === elementId);
+        if (!el?.segments) return;
+        const { segmentIndex } = dragTargetRef.current;
+        const seg = el.segments[segmentIndex];
+        const p1 = seg.points[0];
+        const p2 = seg.points[seg.points.length - 1];
+        const midpoint = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+        const newCp = shiftHeld ? constrainToAngle(midpoint, pos) : pos;
+        const newSegments = el.segments.map((s, si) =>
+          si !== segmentIndex ? s : { ...s, controlPoint: newCp }
+        );
+        updateElement(elementId, { segments: newSegments });
+        return;
+      }
 
       if (type === 'handle') {
         const snapped = snapPoint(pos, snapIncrement, snapEnabled);
@@ -528,7 +556,28 @@ export default function FieldCanvas() {
     if (!el?.segments) return null;
     const seen = new Set();
     const handles = [];
+
     el.segments.forEach((seg, si) => {
+      // Control point handle for curve segments
+      if (seg.curve && seg.controlPoint) {
+        const p1 = seg.points[0];
+        const p2 = seg.points[seg.points.length - 1];
+        const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+        const cp = seg.controlPoint;
+        handles.push(
+          <Line key={`${el.id}_cp_arm_${si}`}
+            points={[mid.x, mid.y, cp.x, cp.y]}
+            stroke={colors.accent} strokeWidth={1}
+            dash={[4, 4]} opacity={0.6}
+          />,
+          <Circle key={`${el.id}_cp_${si}`}
+            x={cp.x} y={cp.y} radius={5}
+            fill={colors.accent} stroke={colors.field} strokeWidth={2}
+          />
+        );
+      }
+
+      // Endpoint node handles
       seg.points?.forEach((p, pi) => {
         const key = `${Math.round(p.x)}_${Math.round(p.y)}`;
         if (seen.has(key)) return;
@@ -541,6 +590,7 @@ export default function FieldCanvas() {
         );
       });
     });
+
     return handles;
   }
 

@@ -10,11 +10,24 @@ export function hitTestCircle(px, py, cx, cy, radius) {
   return Math.sqrt(dx * dx + dy * dy) <= radius;
 }
 
+// Sample points along a quadratic bezier (p1, cp, p2) for curve hit testing
+function sampleBezier(p1, cp, p2, samples = 16) {
+  const pts = [];
+  for (let i = 0; i <= samples; i++) {
+    const t = i / samples;
+    const mt = 1 - t;
+    pts.push({
+      x: mt * mt * p1.x + 2 * mt * t * cp.x + t * t * p2.x,
+      y: mt * mt * p1.y + 2 * mt * t * cp.y + t * t * p2.y,
+    });
+  }
+  return pts;
+}
+
 /**
  * Hit test a segment-based path.
  * Returns { hit: bool, segmentIndex: number, t: number, point: {x,y} }
- * t is the position along the hit segment (0=start, 1=end).
- * point is the exact location on the segment where the click landed.
+ * Curved segments are sampled along the actual bezier — not the straight chord.
  */
 export function hitTestPathSegments(px, py, segments) {
   if (!segments || segments.length === 0) return { hit: false };
@@ -24,31 +37,58 @@ export function hitTestPathSegments(px, py, segments) {
     const pts = seg.points;
     if (!pts || pts.length < 2) continue;
 
-    const x1 = pts[0].x, y1 = pts[0].y;
-    const x2 = pts[pts.length - 1].x, y2 = pts[pts.length - 1].y;
+    const p1 = pts[0];
+    const p2 = pts[pts.length - 1];
 
+    if (seg.curve) {
+      // Derive control point — same logic as renderSegment
+      let cp = seg.controlPoint;
+      if (!cp) {
+        const mx = (p1.x + p2.x) / 2;
+        const my = (p1.y + p2.y) / 2;
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        cp = len > 0
+          ? { x: mx - (dy / len) * (len * 0.35), y: my + (dx / len) * (len * 0.35) }
+          : { x: mx, y: my };
+      }
+      const samples = sampleBezier(p1, cp, p2);
+      for (let j = 0; j < samples.length - 1; j++) {
+        const a = samples[j];
+        const b = samples[j + 1];
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const lenSq = dx * dx + dy * dy;
+        let t = 0;
+        if (lenSq > 0) {
+          t = Math.max(0, Math.min(1, ((px - a.x) * dx + (py - a.y) * dy) / lenSq));
+        }
+        const cx = a.x + t * dx;
+        const cy = a.y + t * dy;
+        if (Math.sqrt((px - cx) ** 2 + (py - cy) ** 2) <= LINE_HIT_TOLERANCE) {
+          return { hit: true, segmentIndex: i, t: (j + t) / samples.length, point: { x: cx, y: cy } };
+        }
+      }
+      continue;
+    }
+
+    // Straight segment — fast linear test
+    const x1 = p1.x, y1 = p1.y;
+    const x2 = p2.x, y2 = p2.y;
     const dx = x2 - x1;
     const dy = y2 - y1;
     const lenSq = dx * dx + dy * dy;
-
     let t = 0;
     let closestX = x1, closestY = y1;
-
     if (lenSq > 0) {
-      t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
-      t = Math.max(0, Math.min(1, t));
+      t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / lenSq));
       closestX = x1 + t * dx;
       closestY = y1 + t * dy;
     }
-
     const dist = Math.sqrt((px - closestX) ** 2 + (py - closestY) ** 2);
     if (dist <= LINE_HIT_TOLERANCE) {
-      return {
-        hit: true,
-        segmentIndex: i,
-        t,
-        point: { x: closestX, y: closestY },
-      };
+      return { hit: true, segmentIndex: i, t, point: { x: closestX, y: closestY } };
     }
   }
 
@@ -77,11 +117,25 @@ export function hitTestPlayer(px, py, player) {
  * { type: 'handle'|'player'|'path'|null, elementId, nodeIndex, segmentIndex, segmentPoint }
  */
 export function masterHitTest(px, py, elements, selectedId) {
-  // 1. Node handles on selected path
+  // 1. Handles on selected path — control points checked before endpoint nodes
   if (selectedId) {
     const selected = elements.find(el => el.id === selectedId);
     if (selected && selected.type === 'path' && selected.segments) {
-      // Collect all unique node points across segments
+      // 1a. Control point handles on curve segments
+      for (let si = 0; si < selected.segments.length; si++) {
+        const seg = selected.segments[si];
+        if (!seg.curve || !seg.controlPoint) continue;
+        if (hitTestHandle(px, py, seg.controlPoint.x, seg.controlPoint.y)) {
+          return {
+            type: 'controlPoint',
+            elementId: selectedId,
+            segmentIndex: si,
+            nodeIndex: null,
+            segmentPoint: null,
+          };
+        }
+      }
+      // 1b. Endpoint node handles
       const nodes = [];
       selected.segments.forEach((seg, si) => {
         seg.points?.forEach((p, pi) => {
