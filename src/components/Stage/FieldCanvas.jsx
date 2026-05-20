@@ -98,10 +98,6 @@ export default function FieldCanvas() {
   const [hoveredId, setHoveredId]       = useState(null);
   const [marqueeRect, setMarqueeRect]   = useState(null);
   const [liveMarqueeIds, setLiveMarqueeIds] = useState([]);
-  const [editingTextId, setEditingTextId]   = useState(null);
-  const [editingContent, setEditingContent] = useState('');
-  const editingIsNewRef = useRef(false);
-  const textInputRef    = useRef(null);
   const dragStartRef    = useRef(null);
   const dragStartPos    = useRef(null);
   const isDraggingRef   = useRef(false);
@@ -150,12 +146,6 @@ export default function FieldCanvas() {
     };
   }, [finishDrawing, cancelDrawing, drawingPath]);
 
-  useEffect(() => {
-    if (editingTextId && textInputRef.current) {
-      textInputRef.current.focus();
-    }
-  }, [editingTextId]);
-
   const scaleX = stageSize.width  / FIELD_CONFIG.STAGE_WIDTH;
   const scaleY = stageSize.height / FIELD_CONFIG.STAGE_HEIGHT;
 
@@ -187,52 +177,6 @@ export default function FieldCanvas() {
       });
     }
     return { x: toPos.x - fromPos.x, y: toPos.y - fromPos.y };
-  }
-
-  function commitTextEdit() {
-    const id = editingTextId;
-    const trimmed = editingContent.trim();
-    setEditingTextId(null);
-    setEditingContent('');
-    if (!id) return;
-    if (trimmed === '') {
-      useEditorStore.getState().deleteElement(id);
-      useEditorStore.getState().clearSelection();
-    } else {
-      updateElement(id, { content: trimmed });
-      setSelectedId(id);
-    }
-    editingIsNewRef.current = false;
-  }
-
-  function cancelTextEdit() {
-    const id = editingTextId;
-    setEditingTextId(null);
-    setEditingContent('');
-    if (id && editingIsNewRef.current) {
-      useEditorStore.getState().deleteElement(id);
-      useEditorStore.getState().clearSelection();
-    }
-    editingIsNewRef.current = false;
-  }
-
-  function handleTextInputKeyDown(e) {
-    e.stopPropagation(); // prevent canvas keyboard shortcuts from firing while typing
-    if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); commitTextEdit(); }
-    if (e.key === 'Escape') { e.preventDefault(); cancelTextEdit(); }
-  }
-
-  function handleStageDblClick() {
-    if (!stageRef.current || presentMode) return;
-    const pos = getScaledPos();
-    if (!pos) return;
-    const el = elements.find(e => e.type === 'text' && hitTestText(pos.x, pos.y, e));
-    if (el) {
-      setEditingTextId(el.id);
-      setEditingContent(el.content || '');
-      editingIsNewRef.current = false;
-      setSelectedId(el.id);
-    }
   }
 
   const isDrawingTool = (
@@ -288,7 +232,7 @@ export default function FieldCanvas() {
       return;
     }
 
-    // ADD TEXT
+    // ADD TEXT — places element, selects it; inspector textarea handles content entry
     if (activeTool === TOOL_MODES.ADD_TEXT) {
       const snapped = snapPoint(pos, snapIncrement, snapEnabled);
       const newText = {
@@ -299,9 +243,6 @@ export default function FieldCanvas() {
       };
       addElement(newText);
       setSelectedId(newText.id);
-      setEditingTextId(newText.id);
-      setEditingContent('');
-      editingIsNewRef.current = true;
       useEditorStore.getState().setActiveTool(TOOL_MODES.SELECT);
       return;
     }
@@ -912,7 +853,6 @@ export default function FieldCanvas() {
         onTouchStart={handleStageTouchStart}
         onTouchMove={handleStageTouchMove}
         onTouchEnd={handleStageTouchEnd}
-        onDblClick={handleStageDblClick}
       >
         <FieldGrid />
 
@@ -983,7 +923,6 @@ export default function FieldCanvas() {
           })}
           {/* Text annotations — rendered after players so they appear on top */}
           {elements.filter(el => el.type === 'text').map(el => {
-            if (el.id === editingTextId) return null;
             const isSelected = !presentMode && el.id === selectedId;
             const inMarquee  = !presentMode && (liveMarqueeIds.includes(el.id) || marqueeIds.includes(el.id));
             return (
@@ -1000,36 +939,6 @@ export default function FieldCanvas() {
         </Layer>
       </Stage>
 
-      {/* HTML input overlay for inline text editing */}
-      {editingTextId && (() => {
-        const el = elements.find(e => e.id === editingTextId);
-        if (!el) return null;
-        return (
-          <input
-            key="text-edit-input"
-            style={{
-              position: 'absolute',
-              left: el.x * scaleX,
-              top: el.y * scaleY,
-              fontSize: `${TEXT_FONT_SIZE * scaleY}px`,
-              fontFamily: 'sans-serif',
-              color: colors.text,
-              background: colors.field,
-              border: `2px solid ${colors.accent}`,
-              borderRadius: '2px',
-              outline: 'none',
-              minWidth: '120px',
-              padding: '2px 6px',
-              zIndex: 10,
-            }}
-            ref={textInputRef}
-            value={editingContent}
-            onChange={e => setEditingContent(e.target.value)}
-            onKeyDown={handleTextInputKeyDown}
-            onBlur={commitTextEdit}
-          />
-        );
-      })()}
     </div>
   );
 }

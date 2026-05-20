@@ -1,9 +1,11 @@
+import { useRef, useEffect } from 'react';
 import './Inspector.css';
 import useEditorStore from '../../store/useEditorStore';
 import { THEME_COLORS } from '../../constants/themeColors';
 
 export default function Inspector() {
   const { getActivePlay, selectedId, updateElement, updateSegment, theme, marqueeIds } = useEditorStore();
+  const textareaRef = useRef(null);
   const elements = getActivePlay()?.elements || [];
   const selected = elements.find(el => el.id === selectedId);
   const tc = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
@@ -48,6 +50,12 @@ export default function Inspector() {
 
   const activeIndex = selected.style?.colorIndex ?? -1;
 
+  useEffect(() => {
+    if (selected?.type === 'text' && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [selected?.id]);
+
   if (selected.type === 'text') {
     return (
       <div className="inspector">
@@ -55,8 +63,10 @@ export default function Inspector() {
         <div className="inspector-body">
           <label>Content
             <textarea
+              ref={textareaRef}
               value={selected.content || ''}
               rows={3}
+              placeholder="Type annotation..."
               onChange={e => updateElement(selected.id, { content: e.target.value })}
             />
           </label>
