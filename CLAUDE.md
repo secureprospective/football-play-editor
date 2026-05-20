@@ -86,7 +86,14 @@ Deploy: automatic on push to main
   - Inspector: position read-only, attachment placeholder
   - MAX 1 per play enforced at placement
   - FLAG: hit-test priority (football after players) needs testing once attachment is set — possible Phase 3 pivot
-- Session 2 — Text element: TODO
+- Session 2 — Text element: COMPLETE (branch: session/text-element)
+  - type: 'text' with position {x,y}, content: string, visibility stub {startTime,endTime,fade}
+  - ADD_TEXT tool, click to place, inline HTML input overlay for typing
+  - Commit: Enter/Tab/blur. Cancel: Escape (deletes new element if empty). Double-click to re-edit.
+  - Drag, select, group-drag, marquee-select, delete all work
+  - Konva Text in Layer 2 after players (text on top); hidden during input overlay
+  - Inspector: content textarea (live sync), visibility placeholder
+  - Thumbnails: intentionally excluded (illegible at scale — Phase 3 if requested)
 - Session 3 — Highlight element: TODO
 - Session 4 — Per-segment route speed: TODO
 
