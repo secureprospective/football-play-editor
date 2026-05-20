@@ -5,6 +5,7 @@ export const TOOL_MODES = {
   ADD_LINE_STRAIGHT: 'ADD_LINE_STRAIGHT',
   ADD_LINE_CURVE:    'ADD_LINE_CURVE',
   ADD_FOOTBALL:      'ADD_FOOTBALL',
+  ADD_TEXT:          'ADD_TEXT',
 };
 export const DEFAULT_TOOL = TOOL_MODES.SELECT;
 export const VIEW_MODES = {

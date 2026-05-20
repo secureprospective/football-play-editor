@@ -48,6 +48,30 @@ export default function Inspector() {
 
   const activeIndex = selected.style?.colorIndex ?? -1;
 
+  if (selected.type === 'text') {
+    return (
+      <div className="inspector">
+        <div className="inspector-header">Text</div>
+        <div className="inspector-body">
+          <label>Content
+            <textarea
+              value={selected.content || ''}
+              rows={3}
+              onChange={e => updateElement(selected.id, { content: e.target.value })}
+            />
+          </label>
+          <label className="check-row inspector-placeholder">
+            <input type="checkbox" disabled />
+            Visibility timing — wired in Phase 3
+          </label>
+        </div>
+        <div className="inspector-footer">
+          <span className="inspector-id">id: {selected.id}</span>
+        </div>
+      </div>
+    );
+  }
+
   if (selected.type === 'football') {
     return (
       <div className="inspector">

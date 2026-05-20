@@ -8,6 +8,9 @@ const DRAG_THRESHOLD = 3;
 export const FOOTBALL_RX = 20;
 export const FOOTBALL_RY = 12;
 
+export const TEXT_FONT_SIZE  = 28;
+const        TEXT_CHAR_WIDTH = 14; // approximate px per char at TEXT_FONT_SIZE
+
 export function hitTestCircle(px, py, cx, cy, radius) {
   const dx = px - cx;
   const dy = py - cy;
@@ -105,6 +108,15 @@ export function hitTestFootball(px, py, football) {
   return (dx * dx) / (FOOTBALL_RX * FOOTBALL_RX) + (dy * dy) / (FOOTBALL_RY * FOOTBALL_RY) <= 1;
 }
 
+export function hitTestText(px, py, textEl) {
+  const content = textEl.content || '';
+  const w = Math.max(40, content.length * TEXT_CHAR_WIDTH);
+  const h = TEXT_FONT_SIZE;
+  const pad = 6;
+  return px >= textEl.x - pad && px <= textEl.x + w + pad &&
+         py >= textEl.y - pad && py <= textEl.y + h + pad;
+}
+
 /**
  * Master hit test.
  *
@@ -157,7 +169,15 @@ export function masterHitTest(px, py, elements, selectedId) {
     }
   }
 
-  // 2. Players
+  // 2. Text — checked before players because text renders on top visually
+  for (let i = elements.length - 1; i >= 0; i--) {
+    const el = elements[i];
+    if (el.type === 'text' && hitTestText(px, py, el)) {
+      return { type: 'text', elementId: el.id, nodeIndex: null, segmentIndex: null, segmentPoint: null };
+    }
+  }
+
+  // 3. Players
   for (let i = elements.length - 1; i >= 0; i--) {
     const el = elements[i];
     if (el.type === 'player' && hitTestPlayer(px, py, el)) {
@@ -165,7 +185,7 @@ export function masterHitTest(px, py, elements, selectedId) {
     }
   }
 
-  // 2.5. Football — after players so player wins in overlap (see plan note: TEST & POSSIBLE PIVOT)
+  // 4. Football — after players so player wins in overlap (see plan note: TEST & POSSIBLE PIVOT)
   for (let i = elements.length - 1; i >= 0; i--) {
     const el = elements[i];
     if (el.type === 'football' && hitTestFootball(px, py, el)) {
@@ -173,7 +193,7 @@ export function masterHitTest(px, py, elements, selectedId) {
     }
   }
 
-  // 3. Paths
+  // 5. Paths
   for (let i = elements.length - 1; i >= 0; i--) {
     const el = elements[i];
     if (el.type === 'path') {

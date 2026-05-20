@@ -4,7 +4,7 @@ import './FieldCanvas.css';
 import useEditorStore from '../../store/useEditorStore';
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
 import { TOOL_MODES } from '../../constants/toolModes';
-import { masterHitTest, hitTestPathSegments, hitTestPlayer, hitTestFootball, exceededDragThreshold, FOOTBALL_RX, FOOTBALL_RY } from '../../utils/hitTesting';
+import { masterHitTest, hitTestPathSegments, hitTestPlayer, hitTestFootball, hitTestText, exceededDragThreshold, FOOTBALL_RX, FOOTBALL_RY, TEXT_FONT_SIZE } from '../../utils/hitTesting';
 import { snapPoint, constrainToAngle } from '../../utils/snapToGrid';
 import { defaultCurveCP, bezierCtrl } from '../../utils/curveUtils';
 import FieldGrid from './FieldGrid';
@@ -62,6 +62,7 @@ function getElementsInRect(rect, elements) {
     .filter(el => {
       if (el.type === 'player')   return inRect({ x: el.x, y: el.y });
       if (el.type === 'football') return inRect({ x: el.x, y: el.y });
+      if (el.type === 'text')     return inRect({ x: el.x, y: el.y });
       if (el.type === 'path')     return el.segments?.length > 0 && el.segments.every(seg => seg.points.every(p => inRect(p)));
       return false;
     })
@@ -97,6 +98,9 @@ export default function FieldCanvas() {
   const [hoveredId, setHoveredId]       = useState(null);
   const [marqueeRect, setMarqueeRect]   = useState(null);
   const [liveMarqueeIds, setLiveMarqueeIds] = useState([]);
+  const [editingTextId, setEditingTextId]   = useState(null);
+  const [editingContent, setEditingContent] = useState('');
+  const editingIsNewRef = useRef(false);
   const dragStartRef    = useRef(null);
   const dragStartPos    = useRef(null);
   const isDraggingRef   = useRef(false);
@@ -177,6 +181,51 @@ export default function FieldCanvas() {
     return { x: toPos.x - fromPos.x, y: toPos.y - fromPos.y };
   }
 
+  function commitTextEdit() {
+    const id = editingTextId;
+    const trimmed = editingContent.trim();
+    setEditingTextId(null);
+    setEditingContent('');
+    if (!id) return;
+    if (trimmed === '') {
+      useEditorStore.getState().deleteElement(id);
+      useEditorStore.getState().clearSelection();
+    } else {
+      updateElement(id, { content: trimmed });
+      setSelectedId(id);
+    }
+    editingIsNewRef.current = false;
+  }
+
+  function cancelTextEdit() {
+    const id = editingTextId;
+    setEditingTextId(null);
+    setEditingContent('');
+    if (id && editingIsNewRef.current) {
+      useEditorStore.getState().deleteElement(id);
+      useEditorStore.getState().clearSelection();
+    }
+    editingIsNewRef.current = false;
+  }
+
+  function handleTextInputKeyDown(e) {
+    e.stopPropagation(); // prevent canvas keyboard shortcuts from firing while typing
+    if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); commitTextEdit(); }
+    if (e.key === 'Escape') { e.preventDefault(); cancelTextEdit(); }
+  }
+
+  function handleStageDblClick() {
+    if (!stageRef.current || presentMode) return;
+    const pos = getScaledPos();
+    const el = elements.find(e => e.type === 'text' && hitTestText(pos.x, pos.y, e));
+    if (el) {
+      setEditingTextId(el.id);
+      setEditingContent(el.content || '');
+      editingIsNewRef.current = false;
+      setSelectedId(el.id);
+    }
+  }
+
   const isDrawingTool = (
     activeTool === TOOL_MODES.ADD_LINE_STRAIGHT ||
     activeTool === TOOL_MODES.ADD_LINE_CURVE
@@ -225,6 +274,24 @@ export default function FieldCanvas() {
         addElement(newFootball);
         setSelectedId(newFootball.id);
       }
+      useEditorStore.getState().setActiveTool(TOOL_MODES.SELECT);
+      return;
+    }
+
+    // ADD TEXT
+    if (activeTool === TOOL_MODES.ADD_TEXT) {
+      const snapped = snapPoint(pos, snapIncrement, snapEnabled);
+      const newText = {
+        id: generateId(), type: 'text',
+        x: snapped.x, y: snapped.y,
+        content: '',
+        visibility: { startTime: null, endTime: null, fade: false },
+      };
+      addElement(newText);
+      setSelectedId(newText.id);
+      setEditingTextId(newText.id);
+      setEditingContent('');
+      editingIsNewRef.current = true;
       useEditorStore.getState().setActiveTool(TOOL_MODES.SELECT);
       return;
     }
@@ -308,6 +375,7 @@ export default function FieldCanvas() {
               id: el.id, type: el.type,
               ...(el.type === 'player'   ? { x: el.x, y: el.y } : {}),
               ...(el.type === 'football' ? { x: el.x, y: el.y } : {}),
+              ...(el.type === 'text'     ? { x: el.x, y: el.y } : {}),
               ...(el.type === 'path'     ? { segments: JSON.parse(JSON.stringify(el.segments)) } : {}),
             }));
           dragTargetRef.current = { type: 'groupMove' };
@@ -350,6 +418,11 @@ export default function FieldCanvas() {
       return;
     }
     if (hit.type === 'football') {
+      setSelectedId(hit.elementId);
+      dragTargetRef.current = hit;
+      return;
+    }
+    if (hit.type === 'text') {
       setSelectedId(hit.elementId);
       dragTargetRef.current = hit;
       return;
@@ -403,7 +476,7 @@ export default function FieldCanvas() {
       if (type === 'groupMove') {
         const delta = resolveDragDelta(dragStartRef.current, pos);
         const updates = groupStartRef.current.map(start => {
-          if (start.type === 'player' || start.type === 'football') {
+          if (start.type === 'player' || start.type === 'football' || start.type === 'text') {
             const newPos = snapPoint(
               { x: start.x + delta.x, y: start.y + delta.y },
               snapIncrement, snapEnabled
@@ -464,7 +537,7 @@ export default function FieldCanvas() {
         return;
       }
 
-      if (type === 'player' || type === 'football') {
+      if (type === 'player' || type === 'football' || type === 'text') {
         const delta = resolveDragDelta(dragStartPos.current, pos);
         const newPos = snapPoint(
           { x: dragStartPos.current.x + delta.x, y: dragStartPos.current.y + delta.y },
@@ -828,6 +901,7 @@ export default function FieldCanvas() {
         onTouchStart={handleStageTouchStart}
         onTouchMove={handleStageTouchMove}
         onTouchEnd={handleStageTouchEnd}
+        onDblClick={handleStageDblClick}
       >
         <FieldGrid />
 
@@ -896,8 +970,55 @@ export default function FieldCanvas() {
               />
             );
           })}
+          {/* Text annotations — rendered after players so they appear on top */}
+          {elements.filter(el => el.type === 'text').map(el => {
+            if (el.id === editingTextId) return null;
+            const isSelected = !presentMode && el.id === selectedId;
+            const inMarquee  = !presentMode && (liveMarqueeIds.includes(el.id) || marqueeIds.includes(el.id));
+            return (
+              <Text key={el.id}
+                x={el.x}
+                y={el.y}
+                text={el.content || ''}
+                fontSize={TEXT_FONT_SIZE}
+                fontFamily="sans-serif"
+                fill={isSelected ? '#ffff00' : inMarquee ? colors.accent : colors.text}
+              />
+            );
+          })}
         </Layer>
       </Stage>
+
+      {/* HTML input overlay for inline text editing */}
+      {editingTextId && (() => {
+        const el = elements.find(e => e.id === editingTextId);
+        if (!el) return null;
+        return (
+          <input
+            key="text-edit-input"
+            style={{
+              position: 'absolute',
+              left: el.x * scaleX,
+              top: el.y * scaleY,
+              fontSize: `${TEXT_FONT_SIZE * scaleY}px`,
+              fontFamily: 'sans-serif',
+              color: colors.text,
+              background: 'transparent',
+              border: 'none',
+              borderBottom: `1px solid ${colors.accent}`,
+              outline: 'none',
+              minWidth: '80px',
+              padding: '0',
+              zIndex: 10,
+            }}
+            value={editingContent}
+            onChange={e => setEditingContent(e.target.value)}
+            onKeyDown={handleTextInputKeyDown}
+            onBlur={commitTextEdit}
+            autoFocus
+          />
+        );
+      })()}
     </div>
   );
 }
