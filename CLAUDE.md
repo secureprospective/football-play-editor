@@ -73,11 +73,43 @@ Deploy: automatic on push to main
 - Breadcrumb buttons styled to match toolbar buttons — bordered (1px border-mid), panel-alt background, 36px height, 5px radius; active crumb uses accent border/color
 - Present Mode breadcrumbs — floating absolute-positioned crumb buttons only (no header bar), 50% opacity; clicking exits present and navigates to that layer
 
-## What is next
-1. Card refactor — useCardInteraction hook + CardShell; cuts ~240 lines of duplicated state logic
-2. Route branching (option route) — deferred, advanced feature, own session
-3. Player-route linkage data model — required before animation (own session)
-4. Animation — future phase, major session (see pre-planning notes below)
+## Animation Roadmap
+
+### Phase 1 — New element types + per-segment route speed (static only, no animation wiring)
+
+- Session 1 — Football element: COMPLETE (branch: session/football-element)
+  - type: 'football' with position {x,y} and attachedToElementId: null
+  - ADD_FOOTBALL tool, drag, select, marquee, delete
+  - renderFootball: brown ellipse (rx=20, ry=12), attached-position stub (PLAYER_RADIUS offset, default right)
+  - Z-order: Layer 1 football, Layer 2 players (player draws over attached ball)
+  - Thumbnails: play + formation thumbnails render football
+  - Inspector: position read-only, attachment placeholder
+  - MAX 1 per play enforced at placement
+  - FLAG: hit-test priority (football after players) needs testing once attachment is set — possible Phase 3 pivot
+- Session 2 — Text element: TODO
+- Session 3 — Highlight element: TODO
+- Session 4 — Per-segment route speed: TODO
+
+### Phase 2 — Animation foundation
+- FieldCanvas split (render / interaction separation)
+- Animation runtime engine
+- Separate animation Zustand store
+
+### Phase 3 — Editor animation UI
+- Scrub bar with event markers
+- Event editor
+- Animation wiring: all element types including football attachment + text/highlight visibility
+
+### Phase 4 — Present Mode animation integration
+
+### Phase 5 — Polish + performance tuning (cheap Windows tablets)
+
+---
+
+## What is next (immediate)
+1. Session 2 — Text element (Phase 1)
+2. Card refactor — useCardInteraction hook + CardShell; deferred indefinitely (not blocking animation arc)
+3. Route branching (option route) — deferred, advanced feature, own session
 
 ## Animation Phase — Pre-planning Notes
 *Resolve these before the animation planning session starts.*
