@@ -13,15 +13,16 @@ function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = fals
 
   const hasContent = elements && elements.some(el =>
     playersOnly
-      ? (el.type === 'player' || el.type === 'football')
+      ? (el.type === 'player' || el.type === 'football' || el.type === 'highlight')
       : el.type !== 'scrimmage'
   );
   if (!hasContent) return <span className="card-thumb-icon">▶</span>;
 
-  const scrimmage = elements.find(el => el.type === 'scrimmage');
-  const players   = elements.filter(el => el.type === 'player');
-  const paths     = elements.filter(el => el.type === 'path');
-  const football  = elements.find(el => el.type === 'football');
+  const scrimmage  = elements.find(el => el.type === 'scrimmage');
+  const players    = elements.filter(el => el.type === 'player');
+  const paths      = elements.filter(el => el.type === 'path');
+  const football   = elements.find(el => el.type === 'football');
+  const highlights = elements.filter(el => el.type === 'highlight');
 
   const sx = x => scaleX(x, width);
   const sy = y => scaleY(y, height);
@@ -46,6 +47,18 @@ function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = fals
           strokeDasharray="4 3"
         />
       )}
+
+      {/* Highlights — before routes so routes draw on top */}
+      {highlights.map(h => (
+        <circle
+          key={h.id}
+          cx={sx(h.x)}
+          cy={sy(h.y)}
+          r={(h.radius / FIELD_CONFIG.STAGE_WIDTH) * width}
+          fill={h.color}
+          opacity={h.opacity ?? 0.3}
+        />
+      ))}
 
       {/* Routes */}
       {!playersOnly && paths.map(path => {

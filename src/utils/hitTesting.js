@@ -108,6 +108,12 @@ export function hitTestFootball(px, py, football) {
   return (dx * dx) / (FOOTBALL_RX * FOOTBALL_RX) + (dy * dy) / (FOOTBALL_RY * FOOTBALL_RY) <= 1;
 }
 
+export function hitTestHighlight(px, py, highlight) {
+  const dx = px - highlight.x;
+  const dy = py - highlight.y;
+  return Math.sqrt(dx * dx + dy * dy) <= highlight.radius + 8;
+}
+
 export function hitTestText(px, py, textEl) {
   const content = textEl.content || '';
   const w = Math.max(40, content.length * TEXT_CHAR_WIDTH);
@@ -207,6 +213,14 @@ export function masterHitTest(px, py, elements, selectedId) {
           segmentPoint: result.point,
         };
       }
+    }
+  }
+
+  // 6. Highlights — last priority, matches visual z-order (under everything)
+  for (let i = elements.length - 1; i >= 0; i--) {
+    const el = elements[i];
+    if (el.type === 'highlight' && hitTestHighlight(px, py, el)) {
+      return { type: 'highlight', elementId: el.id, nodeIndex: null, segmentIndex: null, segmentPoint: null };
     }
   }
 

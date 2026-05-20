@@ -4,7 +4,7 @@ import './FieldCanvas.css';
 import useEditorStore from '../../store/useEditorStore';
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
 import { TOOL_MODES } from '../../constants/toolModes';
-import { masterHitTest, hitTestPathSegments, hitTestPlayer, hitTestFootball, hitTestText, exceededDragThreshold, FOOTBALL_RX, FOOTBALL_RY, TEXT_FONT_SIZE } from '../../utils/hitTesting';
+import { masterHitTest, hitTestPathSegments, hitTestPlayer, hitTestFootball, hitTestText, hitTestHighlight, exceededDragThreshold, FOOTBALL_RX, FOOTBALL_RY, TEXT_FONT_SIZE } from '../../utils/hitTesting';
 import { snapPoint, constrainToAngle } from '../../utils/snapToGrid';
 import { defaultCurveCP, bezierCtrl } from '../../utils/curveUtils';
 import FieldGrid from './FieldGrid';
@@ -60,9 +60,10 @@ function getElementsInRect(rect, elements) {
   return elements
     .filter(el => el.type !== 'scrimmage')
     .filter(el => {
-      if (el.type === 'player')   return inRect({ x: el.x, y: el.y });
-      if (el.type === 'football') return inRect({ x: el.x, y: el.y });
-      if (el.type === 'text')     return inRect({ x: el.x, y: el.y });
+      if (el.type === 'player')    return inRect({ x: el.x, y: el.y });
+      if (el.type === 'football')  return inRect({ x: el.x, y: el.y });
+      if (el.type === 'text')      return inRect({ x: el.x, y: el.y });
+      if (el.type === 'highlight') return inRect({ x: el.x, y: el.y });
       if (el.type === 'path')     return el.segments?.length > 0 && el.segments.every(seg => seg.points.every(p => inRect(p)));
       return false;
     })
@@ -96,8 +97,9 @@ export default function FieldCanvas() {
   const [mousePos, setMousePos]         = useState(null);
   const [shiftHeld, setShiftHeld]       = useState(false);
   const [hoveredId, setHoveredId]       = useState(null);
-  const [marqueeRect, setMarqueeRect]   = useState(null);
+  const [marqueeRect, setMarqueeRect]       = useState(null);
   const [liveMarqueeIds, setLiveMarqueeIds] = useState([]);
+  const [placingHighlight, setPlacingHighlight] = useState(null);
   const dragStartRef    = useRef(null);
   const dragStartPos    = useRef(null);
   const isDraggingRef   = useRef(false);
@@ -129,6 +131,7 @@ export default function FieldCanvas() {
         clearMarquee();
         setLiveMarqueeIds([]);
         setMarqueeRect(null);
+        setPlacingHighlight(null);
       }
       if ((e.key === 'Delete' || e.key === 'Backspace') && !drawingPath) {
         const { selectedId, deleteElement } = useEditorStore.getState();
@@ -247,6 +250,31 @@ export default function FieldCanvas() {
       return;
     }
 
+    // ADD HIGHLIGHT — two-click: click 1 sets center, click 2 confirms radius
+    if (activeTool === TOOL_MODES.ADD_HIGHLIGHT) {
+      const snapped = snapPoint(pos, snapIncrement, snapEnabled);
+      if (!placingHighlight) {
+        setPlacingHighlight({ x: snapped.x, y: snapped.y });
+      } else {
+        const dx = snapped.x - placingHighlight.x;
+        const dy = snapped.y - placingHighlight.y;
+        const radius = Math.max(20, Math.sqrt(dx * dx + dy * dy));
+        const newHighlight = {
+          id: generateId(), type: 'highlight',
+          x: placingHighlight.x, y: placingHighlight.y,
+          radius,
+          color: '#ffff00',
+          opacity: 0.3,
+          visibility: { startTime: null, endTime: null, fade: false },
+        };
+        addElement(newHighlight);
+        setSelectedId(newHighlight.id);
+        setPlacingHighlight(null);
+        useEditorStore.getState().setActiveTool(TOOL_MODES.SELECT);
+      }
+      return;
+    }
+
     // DRAWING TOOL — straight or curve
     if (isDrawingTool) {
       // Case 1: Already drawing — add next segment
@@ -324,9 +352,10 @@ export default function FieldCanvas() {
             .filter(el => currentMarqueeIds.includes(el.id))
             .map(el => ({
               id: el.id, type: el.type,
-              ...(el.type === 'player'   ? { x: el.x, y: el.y } : {}),
-              ...(el.type === 'football' ? { x: el.x, y: el.y } : {}),
-              ...(el.type === 'text'     ? { x: el.x, y: el.y } : {}),
+              ...(el.type === 'player'    ? { x: el.x, y: el.y } : {}),
+              ...(el.type === 'football'  ? { x: el.x, y: el.y } : {}),
+              ...(el.type === 'text'      ? { x: el.x, y: el.y } : {}),
+              ...(el.type === 'highlight' ? { x: el.x, y: el.y } : {}),
               ...(el.type === 'path'     ? { segments: JSON.parse(JSON.stringify(el.segments)) } : {}),
             }));
           dragTargetRef.current = { type: 'groupMove' };
@@ -374,6 +403,11 @@ export default function FieldCanvas() {
       return;
     }
     if (hit.type === 'text') {
+      setSelectedId(hit.elementId);
+      dragTargetRef.current = hit;
+      return;
+    }
+    if (hit.type === 'highlight') {
       setSelectedId(hit.elementId);
       dragTargetRef.current = hit;
       return;
@@ -428,7 +462,7 @@ export default function FieldCanvas() {
       if (type === 'groupMove') {
         const delta = resolveDragDelta(dragStartRef.current, pos);
         const updates = groupStartRef.current.map(start => {
-          if (start.type === 'player' || start.type === 'football' || start.type === 'text') {
+          if (start.type === 'player' || start.type === 'football' || start.type === 'text' || start.type === 'highlight') {
             const newPos = snapPoint(
               { x: start.x + delta.x, y: start.y + delta.y },
               snapIncrement, snapEnabled
@@ -489,7 +523,7 @@ export default function FieldCanvas() {
         return;
       }
 
-      if (type === 'player' || type === 'football' || type === 'text') {
+      if (type === 'player' || type === 'football' || type === 'text' || type === 'highlight') {
         const delta = resolveDragDelta(dragStartPos.current, pos);
         const newPos = snapPoint(
           { x: dragStartPos.current.x + delta.x, y: dragStartPos.current.y + delta.y },
@@ -713,6 +747,25 @@ export default function FieldCanvas() {
     );
   }
 
+  function renderHighlightPreview() {
+    if (!placingHighlight || !mousePos) return null;
+    const dx = mousePos.x - placingHighlight.x;
+    const dy = mousePos.y - placingHighlight.y;
+    const radius = Math.max(20, Math.sqrt(dx * dx + dy * dy));
+    return (
+      <Circle
+        x={placingHighlight.x}
+        y={placingHighlight.y}
+        radius={radius}
+        fill="#ffff00"
+        opacity={0.2}
+        stroke={colors.accent}
+        strokeWidth={1}
+        dash={[8, 6]}
+      />
+    );
+  }
+
   function renderNodeHandles(el) {
     if (!el?.segments) return null;
     const seen = new Set();
@@ -857,6 +910,24 @@ export default function FieldCanvas() {
         <FieldGrid />
 
         <Layer>
+          {/* Highlights — first so they render under everything else in this layer */}
+          {elements.filter(el => el.type === 'highlight').map(el => {
+            const isSelected = !presentMode && el.id === selectedId;
+            const inMarquee  = !presentMode && (liveMarqueeIds.includes(el.id) || marqueeIds.includes(el.id));
+            return (
+              <Circle
+                key={el.id}
+                x={el.x}
+                y={el.y}
+                radius={el.radius}
+                fill={el.color}
+                opacity={isSelected ? Math.min(1, (el.opacity ?? 0.3) + 0.15) : (el.opacity ?? 0.3)}
+                stroke={isSelected ? '#ffff00' : inMarquee ? colors.accent : undefined}
+                strokeWidth={isSelected || inMarquee ? 2 : 0}
+              />
+            );
+          })}
+          {!presentMode && renderHighlightPreview()}
           {renderScrimmage()}
           {elements.filter(el => el.type === 'path').flatMap(el => {
             const result = renderPath(el);

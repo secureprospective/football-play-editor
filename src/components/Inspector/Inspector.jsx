@@ -73,6 +73,42 @@ export default function Inspector() {
     );
   }
 
+  if (selected.type === 'highlight') {
+    return (
+      <div className="inspector">
+        <div className="inspector-header">Highlight</div>
+        <div className="inspector-body">
+          <label>Color
+            <input
+              type="color"
+              value={selected.color || '#ffff00'}
+              onChange={e => updateElement(selected.id, { color: e.target.value })}
+              onKeyDown={e => e.stopPropagation()}
+            />
+          </label>
+          <label>Opacity
+            <div className="range-row">
+              <input
+                type="range" min="0" max="1" step="0.05"
+                value={selected.opacity ?? 0.3}
+                onChange={e => updateElement(selected.id, { opacity: parseFloat(e.target.value) })}
+                onKeyDown={e => e.stopPropagation()}
+              />
+              <span>{Math.round((selected.opacity ?? 0.3) * 100)}%</span>
+            </div>
+          </label>
+          <label className="check-row inspector-placeholder">
+            <input type="checkbox" disabled />
+            Visibility timing — wired in Phase 3
+          </label>
+        </div>
+        <div className="inspector-footer">
+          <span className="inspector-id">id: {selected.id}</span>
+        </div>
+      </div>
+    );
+  }
+
   if (selected.type === 'football') {
     return (
       <div className="inspector">
