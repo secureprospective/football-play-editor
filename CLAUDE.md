@@ -96,7 +96,14 @@ Deploy: automatic on push to main
   - getScaledPos() null-guards getPointerPosition() — fixes pre-existing TypeError after theme change
   - Thumbnails: intentionally excluded (illegible at scale — Phase 3 if requested)
   - NOTE: inline canvas editing deferred; inspector-based editing is the working pattern for Phase 1
-- Session 3 — Highlight element: TODO
+- Session 3 — Highlight element: COMPLETE (branch: session/highlight-element)
+  - type: 'highlight' with center {x,y}, radius, color, opacity, visibility stub
+  - ADD_HIGHLIGHT tool (◯): click 1 sets center, move to preview, click 2 confirms radius; Escape cancels
+  - Drag, select, group-drag, marquee-select, delete all work
+  - Z-order: rendered first in Layer 1 — structurally under scrimmage, paths, football, players, text
+  - Inspector: native color picker (not theme-bound), opacity slider (%), visibility placeholder
+  - Thumbnails: SVG circle before routes in both play and formation thumbnails
+  - Default: yellow (#ffff00), 30% opacity; hitTest priority 6 (last — matches visual z-order)
 - Session 4 — Per-segment route speed: TODO
 
 ### Phase 2 — Animation foundation
