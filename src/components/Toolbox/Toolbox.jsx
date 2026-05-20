@@ -15,6 +15,7 @@ const TOOLS = [
   { mode: TOOL_MODES.ADD_PLAYER,        label: '●', title: 'Add Player'           },
   { mode: TOOL_MODES.ADD_LINE_STRAIGHT, label: '╱', title: 'Draw Straight Route'  },
   { mode: TOOL_MODES.ADD_LINE_CURVE,    label: '⌒', title: 'Draw Curved Route'    },
+  { mode: TOOL_MODES.ADD_FOOTBALL,      label: '⊙', title: 'Place Football'       },
 ];
 
 export default function Toolbox() {

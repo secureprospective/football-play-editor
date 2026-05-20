@@ -12,13 +12,16 @@ function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = fals
   const colors = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
 
   const hasContent = elements && elements.some(el =>
-    playersOnly ? el.type === 'player' : el.type !== 'scrimmage'
+    playersOnly
+      ? (el.type === 'player' || el.type === 'football')
+      : el.type !== 'scrimmage'
   );
   if (!hasContent) return <span className="card-thumb-icon">▶</span>;
 
   const scrimmage = elements.find(el => el.type === 'scrimmage');
   const players   = elements.filter(el => el.type === 'player');
   const paths     = elements.filter(el => el.type === 'path');
+  const football  = elements.find(el => el.type === 'football');
 
   const sx = x => scaleX(x, width);
   const sy = y => scaleY(y, height);
@@ -84,6 +87,19 @@ function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = fals
           );
         });
       })}
+
+      {/* Football — rendered before players so players draw over it in SVG z-order */}
+      {football && (
+        <ellipse
+          cx={sx(football.x)}
+          cy={sy(football.y)}
+          rx={Math.max(width, height) * 0.013}
+          ry={Math.max(width, height) * 0.008}
+          fill="#8B5E3C"
+          stroke="#4A2C17"
+          strokeWidth={0.8}
+        />
+      )}
 
       {/* Players */}
       {players.map(pl => {

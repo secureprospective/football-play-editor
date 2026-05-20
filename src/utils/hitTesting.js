@@ -5,6 +5,9 @@ const HANDLE_HIT_RADIUS = 12;
 const LINE_HIT_TOLERANCE = 10;
 const DRAG_THRESHOLD = 3;
 
+export const FOOTBALL_RX = 20;
+export const FOOTBALL_RY = 12;
+
 export function hitTestCircle(px, py, cx, cy, radius) {
   const dx = px - cx;
   const dy = py - cy;
@@ -96,6 +99,12 @@ export function hitTestPlayer(px, py, player) {
   return hitTestCircle(px, py, player.x, player.y, radius);
 }
 
+export function hitTestFootball(px, py, football) {
+  const dx = px - football.x;
+  const dy = py - football.y;
+  return (dx * dx) / (FOOTBALL_RX * FOOTBALL_RX) + (dy * dy) / (FOOTBALL_RY * FOOTBALL_RY) <= 1;
+}
+
 /**
  * Master hit test.
  *
@@ -153,6 +162,14 @@ export function masterHitTest(px, py, elements, selectedId) {
     const el = elements[i];
     if (el.type === 'player' && hitTestPlayer(px, py, el)) {
       return { type: 'player', elementId: el.id, nodeIndex: null, segmentIndex: null, segmentPoint: null };
+    }
+  }
+
+  // 2.5. Football — after players so player wins in overlap (see plan note: TEST & POSSIBLE PIVOT)
+  for (let i = elements.length - 1; i >= 0; i--) {
+    const el = elements[i];
+    if (el.type === 'football' && hitTestFootball(px, py, el)) {
+      return { type: 'football', elementId: el.id, nodeIndex: null, segmentIndex: null, segmentPoint: null };
     }
   }
 

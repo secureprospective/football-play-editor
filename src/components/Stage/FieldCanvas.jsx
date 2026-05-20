@@ -1,14 +1,16 @@
 import { useRef, useEffect, useState } from 'react';
-import { Stage, Layer, Rect, Circle, Text, Line, RegularPolygon } from 'react-konva';
+import { Stage, Layer, Rect, Circle, Text, Line, RegularPolygon, Ellipse } from 'react-konva';
 import './FieldCanvas.css';
 import useEditorStore from '../../store/useEditorStore';
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
 import { TOOL_MODES } from '../../constants/toolModes';
-import { masterHitTest, hitTestPathSegments, hitTestPlayer, exceededDragThreshold } from '../../utils/hitTesting';
+import { masterHitTest, hitTestPathSegments, hitTestPlayer, hitTestFootball, exceededDragThreshold, FOOTBALL_RX, FOOTBALL_RY } from '../../utils/hitTesting';
 import { snapPoint, constrainToAngle } from '../../utils/snapToGrid';
 import { defaultCurveCP, bezierCtrl } from '../../utils/curveUtils';
 import FieldGrid from './FieldGrid';
 import { THEME_COLORS } from '../../constants/themeColors';
+
+const FOOTBALL_ATTACH_OFFSET = FIELD_CONFIG.PLAYER_RADIUS;
 
 function generateId() {
   return 'el_' + Math.random().toString(36).slice(2, 9);
@@ -58,8 +60,9 @@ function getElementsInRect(rect, elements) {
   return elements
     .filter(el => el.type !== 'scrimmage')
     .filter(el => {
-      if (el.type === 'player') return inRect({ x: el.x, y: el.y });
-      if (el.type === 'path')   return el.segments?.length > 0 && el.segments.every(seg => seg.points.every(p => inRect(p)));
+      if (el.type === 'player')   return inRect({ x: el.x, y: el.y });
+      if (el.type === 'football') return inRect({ x: el.x, y: el.y });
+      if (el.type === 'path')     return el.segments?.length > 0 && el.segments.every(seg => seg.points.every(p => inRect(p)));
       return false;
     })
     .map(el => el.id);
@@ -209,6 +212,23 @@ export default function FieldCanvas() {
       return;
     }
 
+    // ADD FOOTBALL — max one per play
+    if (activeTool === TOOL_MODES.ADD_FOOTBALL) {
+      const hasFootball = elements.some(el => el.type === 'football');
+      if (!hasFootball) {
+        const snapped = snapPoint(pos, snapIncrement, snapEnabled);
+        const newFootball = {
+          id: generateId(), type: 'football',
+          x: snapped.x, y: snapped.y,
+          attachedToElementId: null,
+        };
+        addElement(newFootball);
+        setSelectedId(newFootball.id);
+      }
+      useEditorStore.getState().setActiveTool(TOOL_MODES.SELECT);
+      return;
+    }
+
     // DRAWING TOOL — straight or curve
     if (isDrawingTool) {
       // Case 1: Already drawing — add next segment
@@ -286,8 +306,9 @@ export default function FieldCanvas() {
             .filter(el => currentMarqueeIds.includes(el.id))
             .map(el => ({
               id: el.id, type: el.type,
-              ...(el.type === 'player' ? { x: el.x, y: el.y } : {}),
-              ...(el.type === 'path'   ? { segments: JSON.parse(JSON.stringify(el.segments)) } : {}),
+              ...(el.type === 'player'   ? { x: el.x, y: el.y } : {}),
+              ...(el.type === 'football' ? { x: el.x, y: el.y } : {}),
+              ...(el.type === 'path'     ? { segments: JSON.parse(JSON.stringify(el.segments)) } : {}),
             }));
           dragTargetRef.current = { type: 'groupMove' };
           return;
@@ -324,6 +345,11 @@ export default function FieldCanvas() {
       return;
     }
     if (hit.type === 'player') {
+      setSelectedId(hit.elementId);
+      dragTargetRef.current = hit;
+      return;
+    }
+    if (hit.type === 'football') {
       setSelectedId(hit.elementId);
       dragTargetRef.current = hit;
       return;
@@ -377,7 +403,7 @@ export default function FieldCanvas() {
       if (type === 'groupMove') {
         const delta = resolveDragDelta(dragStartRef.current, pos);
         const updates = groupStartRef.current.map(start => {
-          if (start.type === 'player') {
+          if (start.type === 'player' || start.type === 'football') {
             const newPos = snapPoint(
               { x: start.x + delta.x, y: start.y + delta.y },
               snapIncrement, snapEnabled
@@ -438,7 +464,7 @@ export default function FieldCanvas() {
         return;
       }
 
-      if (type === 'player') {
+      if (type === 'player' || type === 'football') {
         const delta = resolveDragDelta(dragStartPos.current, pos);
         const newPos = snapPoint(
           { x: dragStartPos.current.x + delta.x, y: dragStartPos.current.y + delta.y },
@@ -632,6 +658,36 @@ export default function FieldCanvas() {
     return rendered;
   }
 
+  function renderFootball(el) {
+    const isSelected = !presentMode && el.id === selectedId;
+    const inMarquee  = !presentMode && (liveMarqueeIds.includes(el.id) || marqueeIds.includes(el.id));
+
+    let visualX = el.x;
+    let visualY = el.y;
+
+    if (el.attachedToElementId) {
+      const player = elements.find(e => e.id === el.attachedToElementId && e.type === 'player');
+      if (player) {
+        // Default carry side: right. Phase 3 will derive side from motion direction.
+        visualX = player.x + FOOTBALL_ATTACH_OFFSET;
+        visualY = player.y;
+      }
+    }
+
+    return (
+      <Ellipse
+        key={el.id}
+        x={visualX}
+        y={visualY}
+        radiusX={FOOTBALL_RX}
+        radiusY={FOOTBALL_RY}
+        fill="#8B5E3C"
+        stroke={isSelected ? '#ffff00' : inMarquee ? colors.accent : '#4A2C17'}
+        strokeWidth={isSelected || inMarquee ? 3 : 2}
+      />
+    );
+  }
+
   function renderNodeHandles(el) {
     if (!el?.segments) return null;
     const seen = new Set();
@@ -784,7 +840,9 @@ export default function FieldCanvas() {
           {!presentMode && renderDrawingPreview()}
           {!presentMode && !isBoxSelect && selectedEl?.type === 'path' && renderNodeHandles(selectedEl)}
           {renderAllNodes()}
-          {/* Marquee selection rect */}
+          {/* Football — rendered in Layer 1 so Layer 2 players draw over it (correct z-order for attached ball) */}
+          {elements.filter(el => el.type === 'football').map(el => renderFootball(el))}
+          {/* Marquee selection rect — topmost in this layer */}
           {marqueeRect && (
             <Rect
               x={Math.min(marqueeRect.x, marqueeRect.x + marqueeRect.width)}
