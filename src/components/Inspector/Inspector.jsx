@@ -53,12 +53,6 @@ export default function Inspector() {
       <div className="inspector">
         <div className="inspector-header">Football</div>
         <div className="inspector-body">
-          <label>Position X
-            <input type="number" readOnly value={Math.round(selected.x)} />
-          </label>
-          <label>Position Y
-            <input type="number" readOnly value={Math.round(selected.y)} />
-          </label>
           <label className="check-row inspector-placeholder">
             <input type="checkbox" disabled />
             Attached to player — wired in Phase 3
