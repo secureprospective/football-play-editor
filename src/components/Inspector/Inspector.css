@@ -78,12 +78,30 @@
 
 .inspector-body .range-row { display: flex; align-items: center; gap: 6px; }
 
+.inspector-body .range-row input[type="range"] {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+
 .inspector-body .range-row span {
   font-size: 11px;
   color: var(--color-text);
   min-width: 28px;
   text-align: right;
   flex-shrink: 0;
+}
+
+.inspector-body .range-row input[type="number"] {
+  width: 38px;
+  flex-shrink: 0;
+  background: var(--color-panel-alt);
+  border: 1px solid var(--color-border-mid);
+  border-radius: 4px;
+  color: var(--color-text);
+  font-size: 11px;
+  padding: 2px 2px;
+  text-align: center;
 }
 
 .inspector-body .check-row {

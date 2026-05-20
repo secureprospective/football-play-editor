@@ -233,7 +233,6 @@ export default function Inspector() {
                     <input
                       type="number" min="0.1" max="3.0" step="0.1"
                       value={seg.duration ?? 0.5}
-                      style={{ width: '52px' }}
                       onChange={e => {
                         const v = parseFloat(e.target.value);
                         if (!isNaN(v)) updateSegment(selected.id, seg.id, { duration: Math.max(0.1, Math.min(3.0, v)) });
