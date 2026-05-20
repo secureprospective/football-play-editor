@@ -238,7 +238,7 @@ export default function FieldCanvas() {
       const newText = {
         id: generateId(), type: 'text',
         x: snapped.x, y: snapped.y,
-        content: '',
+        content: 'Text',
         visibility: { startTime: null, endTime: null, fade: false },
       };
       addElement(newText);
@@ -922,7 +922,7 @@ export default function FieldCanvas() {
             );
           })}
           {/* Text annotations — rendered after players so they appear on top */}
-          {elements.filter(el => el.type === 'text').map(el => {
+          {elements.filter(el => el.type === 'text' && el.content).map(el => {
             const isSelected = !presentMode && el.id === selectedId;
             const inMarquee  = !presentMode && (liveMarqueeIds.includes(el.id) || marqueeIds.includes(el.id));
             return (
