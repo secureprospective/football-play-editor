@@ -88,12 +88,14 @@ Deploy: automatic on push to main
   - FLAG: hit-test priority (football after players) needs testing once attachment is set — possible Phase 3 pivot
 - Session 2 — Text element: COMPLETE (branch: session/text-element)
   - type: 'text' with position {x,y}, content: string, visibility stub {startTime,endTime,fade}
-  - ADD_TEXT tool, click to place, inline HTML input overlay for typing
-  - Commit: Enter/Tab/blur. Cancel: Escape (deletes new element if empty). Double-click to re-edit.
+  - ADD_TEXT tool (T button in toolbox): click field → places element with default content 'Text'
+  - Select element → right panel (inspector) Content textarea → edit live, field updates immediately
+  - Inspector textarea has stopPropagation on keydown (prevents canvas delete handler from firing while typing)
   - Drag, select, group-drag, marquee-select, delete all work
-  - Konva Text in Layer 2 after players (text on top); hidden during input overlay
-  - Inspector: content textarea (live sync), visibility placeholder
+  - Konva Text in Layer 2 after players (text on top); empty-content guard prevents Konva canvas corruption
+  - getScaledPos() null-guards getPointerPosition() — fixes pre-existing TypeError after theme change
   - Thumbnails: intentionally excluded (illegible at scale — Phase 3 if requested)
+  - NOTE: inline canvas editing deferred; inspector-based editing is the working pattern for Phase 1
 - Session 3 — Highlight element: TODO
 - Session 4 — Per-segment route speed: TODO
 
