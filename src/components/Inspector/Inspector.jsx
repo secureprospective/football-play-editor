@@ -230,7 +230,23 @@ export default function Inspector() {
                       onChange={e => updateSegment(selected.id, seg.id, { duration: parseFloat(e.target.value) })}
                       onKeyDown={e => e.stopPropagation()}
                     />
-                    <span>{(seg.duration ?? 0.5).toFixed(1)}s</span>
+                    <input
+                      type="number" min="0.1" max="3.0" step="0.1"
+                      value={seg.duration ?? 0.5}
+                      style={{ width: '52px' }}
+                      onChange={e => {
+                        const v = parseFloat(e.target.value);
+                        if (!isNaN(v)) updateSegment(selected.id, seg.id, { duration: Math.max(0.1, Math.min(3.0, v)) });
+                      }}
+                      onWheel={e => {
+                        e.preventDefault();
+                        const cur = seg.duration ?? 0.5;
+                        const delta = e.deltaY < 0 ? 0.1 : -0.1;
+                        const next = Math.max(0.1, Math.min(3.0, Math.round((cur + delta) * 10) / 10));
+                        updateSegment(selected.id, seg.id, { duration: next });
+                      }}
+                      onKeyDown={e => e.stopPropagation()}
+                    />
                   </div>
                 </div>
               ))}
