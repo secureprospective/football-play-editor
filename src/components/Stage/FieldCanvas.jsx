@@ -101,6 +101,7 @@ export default function FieldCanvas() {
   const [editingTextId, setEditingTextId]   = useState(null);
   const [editingContent, setEditingContent] = useState('');
   const editingIsNewRef = useRef(false);
+  const textInputRef    = useRef(null);
   const dragStartRef    = useRef(null);
   const dragStartPos    = useRef(null);
   const isDraggingRef   = useRef(false);
@@ -149,11 +150,18 @@ export default function FieldCanvas() {
     };
   }, [finishDrawing, cancelDrawing, drawingPath]);
 
+  useEffect(() => {
+    if (editingTextId && textInputRef.current) {
+      textInputRef.current.focus();
+    }
+  }, [editingTextId]);
+
   const scaleX = stageSize.width  / FIELD_CONFIG.STAGE_WIDTH;
   const scaleY = stageSize.height / FIELD_CONFIG.STAGE_HEIGHT;
 
   function getScaledPos() {
-    const pos = stageRef.current.getPointerPosition();
+    const pos = stageRef.current?.getPointerPosition();
+    if (!pos) return null;
     return { x: pos.x / scaleX, y: pos.y / scaleY };
   }
 
@@ -217,6 +225,7 @@ export default function FieldCanvas() {
   function handleStageDblClick() {
     if (!stageRef.current || presentMode) return;
     const pos = getScaledPos();
+    if (!pos) return;
     const el = elements.find(e => e.type === 'text' && hitTestText(pos.x, pos.y, e));
     if (el) {
       setEditingTextId(el.id);
@@ -239,6 +248,7 @@ export default function FieldCanvas() {
     if (presentMode) return;
 
     const pos = getScaledPos();
+    if (!pos) return;
     dragStartRef.current  = pos;
     dragStartPos.current  = pos;
     isDraggingRef.current = false;
@@ -443,6 +453,7 @@ export default function FieldCanvas() {
     if (presentMode) return;
 
     const pos = getScaledPos();
+    if (!pos) return;
 
     // Preview point for drawing
     if (drawingPath) {
@@ -1003,19 +1014,19 @@ export default function FieldCanvas() {
               fontSize: `${TEXT_FONT_SIZE * scaleY}px`,
               fontFamily: 'sans-serif',
               color: colors.text,
-              background: 'transparent',
-              border: 'none',
-              borderBottom: `1px solid ${colors.accent}`,
+              background: colors.field,
+              border: `2px solid ${colors.accent}`,
+              borderRadius: '2px',
               outline: 'none',
-              minWidth: '80px',
-              padding: '0',
+              minWidth: '120px',
+              padding: '2px 6px',
               zIndex: 10,
             }}
+            ref={textInputRef}
             value={editingContent}
             onChange={e => setEditingContent(e.target.value)}
             onKeyDown={handleTextInputKeyDown}
             onBlur={commitTextEdit}
-            autoFocus
           />
         );
       })()}
