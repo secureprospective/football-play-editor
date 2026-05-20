@@ -213,16 +213,18 @@ export default function Inspector() {
               <div className="inspector-segments-label">Segments</div>
               {selected.segments.map((seg, i) => (
                 <div key={seg.id} className="inspector-segment-row">
-                  <span className="seg-label">
-                    {seg.curve ? '⌒' : '╱'} Seg {i + 1}
-                    {seg.preSnap ? ' · Pre-snap' : ''}
-                  </span>
-                  <button
-                    className={`seg-presnap-btn ${seg.preSnap ? 'active' : ''}`}
-                    onClick={() => updateSegment(selected.id, seg.id, { preSnap: !seg.preSnap })}
-                  >
-                    {seg.preSnap ? 'Pre-snap ✓' : 'Pre-snap'}
-                  </button>
+                  <div className="seg-row-header">
+                    <span className="seg-label">
+                      {seg.curve ? '⌒' : '╱'} Seg {i + 1}
+                      {seg.preSnap ? ' · Pre-snap' : ''}
+                    </span>
+                    <button
+                      className={`seg-presnap-btn ${seg.preSnap ? 'active' : ''}`}
+                      onClick={() => updateSegment(selected.id, seg.id, { preSnap: !seg.preSnap })}
+                    >
+                      {seg.preSnap ? 'Pre-snap ✓' : 'Pre-snap'}
+                    </button>
+                  </div>
                   <div className="range-row">
                     <input
                       type="range" min="0.1" max="3.0" step="0.1"
@@ -249,6 +251,7 @@ export default function Inspector() {
                   </div>
                 </div>
               ))}
+
             </div>
           )}
         </div>

@@ -93,14 +93,14 @@
 }
 
 .inspector-body .range-row input[type="number"] {
-  width: 38px;
+  width: 34px;
   flex-shrink: 0;
   background: var(--color-panel-alt);
   border: 1px solid var(--color-border-mid);
   border-radius: 4px;
   color: var(--color-text);
-  font-size: 11px;
-  padding: 2px 2px;
+  font-size: 10px;
+  padding: 1px 2px;
   text-align: center;
 }
 
@@ -127,6 +127,12 @@
 
 .inspector-segment-row {
   display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.seg-row-header {
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 6px;
@@ -139,12 +145,13 @@
   border: 1px solid var(--color-border-mid);
   border-radius: 4px;
   color: var(--color-text-muted);
-  font-size: 11px;
-  padding: 0 10px;
-  min-height: 36px;
+  font-size: 10px;
+  padding: 0 6px;
+  min-height: 18px;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
 }
 
 .seg-presnap-btn.active {
