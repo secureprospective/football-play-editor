@@ -289,6 +289,7 @@ export default function FieldCanvas() {
           points: [tail, resolved],
           curve: isCurve,
           preSnap: false,
+          duration: 0.5,
           ...(controlPoint && { controlPoint }),
         };
         setDrawingPath({

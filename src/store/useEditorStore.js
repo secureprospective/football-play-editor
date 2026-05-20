@@ -50,7 +50,15 @@ function createPlaybook(name = 'New Playbook') {
 // --- Migrate old flat-points path to new segment structure ---
 function migratePath(el) {
   if (el.type !== 'path') return el;
-  if (el.segments) return el; // already migrated
+  if (el.segments) {
+    // Already on segment model — backfill duration on any segment missing it
+    return {
+      ...el,
+      segments: el.segments.map(seg =>
+        seg.duration !== undefined ? seg : { ...seg, duration: 0.5 }
+      ),
+    };
+  }
   if (!el.points || el.points.length < 2) return el;
   // Convert flat points array into single straight segment per consecutive pair
   const segments = [];
@@ -60,6 +68,7 @@ function migratePath(el) {
       points: [el.points[i], el.points[i + 1]],
       curve: false,
       preSnap: false,
+      duration: 0.5,
     });
   }
   const { points, ...rest } = el;

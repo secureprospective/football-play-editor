@@ -223,6 +223,15 @@ export default function Inspector() {
                   >
                     {seg.preSnap ? 'Pre-snap ✓' : 'Pre-snap'}
                   </button>
+                  <div className="range-row">
+                    <input
+                      type="range" min="0.1" max="3.0" step="0.1"
+                      value={seg.duration ?? 0.5}
+                      onChange={e => updateSegment(selected.id, seg.id, { duration: parseFloat(e.target.value) })}
+                      onKeyDown={e => e.stopPropagation()}
+                    />
+                    <span>{(seg.duration ?? 0.5).toFixed(1)}s</span>
+                  </div>
                 </div>
               ))}
             </div>
