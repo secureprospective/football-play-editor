@@ -104,7 +104,12 @@ Deploy: automatic on push to main
   - Inspector: native color picker (not theme-bound), opacity slider (%), visibility placeholder
   - Thumbnails: SVG circle before routes in both play and formation thumbnails
   - Default: yellow (#ffff00), 30% opacity; hitTest priority 6 (last — matches visual z-order)
-- Session 4 — Per-segment route speed: TODO
+- Session 4 — Per-segment route duration: COMPLETE (branch: session/route-speed)
+  - duration: float (seconds) added to every route segment
+  - Migration: migratePath backfills 0.5s on existing segments (guard: never overwrites)
+  - New segments default to 0.5s; importPlaybook migrates on load
+  - Inspector: duration slider (0.1–3.0s) per segment row, below Pre-snap button
+  - Static only — Phase 3 wires to animation runtime
 
 ### Phase 2 — Animation foundation
 - FieldCanvas split (render / interaction separation)
@@ -123,9 +128,16 @@ Deploy: automatic on push to main
 ---
 
 ## What is next (immediate)
-1. Session 2 — Text element (Phase 1)
-2. Card refactor — useCardInteraction hook + CardShell; deferred indefinitely (not blocking animation arc)
-3. Route branching (option route) — deferred, advanced feature, own session
+Phase 1 complete. Ready for Phase 2 prompt from Christopher.
+
+Phase 2: Animation foundation
+- FieldCanvas split (render / interaction separation)
+- Separate animation Zustand store (never touches undo/redo stack)
+- Animation runtime engine
+
+Deferred (not blocking animation arc):
+- Card refactor — useCardInteraction hook + CardShell
+- Route branching (option route)
 
 ## Animation Phase — Pre-planning Notes
 *Resolve these before the animation planning session starts.*
