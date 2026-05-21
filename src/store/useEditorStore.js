@@ -317,10 +317,18 @@ const useEditorStore = create((set, get) => ({
     const pb = state.playbooks.find(p => p.id === playbookId);
     const fm = pb?.formations.find(f => f.id === formationId);
     if (!fm) return;
+    // Copy player positions from the first play into the new formation's default play
+    const sourcePlayers = (fm.plays[0]?.elements || [])
+      .filter(el => el.type === 'player')
+      .map(el => ({ ...el, id: genId('pl') }));
+    const defaultPlay = {
+      ...createPlay('Play 1'),
+      elements: [createScrimmage(), ...sourcePlayers],
+    };
     const copy = {
       id: genId('fm'),
       name: fm.name + ' (copy)',
-      plays: [createPlay('Play 1')],
+      plays: [defaultPlay],
     };
     set(state => ({
       playbooks: state.playbooks.map(pb =>

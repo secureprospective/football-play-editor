@@ -13,7 +13,7 @@ function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = fals
 
   const hasContent = elements && elements.some(el =>
     playersOnly
-      ? (el.type === 'player' || el.type === 'football' || el.type === 'highlight')
+      ? (el.type === 'player' || el.type === 'football')
       : el.type !== 'scrimmage'
   );
   if (!hasContent) return <span className="card-thumb-icon">▶</span>;
@@ -48,8 +48,8 @@ function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = fals
         />
       )}
 
-      {/* Highlights — before routes so routes draw on top */}
-      {highlights.map(h => (
+      {/* Highlights — play thumbnails only, not formation thumbnails */}
+      {!playersOnly && highlights.map(h => (
         <circle
           key={h.id}
           cx={sx(h.x)}
@@ -111,8 +111,8 @@ function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = fals
         <ellipse
           cx={sx(football.x)}
           cy={sy(football.y)}
-          rx={Math.max(width, height) * 0.013}
-          ry={Math.max(width, height) * 0.008}
+          rx={Math.max(width, height) * 0.008}
+          ry={Math.max(width, height) * 0.014}
           fill="#8B5E3C"
           stroke="#4A2C17"
           strokeWidth={0.8}

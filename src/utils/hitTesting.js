@@ -5,8 +5,8 @@ const HANDLE_HIT_RADIUS = 12;
 const LINE_HIT_TOLERANCE = 10;
 const DRAG_THRESHOLD = 3;
 
-export const FOOTBALL_RX = 20;
-export const FOOTBALL_RY = 12;
+export const FOOTBALL_RX = 12;
+export const FOOTBALL_RY = 20;
 
 export const TEXT_FONT_SIZE  = 28;
 const        TEXT_CHAR_WIDTH = 14; // approximate px per char at TEXT_FONT_SIZE
