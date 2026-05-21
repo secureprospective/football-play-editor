@@ -65,6 +65,9 @@ function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = fals
         const ci         = path.style?.colorIndex ?? -1;
         const routeColor = ci >= 0 ? colors.palette[ci] : colors.text;
 
+        const lineStyle = path.style?.lineStyle || 'solid';
+        const routeDash = lineStyle === 'dash' ? '6 4' : lineStyle === 'dotted' ? '2 5' : undefined;
+
         return path.segments && path.segments.map((seg, i) => {
           const p1 = seg.points[0];
           const p2 = seg.points[1];
@@ -88,6 +91,7 @@ function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = fals
               <path key={`${path.id}-${i}`}
                 d={`M ${x1} ${y1} Q ${cp.x} ${cp.y} ${x2} ${y2}`}
                 stroke={routeColor} strokeWidth={1.5}
+                strokeDasharray={routeDash}
                 fill="none"
               />
             );
@@ -96,6 +100,7 @@ function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = fals
             <line key={`${path.id}-${i}`}
               x1={x1} y1={y1} x2={x2} y2={y2}
               stroke={routeColor} strokeWidth={1.5}
+              strokeDasharray={routeDash}
             />
           );
         });

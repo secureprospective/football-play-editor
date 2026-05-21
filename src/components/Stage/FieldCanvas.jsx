@@ -332,7 +332,7 @@ export default function FieldCanvas() {
         type: 'path',
         segments: [],
         _startPoint: resolved,
-        style: { thickness: 3, endArrow: true, colorIndex: 0 },
+        style: { thickness: 3, endArrow: true, endT: false, lineStyle: 'solid', colorIndex: 0 },
       });
       return;
     }
@@ -613,14 +613,14 @@ export default function FieldCanvas() {
   }
 
   // Render a single segment — straight, curved, or pre-snap zigzag
-  function renderSegment(seg, color, thick, isPathSelected, key, isDashed = false) {
+  function renderSegment(seg, color, thick, isPathSelected, key, lineStyle = 'solid') {
     const pts = seg.points;
     if (!pts || pts.length < 2) return null;
     const p1 = pts[0];
     const p2 = pts[pts.length - 1];
     const stroke = isPathSelected ? '#ffff00' : color;
     const sw = isPathSelected ? thick + 1 : thick;
-    const dashProp = isDashed ? [8, 6] : undefined;
+    const dashProp = lineStyle === 'dash' ? [8, 6] : lineStyle === 'dotted' ? [3, 10] : undefined;
 
     if (seg.preSnap) {
       const zz = zigzagPoints(p1, p2);
@@ -665,13 +665,13 @@ export default function FieldCanvas() {
     const ci = el.style?.colorIndex ?? -1;
     const color = ci >= 0 ? colors.palette[ci] : colors.text;
     const thick = el.style?.thickness || 3;
-    const isDashed = el.style?.dash || false;
+    const lineStyle = el.style?.lineStyle || 'solid';
 
     // Collect all rendered segments as an array of Konva elements
     const rendered = [];
 
     el.segments.forEach((seg, i) => {
-      rendered.push(renderSegment(seg, color, thick, isSelected, `${el.id}_seg_${i}`, isDashed));
+      rendered.push(renderSegment(seg, color, thick, isSelected, `${el.id}_seg_${i}`, lineStyle));
     });
 
     // Arrow on the last segment end point
@@ -711,6 +711,40 @@ export default function FieldCanvas() {
           stroke={isSelected ? '#ffff00' : color}
           strokeWidth={1}
           rotation={angle + 90}
+        />
+      );
+    }
+
+    // T-end on the last segment endpoint
+    if (el.style?.endT && lastSeg?.points?.length >= 2) {
+      const pts = lastSeg.points;
+      const p2 = pts[pts.length - 1];
+      let perpX = 1, perpY = 0;
+      if (lastSeg.curve) {
+        const p0 = pts[0];
+        const cp = lastSeg.controlPoint || defaultCurveCP(p0, p2);
+        const ctrl = bezierCtrl(cp, p0, p2);
+        const tdx = p2.x - ctrl.x;
+        const tdy = p2.y - ctrl.y;
+        const tlen = Math.sqrt(tdx * tdx + tdy * tdy);
+        if (tlen > 0) { perpX = -tdy / tlen; perpY = tdx / tlen; }
+      } else {
+        const p1 = pts[pts.length - 2] || pts[0];
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        if (len > 0) { perpX = -dy / len; perpY = dx / len; }
+      }
+      const halfLen = 18;
+      rendered.push(
+        <Line key={`${el.id}_tend`}
+          points={[
+            p2.x - perpX * halfLen, p2.y - perpY * halfLen,
+            p2.x + perpX * halfLen, p2.y + perpY * halfLen,
+          ]}
+          stroke={isSelected ? '#ffff00' : color}
+          strokeWidth={thick}
+          lineCap="round"
         />
       );
     }

@@ -112,6 +112,13 @@
   min-height: 44px;
   padding: 0 2px;
   cursor: pointer;
+  flex: 1;
+}
+
+.inspector-body .check-pair-row {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
 }
 
 .inspector-segments {

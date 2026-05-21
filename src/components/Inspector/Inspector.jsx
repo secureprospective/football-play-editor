@@ -192,22 +192,46 @@ export default function Inspector() {
               <span>{selected.style?.thickness || 3}px</span>
             </div>
           </label>
-          <label className="check-row">
-            <input
-              type="checkbox"
-              checked={selected.style?.dash || false}
-              onChange={e => handleStyleChange('dash', e.target.checked)}
-            />
-            Dashed Line
-          </label>
-          <label className="check-row">
-            <input
-              type="checkbox"
-              checked={selected.style?.endArrow !== false}
-              onChange={e => handleStyleChange('endArrow', e.target.checked)}
-            />
-            End Arrow
-          </label>
+          <div className="check-pair-row">
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={selected.style?.lineStyle === 'dash'}
+                onChange={e => handleStyleChange('lineStyle', e.target.checked ? 'dash' : 'solid')}
+                onKeyDown={e => e.stopPropagation()}
+              />
+              Dash
+            </label>
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={selected.style?.lineStyle === 'dotted'}
+                onChange={e => handleStyleChange('lineStyle', e.target.checked ? 'dotted' : 'solid')}
+                onKeyDown={e => e.stopPropagation()}
+              />
+              Dotted
+            </label>
+          </div>
+          <div className="check-pair-row">
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={selected.style?.endArrow !== false}
+                onChange={e => updateElement(selected.id, { style: { ...selected.style, endArrow: e.target.checked, endT: false } })}
+                onKeyDown={e => e.stopPropagation()}
+              />
+              Arrow
+            </label>
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={!!selected.style?.endT}
+                onChange={e => updateElement(selected.id, { style: { ...selected.style, endT: e.target.checked, endArrow: false } })}
+                onKeyDown={e => e.stopPropagation()}
+              />
+              T-End
+            </label>
+          </div>
           {selected.segments?.length > 0 && (
             <div className="inspector-segments">
               <div className="inspector-segments-label">Segments</div>

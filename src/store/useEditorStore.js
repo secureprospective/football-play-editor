@@ -51,9 +51,16 @@ function createPlaybook(name = 'New Playbook') {
 function migratePath(el) {
   if (el.type !== 'path') return el;
   if (el.segments) {
-    // Already on segment model — backfill duration on any segment missing it
+    // Already on segment model — backfill duration and new style fields
+    const { dash, ...restStyle } = el.style || {};
+    const migratedStyle = {
+      ...restStyle,
+      lineStyle: restStyle.lineStyle !== undefined ? restStyle.lineStyle : (dash ? 'dash' : 'solid'),
+      endT: restStyle.endT !== undefined ? restStyle.endT : false,
+    };
     return {
       ...el,
+      style: migratedStyle,
       segments: el.segments.map(seg =>
         seg.duration !== undefined ? seg : { ...seg, duration: 0.5 }
       ),
