@@ -1,0 +1,357 @@
+/* ─── Print Glow Overlay ─────────────────────────────────────── */
+.print-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow:
+    inset 0 0 0 3px #f59e0b,
+    inset 0 0 24px rgba(245, 158, 11, 0.35);
+  animation: print-glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes print-glow-pulse {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 0 3px #f59e0b,
+      inset 0 0 24px rgba(245, 158, 11, 0.35);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 3px #f59e0b,
+      inset 0 0 48px rgba(245, 158, 11, 0.6);
+  }
+}
+
+/* ─── Print Toggle Button ────────────────────────────────────── */
+.btn-print-active {
+  background: #f59e0b !important;
+  color: #1a1a1a !important;
+  border-color: #f59e0b !important;
+  font-weight: 600;
+}
+
+/* ─── Print Staging Area ─────────────────────────────────────── */
+.print-staging {
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 2px;
+  margin: 0 16px 12px;
+  padding: 12px;
+}
+
+.print-staging-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.print-staging-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.print-staging-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.print-toggle-group {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.print-toggle-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: none;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.print-toggle-btn.active {
+  background: #f59e0b;
+  color: #1a1a1a;
+}
+
+.print-toggle-btn:not(.active):hover {
+  opacity: 0.8;
+}
+
+.print-queue-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f59e0b;
+  min-width: 44px;
+}
+
+.print-action-btn {
+  padding: 5px 12px;
+  font-size: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.print-action-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.print-action-btn.primary {
+  background: #f59e0b;
+  color: #1a1a1a;
+  font-weight: 700;
+  border-color: #f59e0b;
+}
+
+.print-action-btn.primary:not(:disabled):hover {
+  background: #d97706;
+  border-color: #d97706;
+}
+
+/* Queue tile row */
+.print-queue-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.print-queue-tile {
+  position: relative;
+  width: 92px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  padding: 4px 4px 3px;
+  cursor: grab;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.print-queue-tile:active { cursor: grabbing; }
+
+.print-queue-num {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #f59e0b;
+  line-height: 1;
+}
+
+.print-queue-thumb {
+  width: 82px;
+  height: 52px;
+  overflow: hidden;
+  border-radius: 1px;
+}
+
+.print-queue-name {
+  font-size: 9px;
+  line-height: 1.2;
+  color: var(--color-text);
+  max-width: 84px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.print-queue-remove {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  background: none;
+  border: none;
+  font-size: 10px;
+  color: var(--color-danger);
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.print-queue-remove:hover { opacity: 1; }
+
+.print-staging-empty {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--color-text);
+  opacity: 0.5;
+  text-align: center;
+  padding: 10px 8px;
+}
+
+.print-staging-warning {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #b45309;
+}
+
+/* ─── Play card — print mode selection ──────────────────────── */
+.card.print-selected {
+  outline: 2px solid #f59e0b;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+}
+
+.print-card-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: #f59e0b;
+  color: #1a1a1a;
+  font-size: 10px;
+  font-weight: 700;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* ─── Print Sheet — hidden on screen ────────────────────────── */
+.print-sheet-wrapper {
+  display: none;
+}
+
+/* ─── @media print ───────────────────────────────────────────── */
+@media print {
+  body * { visibility: hidden; }
+
+  .print-sheet-wrapper,
+  .print-sheet-wrapper * {
+    visibility: visible;
+  }
+
+  .print-sheet-wrapper {
+    display: block !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+
+  @page {
+    size: 11in 8.5in landscape;
+    margin: 0.5in;
+  }
+
+  .print-card-grid {
+    display: grid;
+    gap: 0;
+  }
+
+  .print-grid-adult {
+    grid-template-columns: repeat(5, 1.5in);
+    grid-template-rows: repeat(4, 2in);
+  }
+
+  .print-grid-youth {
+    grid-template-columns: repeat(5, 1.5in);
+    grid-template-rows: repeat(4, 1.5in);
+  }
+
+  .print-card {
+    box-sizing: border-box;
+    outline: 0.25pt solid rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    position: relative;
+    page-break-inside: avoid;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .print-card-adult {
+    width: 1.5in;
+    height: 2in;
+  }
+
+  .print-card-youth {
+    width: 1.5in;
+    height: 1.5in;
+  }
+
+  .print-card-empty {
+    background: #f8f8f8;
+  }
+
+  .print-card-num {
+    position: absolute;
+    top: 2pt;
+    left: 3pt;
+    font-size: 5pt;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.35);
+    line-height: 1;
+  }
+
+  .print-card-diagram {
+    flex: 0 0 75%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .print-card-diagram svg {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+  }
+
+  .print-card-label {
+    flex: 0 0 25%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 6pt;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 2pt;
+    line-height: 1.2;
+    border-top: 0.25pt solid rgba(0, 0, 0, 0.2);
+  }
+
+  .print-card-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3pt;
+    padding: 4pt 3pt;
+  }
+
+  .print-card-formation {
+    font-size: 5pt;
+    color: rgba(0, 0, 0, 0.45);
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .print-card-playname {
+    font-size: 7pt;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.2;
+    color: #000;
+  }
+}

@@ -28,6 +28,13 @@
   flex-shrink: 0;
 }
 
+.app-header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .app-header-add-btn {
   background: var(--color-accent);
   border-color: var(--color-accent);

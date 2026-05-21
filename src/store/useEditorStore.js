@@ -396,6 +396,29 @@ const useEditorStore = create((set, get) => ({
   presentMode: false,
   togglePresentMode: () => set(state => ({ presentMode: !state.presentMode })),
 
+  // --- Print Mode ---
+  printModeActive: false,
+  printQueue: [],
+  printFormat: 'plays',
+  printSize: 'adult',
+
+  togglePrintMode: () => set(state => ({
+    printModeActive: !state.printModeActive,
+    printQueue: [],
+  })),
+
+  togglePrintQueueItem: (item) => set(state => {
+    const exists = state.printQueue.find(q => q.playId === item.playId);
+    if (exists) return { printQueue: state.printQueue.filter(q => q.playId !== item.playId) };
+    if (state.printQueue.length >= 20) return {};
+    return { printQueue: [...state.printQueue, item] };
+  }),
+
+  reorderPrintQueue: (newQueue) => set({ printQueue: newQueue }),
+  clearPrintQueue: () => set({ printQueue: [] }),
+  setPrintFormat: (format) => set({ printFormat: format }),
+  setPrintSize: (size) => set({ printSize: size }),
+
   theme: localStorage.getItem(THEME_KEY) || DEFAULT_THEME,
   setTheme: (name) => { localStorage.setItem(THEME_KEY, name); set({ theme: name }); },
 

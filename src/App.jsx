@@ -9,6 +9,8 @@ import Toolbar       from './components/Toolbar/Toolbar';
 import Toolbox       from './components/Toolbox/Toolbox';
 import Inspector     from './components/Inspector/Inspector';
 import PresentOverlay from './components/PresentMode/PresentOverlay';
+import PrintGlow from './components/PrintMode/PrintGlow';
+import PrintSheet from './components/PrintMode/PrintSheet';
 
 // Konva is large — lazy load so card views don't pay the parse cost
 const FieldCanvas = lazy(() => import('./components/Stage/FieldCanvas'));
@@ -23,6 +25,8 @@ export default function App() {
   if (!isFieldView) {
     return (
       <div className="app-shell-nav">
+        <PrintGlow />
+        <PrintSheet />
         {viewMode === VIEW_MODES.PLAYBOOK  && <PlaybookView />}
         {viewMode === VIEW_MODES.FORMATION && <FormationView />}
         {viewMode === VIEW_MODES.PLAY      && <PlayView />}

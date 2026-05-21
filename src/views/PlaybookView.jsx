@@ -2,6 +2,7 @@ import { useState } from 'react';
 import './Views.css';
 import useEditorStore from '../store/useEditorStore';
 import AppHeader from '../components/AppHeader/AppHeader';
+import PrintStaging from '../components/PrintMode/PrintStaging';
 import { VIEW_MODES } from '../constants/toolModes';
 import {
   DndContext,
@@ -94,7 +95,10 @@ function PlaybookCard({
 }
 
 export default function PlaybookView() {
-  const { playbooks, navigateTo, addPlaybook, deletePlaybook, updatePlaybook, reorderPlaybooks } = useEditorStore();
+  const {
+    playbooks, navigateTo, addPlaybook, deletePlaybook, updatePlaybook, reorderPlaybooks,
+    printModeActive, togglePrintMode,
+  } = useEditorStore();
 
   const [showInput, setShowInput]     = useState(false);
   const [newName, setNewName]         = useState('');
@@ -171,13 +175,30 @@ export default function PlaybookView() {
     setDeletingId(null);
   }
 
+  const printToggle = (
+    <button
+      className={`tb-btn ${printModeActive ? 'btn-print-active' : ''}`}
+      onClick={togglePrintMode}
+      title={printModeActive ? 'Exit Print Mode' : 'Print Mode'}
+    >
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4, flexShrink: 0 }}>
+        <polyline points="6 9 6 2 18 2 18 9" />
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+        <rect x="6" y="14" width="12" height="8" />
+      </svg>
+      {printModeActive ? 'Exit Print' : 'Print'}
+    </button>
+  );
+
   return (
     <div className="view-container">
       <AppHeader
         active="My Playbooks"
-        onAdd={handleAdd}
+        onAdd={printModeActive ? null : handleAdd}
         addLabel="+ New Playbook"
+        actions={printToggle}
       />
+      {printModeActive && <PrintStaging />}
 
       {showInput && (
         <div className="inline-input-row">

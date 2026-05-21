@@ -2,7 +2,7 @@ import '../Toolbar/Toolbar.css';
 import './AppHeader.css';
 import useEditorStore from '../../store/useEditorStore';
 
-export default function AppHeader({ crumbs = [], active, onAdd, addLabel }) {
+export default function AppHeader({ crumbs = [], active, onAdd, addLabel, actions }) {
   const { goBack } = useEditorStore();
 
   return (
@@ -25,9 +25,12 @@ export default function AppHeader({ crumbs = [], active, onAdd, addLabel }) {
         </nav>
       </div>
 
-      {onAdd && (
-        <button className="tb-btn app-header-add-btn" onClick={onAdd}>{addLabel}</button>
-      )}
+      <div className="app-header-right">
+        {actions}
+        {onAdd && (
+          <button className="tb-btn app-header-add-btn" onClick={onAdd}>{addLabel}</button>
+        )}
+      </div>
     </div>
   );
 }

@@ -19,9 +19,12 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import PlayThumbnail from '../components/PlayThumbnail/PlayThumbnail';
+import '../components/PrintMode/PrintMode.css';
 
-function PlayCard({ pl, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDown, onDuplicate, onDeleteArm, onDeleteConfirm, onDeleteCancel, deletingId, renamingId, renameValue, setRenameValue, setRenamingId }) {
+function PlayCard({ pl, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDown, onDuplicate, onDeleteArm, onDeleteConfirm, onDeleteCancel, deletingId, renamingId, renameValue, setRenameValue, setRenamingId, printMode, queuePosition }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: pl.id });
+
+  const isSelected = queuePosition > 0;
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -32,9 +35,12 @@ function PlayCard({ pl, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDown, o
     <div
       ref={setNodeRef}
       style={style}
-      className={`card ${deletingId === pl.id ? 'deleting' : ''} ${isDragging ? 'dragging' : ''}`}
+      className={`card ${deletingId === pl.id ? 'deleting' : ''} ${isDragging ? 'dragging' : ''} ${printMode && isSelected ? 'print-selected' : ''}`}
       onClick={() => onOpen(pl)}
     >
+      {printMode && isSelected && (
+        <div className="print-card-badge">{queuePosition}</div>
+      )}
       <div className="card-thumb card-thumb-play" style={{ padding: 0, overflow: 'hidden' }}>
         <PlayThumbnail elements={pl.elements} width={300} height={160} />
       </div>
@@ -44,7 +50,7 @@ function PlayCard({ pl, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDown, o
         {pl.notes && <div className="card-meta">{pl.notes}</div>}
       </div>
 
-      {renamingId === pl.id ? (
+      {!printMode && renamingId === pl.id ? (
         <div className="inline-input-row" style={{ borderTop: '1px solid var(--color-border)', borderBottom: 'none', padding: '8px' }}>
           <input
             className="inline-input"
@@ -57,13 +63,13 @@ function PlayCard({ pl, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDown, o
           <button className="inline-save-btn" onClick={e => onRenameConfirm(e, pl)}>Save</button>
           <button className="inline-cancel-btn" onClick={e => { e.stopPropagation(); setRenamingId(null); setRenameValue(''); }}>✕</button>
         </div>
-      ) : deletingId === pl.id ? (
+      ) : !printMode && deletingId === pl.id ? (
         <div className="card-delete-float">
           <span style={{ fontSize: '13px', color: 'var(--color-danger)', fontWeight: 600, flex: 1 }}>Delete play?</span>
           <button className="card-action-btn" onClick={e => { e.stopPropagation(); onDeleteCancel(e); }}>Cancel</button>
           <button className="card-action-btn danger" onClick={e => onDeleteConfirm(e, pl.id)}>Delete</button>
         </div>
-      ) : (
+      ) : !printMode ? (
         <div className="card-actions">
           <div
             className="card-drag-handle"
@@ -78,7 +84,7 @@ function PlayCard({ pl, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDown, o
             <button className="card-action-btn danger" onClick={e => onDeleteArm(e, pl.id)}>Delete</button>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -90,6 +96,7 @@ export default function PlayView() {
     navigateTo, goBack,
     addPlay, deletePlay, updatePlay, duplicatePlay,
     reorderPlays,
+    printModeActive, printQueue, togglePrintQueueItem,
   } = useEditorStore();
 
   const formation = getActiveFormation();
@@ -132,6 +139,17 @@ export default function PlayView() {
   }
 
   function handleOpen(pl) {
+    if (printModeActive) {
+      togglePrintQueueItem({
+        playId: pl.id,
+        formationId: activeFormationId,
+        playbookId: activePlaybookId,
+        name: pl.name,
+        formationName: formation?.name || '',
+        elements: pl.elements,
+      });
+      return;
+    }
     if (deletingId === pl.id || renamingId === pl.id) return;
     navigateTo(VIEW_MODES.FIELD, { playId: pl.id });
   }
@@ -185,7 +203,7 @@ export default function PlayView() {
           { label: formation?.name || '…', onClick: () => navigateTo(VIEW_MODES.FORMATION) },
         ]}
         active="Plays"
-        onAdd={handleAdd}
+        onAdd={printModeActive ? null : handleAdd}
         addLabel="+ New Play"
       />
 
@@ -207,25 +225,30 @@ export default function PlayView() {
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={plays.map(pl => pl.id)} strategy={rectSortingStrategy}>
           <div className="card-grid">
-            {plays.map(pl => (
-              <PlayCard
-                key={pl.id}
-                pl={pl}
-                onOpen={handleOpen}
-                onRenameArm={handleRenameArm}
-                onRenameConfirm={handleRenameConfirm}
-                onRenameKeyDown={handleRenameKeyDown}
-                onDuplicate={handleDuplicate}
-                onDeleteArm={handleDeleteArm}
-                onDeleteConfirm={handleDeleteConfirm}
-                onDeleteCancel={handleDeleteCancel}
-                deletingId={deletingId}
-                renamingId={renamingId}
-                renameValue={renameValue}
-                setRenameValue={setRenameValue}
-                setRenamingId={setRenamingId}
-              />
-            ))}
+            {plays.map(pl => {
+              const queueIdx = printQueue.findIndex(q => q.playId === pl.id);
+              return (
+                <PlayCard
+                  key={pl.id}
+                  pl={pl}
+                  onOpen={handleOpen}
+                  onRenameArm={handleRenameArm}
+                  onRenameConfirm={handleRenameConfirm}
+                  onRenameKeyDown={handleRenameKeyDown}
+                  onDuplicate={handleDuplicate}
+                  onDeleteArm={handleDeleteArm}
+                  onDeleteConfirm={handleDeleteConfirm}
+                  onDeleteCancel={handleDeleteCancel}
+                  deletingId={deletingId}
+                  renamingId={renamingId}
+                  renameValue={renameValue}
+                  setRenameValue={setRenameValue}
+                  setRenamingId={setRenamingId}
+                  printMode={printModeActive}
+                  queuePosition={queueIdx >= 0 ? queueIdx + 1 : 0}
+                />
+              );
+            })}
             {plays.length === 0 && (
               <div className="view-empty">No plays yet. Tap + New Play to start.</div>
             )}
