@@ -7,7 +7,7 @@ import { FIELD_CONFIG } from '../../constants/fieldConfig';
 function scaleX(x, w) { return (x / FIELD_CONFIG.STAGE_WIDTH)  * w; }
 function scaleY(y, h) { return (y / FIELD_CONFIG.STAGE_HEIGHT) * h; }
 
-function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = false }) {
+function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = false, bgColor }) {
   const theme  = useEditorStore(s => s.theme);
   const colors = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
 
@@ -35,7 +35,7 @@ function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = fals
       style={{ display: 'block' }}
     >
       {/* Field background */}
-      <rect x={0} y={0} width={width} height={height} fill={colors.field} />
+      <rect x={0} y={0} width={width} height={height} fill={bgColor ?? colors.field} />
 
       {/* Scrimmage line */}
       {scrimmage && (

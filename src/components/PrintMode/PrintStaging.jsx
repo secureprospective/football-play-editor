@@ -50,7 +50,7 @@ function SortableTile({ item, index, onRemove, printFormat }) {
       >✕</button>
       {printFormat === 'plays' && (
         <div className="print-queue-thumb">
-          <PlayThumbnail elements={item.elements} width={82} height={52} />
+          <PlayThumbnail elements={item.elements} width={82} height={52} bgColor="#ffffff" />
         </div>
       )}
       <div className="print-queue-name">{item.name}</div>
