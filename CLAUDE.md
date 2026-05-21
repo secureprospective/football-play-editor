@@ -127,8 +127,19 @@ Deploy: automatic on push to main
 
 ---
 
+- Print Mode: COMPLETE (branch: session/print-mode)
+  - Print toggle on Playbook layer — amber glow border on entire screen when active
+  - Coach navigates freely through app; tapping a play card in PlayView toggles it into/out of print queue (no editor navigation in print mode)
+  - Selected play cards show amber outline + queue position badge
+  - PrintStaging on Playbook layer: drag to reorder queue, Text/Plays format toggle, Youth/Adult size toggle, Print PDF + Clear buttons, scale warning
+  - PrintSheet: 5×4 card grid (landscape letter, 0.5in margins) for Plays format; two-column roster sheet for Text format
+  - Plays cards: num-bar 12% / diagram 76% / label 12%; adult cards 2in×1.5in landscape; thumbnails render at 300×200 with white background
+  - Text sheet: 2 columns (plays 1–10 left, 11–20 right), compact 0.25in rows, auto height
+  - PlayThumbnail: bgColor prop added for white print background (backward compatible)
+  - ⚑ KNOWN ISSUE: printQueue stores element snapshots at queue-add time. If coach edits a play after queuing it, the print output shows the old version. Fix: store only IDs and resolve live from store at render time. Deferred — not blocking.
+
 ## What is next (immediate)
-Phase 1 complete. Ready for Phase 2 prompt from Christopher.
+Phase 1 complete. Animation pre-planning questions answered. Ready for Phase 2.
 
 Phase 2: Animation foundation
 - FieldCanvas split (render / interaction separation)
@@ -142,10 +153,17 @@ Deferred (not blocking animation arc):
 ## Animation Phase — Pre-planning Notes
 *Resolve these before the animation planning session starts.*
 
-### Questions that must be answered first (Christopher decides)
-1. What does playback look like to a coach? — All players move simultaneously, or sequenced (snap → routes unfold one by one)?
-2. Where does animation live in the UI? — Field editor only, Present Mode only, or both?
-3. Minimum viable version — full choreographed timing with speed control, or players slide along routes at a fixed speed?
+### Questions — ANSWERED
+1. **Playback style: Simultaneous.** All players move at once from the snap. No sequenced unfolding.
+
+2. **Where animation lives: Field editor + Present Mode.**
+   - Field editor: full animation controls (play, scrub, timing)
+   - Present Mode: play and replay only. A toggle to disable animation entirely so the app doesn't load animation data when the coach doesn't need it — keeps memory slim on cheap tablets.
+
+3. **Timing model: Option B — Choreographed per-segment timing.**
+   Uses the `duration` field already on every route segment (built in Phase 1). Each segment plays at its own speed — short routes are faster, deep routes take longer, pre-snap motion has its own pace. This matches real football timing (QB drop on count 3, crosser hits window at count 4, etc.).
+   
+   ⚑ FLAG — Christopher's note: "We might need to test it for variations in the controls like stops and starts or something unforeseen. Things might become clearer when we get there." Do not over-engineer timing controls before seeing how choreographed playback feels in practice. Build the basic per-segment duration first, then let real testing reveal what's missing.
 
 ### Code changes required before animation can start
 
