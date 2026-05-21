@@ -88,7 +88,13 @@ export default function Toolbar() {
           className={`tb-btn tb-present ${presentMode ? 'btn-present-active' : ''}`}
           onClick={togglePresentMode}
           title="Present Mode"
-        >📺 Present</button>
+        >
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{display:'inline',verticalAlign:'middle',marginRight:4,flexShrink:0}}>
+            <path d="m17 2-5 5-5-5" />
+            <rect width="20" height="15" x="2" y="7" rx="2" />
+          </svg>
+          Present
+        </button>
       </div>
 
       {/* Right — actions (scrollable) or drawing state */}
