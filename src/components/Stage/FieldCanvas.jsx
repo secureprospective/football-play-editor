@@ -100,6 +100,7 @@ export default function FieldCanvas() {
   const [marqueeRect, setMarqueeRect]       = useState(null);
   const [liveMarqueeIds, setLiveMarqueeIds] = useState([]);
   const [placingHighlight, setPlacingHighlight] = useState(null);
+  const [guidingPlayerId, setGuidingPlayerId]   = useState(null);
   const dragStartRef    = useRef(null);
   const dragStartPos    = useRef(null);
   const isDraggingRef   = useRef(false);
@@ -454,6 +455,9 @@ export default function FieldCanvas() {
     if (!isDraggingRef.current) {
       if (exceededDragThreshold(dragStartRef.current.x, dragStartRef.current.y, pos.x, pos.y)) {
         isDraggingRef.current = true;
+        if (dragTargetRef.current?.type === 'player' && marqueeIds.length === 0) {
+          setGuidingPlayerId(dragTargetRef.current.elementId);
+        }
       } else return;
     }
 
@@ -571,6 +575,7 @@ export default function FieldCanvas() {
     }
 
     setMarqueeRect(null);
+    setGuidingPlayerId(null);
     marqueeStartRef.current = null;
     dragStartRef.current    = null;
     dragStartPos.current    = null;
@@ -945,6 +950,19 @@ export default function FieldCanvas() {
         <FieldGrid />
 
         <Layer>
+          {/* Alignment guides — bounding box tangent to dragged player's circle edges */}
+          {guidingPlayerId && elements
+            .filter(el => el.type === 'player' && el.id === guidingPlayerId)
+            .flatMap(pl => {
+              const r = pl.style?.radius || FIELD_CONFIG.PLAYER_RADIUS;
+              return [
+                <Line key={`gt_${pl.id}`} points={[0, pl.y - r, FIELD_CONFIG.STAGE_WIDTH, pl.y - r]} stroke={colors.accent} strokeWidth={1} opacity={0.375} dash={[4, 4]} listening={false} perfectDrawEnabled={false} />,
+                <Line key={`gb_${pl.id}`} points={[0, pl.y + r, FIELD_CONFIG.STAGE_WIDTH, pl.y + r]} stroke={colors.accent} strokeWidth={1} opacity={0.375} dash={[4, 4]} listening={false} perfectDrawEnabled={false} />,
+                <Line key={`gl_${pl.id}`} points={[pl.x - r, 0, pl.x - r, FIELD_CONFIG.STAGE_HEIGHT]} stroke={colors.accent} strokeWidth={1} opacity={0.375} dash={[4, 4]} listening={false} perfectDrawEnabled={false} />,
+                <Line key={`gr_${pl.id}`} points={[pl.x + r, 0, pl.x + r, FIELD_CONFIG.STAGE_HEIGHT]} stroke={colors.accent} strokeWidth={1} opacity={0.375} dash={[4, 4]} listening={false} perfectDrawEnabled={false} />,
+              ];
+            })
+          }
           {/* Highlights — first so they render under everything else in this layer */}
           {elements.filter(el => el.type === 'highlight').map(el => {
             const isSelected = !presentMode && el.id === selectedId;
