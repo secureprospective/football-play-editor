@@ -9,8 +9,12 @@ Local: /mnt/storage/claudebox/projects/football-play-editor
 
 ## Repo / Deploy
 GitHub: https://github.com/secureprospective/football-play-editor
-Live: https://football-play-editor.pages.dev
-Deploy: automatic on push to main
+
+Two Cloudflare Pages projects, one repo:
+- TFM Playbook Lite → football-play-editor.pages.dev — deploys from `lite` branch (frozen at v1.0.0)
+- TFM Playbook (full) → tfm-playbook.pages.dev — deploys from `main` (active Phase 2+ development)
+
+Push to `lite` → Lite site auto-deploys. Push to `main` → Full site auto-deploys.
 
 ## Working rules
 - Branch before every session: git checkout -b session-name
@@ -159,13 +163,13 @@ four-theme system, TFM branding (logo + Cinzel title).
 
 ## Product Roadmap
 
-### TFM Playbook Lite (this repo, main branch)
-Version 1.0 is complete. Bug fixes and minor QoL improvements only.
+### TFM Playbook Lite (lite branch → football-play-editor.pages.dev)
+Version 1.0 is complete and frozen. Bug fixes and minor QoL improvements only — merge to `lite`, not `main`.
 Do not add features that compromise performance on limited hardware.
 
-### TFM Playbook (full — next major version)
-**Phase 2 (animation foundation) is the next active work.** To start it, Christopher will
-say "start TFM Phase 2" — read the prompt at:
+### TFM Playbook (full — main branch → tfm-playbook.pages.dev)
+**Phase 2 (animation foundation) is the next active work.** All Phase 2+ session branches merge to `main`.
+To start it, Christopher will say "start TFM Phase 2" — read the prompt at:
 `docs/PHASE2_PROMPT.md`
 
 That prompt is self-contained. Read it fully before doing anything else in an animation session.
