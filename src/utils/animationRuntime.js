@@ -12,12 +12,9 @@ function quadBezier(p1, ctrl, p2, t) {
 }
 
 // Interpolate a single segment at parameter t in [0, 1].
-// Pre-snap segments hold at the segment start for their full duration.
 function interpolateSegment(seg, t) {
   const p1 = seg.points[0];
   const p2 = seg.points[seg.points.length - 1];
-
-  if (seg.preSnap) return { x: p1.x, y: p1.y };
 
   if (seg.curve) {
     const cp   = seg.controlPoint || defaultCurveCP(p1, p2);

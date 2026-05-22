@@ -188,11 +188,18 @@ Push to `lite` → Lite site auto-deploys. Push to `main` → Full site auto-dep
 - Resets animation on play navigation (useEffect on activePlayId)
 - FieldRenderer visibility filter applies in Present Mode at t=0 (no editor override)
 
-### Phase 5 — Polish + performance tuning (next)
-
-### Phase 4 — Present Mode animation integration
-
 ### Phase 5 — Polish + performance tuning (cheap Windows tablets)
+
+- Session 1 — Performance baseline: COMPLETE
+  - pixelRatio={1} on Konva Stage — caps canvas buffer at ~8MB vs ~33MB on HiDPI devices
+  - visibilitychange listener in useAnimationLoop — pauses rAF when page goes to background (saves CPU/battery on tablets)
+- Session 2 — Pre-snap animation fix: COMPLETE
+  - Removed hard-coded hold in animationRuntime.js — pre-snap segments now interpolate like any other segment
+  - Pre-snap flag is a visual/rendering concept (dashed line) only; it no longer freezes the player during playback
+
+### Football animation — next major feature
+- Planning doc: docs/FOOTBALL_ANIMATION_PLAN.md
+- Handoff prompt: docs/FOOTBALL_ANIMATION_PROMPT.md (trigger: "football")
 
 ---
 
@@ -244,12 +251,8 @@ Mobile phone support comes after animation is complete.
 ---
 
 ## What is next (immediate)
-Phase 1 complete. Animation pre-planning questions answered. Ready for Phase 2.
-
-Phase 2: Animation foundation (TFM Playbook full — deferred)
-- FieldCanvas split (render / interaction separation)
-- Separate animation Zustand store (never touches undo/redo stack)
-- Animation runtime engine
+Phases 1–5 S2 complete. Next: football animation (Options A + B).
+Trigger phrase: "football" → reads docs/FOOTBALL_ANIMATION_PROMPT.md
 
 Deferred (not blocking animation arc):
 - Card refactor — useCardInteraction hook + CardShell
