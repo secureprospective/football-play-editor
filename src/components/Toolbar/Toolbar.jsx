@@ -2,6 +2,7 @@ import { useState } from 'react';
 import './Toolbar.css';
 import useEditorStore from '../../store/useEditorStore';
 import { VIEW_MODES } from '../../constants/toolModes';
+import { THEME_LOGO } from '../../constants/themeColors';
 import { flipPlayHorizontal, flipPlayVertical } from '../../utils/flipUtils';
 
 export default function Toolbar() {
@@ -16,7 +17,10 @@ export default function Toolbar() {
     presentMode, togglePresentMode,
     snapEnabled, setSnapEnabled,
     navigateTo, goBack,
+    theme,
   } = useEditorStore();
+
+  const logo = THEME_LOGO[theme] || THEME_LOGO['theme-sun-cyan'];
 
   const [confirmClear, setConfirmClear] = useState(false);
 
@@ -98,6 +102,12 @@ export default function Toolbar() {
           </svg>
           Present
         </button>
+      </div>
+
+      {/* Brand — always visible, between nav and actions */}
+      <div className="toolbar-brand">
+        <img src={logo} alt="TFM" className="app-brand-logo" />
+        <span className="app-brand-title">TFM Playbook</span>
       </div>
 
       {/* Right — actions (scrollable) or drawing state */}

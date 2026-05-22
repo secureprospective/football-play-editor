@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import useEditorStore from '../../store/useEditorStore';
 import { VIEW_MODES } from '../../constants/toolModes';
+import { THEME_LOGO } from '../../constants/themeColors';
 import './PresentOverlay.css';
 
 export default function PresentOverlay() {
   const {
     getActivePlay, getActiveFormation, getActivePlaybook,
     togglePresentMode, activePlayId, navigateTo,
+    theme,
   } = useEditorStore();
+
+  const logo = THEME_LOGO[theme] || THEME_LOGO['theme-sun-cyan'];
 
   const play      = getActivePlay();
   const formation = getActiveFormation();
@@ -87,6 +91,11 @@ export default function PresentOverlay() {
       <button className="present-exit-btn" onClick={togglePresentMode}>
         EDIT
       </button>
+
+      <div className="present-brand">
+        <img src={logo} alt="TFM" className="app-brand-logo" />
+        <span className="app-brand-title">TFM Playbook</span>
+      </div>
     </div>
   );
 }

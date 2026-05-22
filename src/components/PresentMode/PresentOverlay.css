@@ -136,3 +136,31 @@
   background: rgba(0, 0, 0, 0.75);
   color: #ffffff;
 }
+
+.present-brand {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.present-brand .app-brand-logo {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.present-brand .app-brand-title {
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  letter-spacing: 0.06em;
+}

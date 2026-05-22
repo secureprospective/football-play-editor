@@ -138,5 +138,29 @@
 
 .tb-confirm-label { font-size: 12px; color: var(--color-danger); font-weight: 600; white-space: nowrap; padding: 0 4px; }
 
+.toolbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 0 10px;
+}
+
+.app-brand-logo {
+  height: 30px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.app-brand-title {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+}
+
 .tb-divider-v { width: 1px; height: 24px; background: var(--color-border); margin: 0 2px; flex-shrink: 0; }
 

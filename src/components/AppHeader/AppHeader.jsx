@@ -1,9 +1,11 @@
 import '../Toolbar/Toolbar.css';
 import './AppHeader.css';
 import useEditorStore from '../../store/useEditorStore';
+import { THEME_LOGO } from '../../constants/themeColors';
 
 export default function AppHeader({ crumbs = [], active, onAdd, addLabel, actions }) {
-  const { goBack } = useEditorStore();
+  const { goBack, theme } = useEditorStore();
+  const logo = THEME_LOGO[theme] || THEME_LOGO['theme-sun-cyan'];
 
   return (
     <div className="app-header">
@@ -23,6 +25,11 @@ export default function AppHeader({ crumbs = [], active, onAdd, addLabel, action
           ))}
           <span className="tb-crumb tb-crumb-active">{active}</span>
         </nav>
+      </div>
+
+      <div className="app-header-brand">
+        <img src={logo} alt="TFM" className="app-brand-logo" />
+        <span className="app-brand-title">TFM Playbook</span>
       </div>
 
       <div className="app-header-right">

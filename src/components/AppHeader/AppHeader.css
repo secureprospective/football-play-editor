@@ -47,3 +47,27 @@
   opacity: 0.85;
   background: var(--color-accent) !important;
 }
+
+.app-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 0 8px;
+}
+
+.app-brand-logo {
+  height: 30px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.app-brand-title {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+}

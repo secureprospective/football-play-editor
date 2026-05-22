@@ -1,3 +1,10 @@
+export const THEME_LOGO = {
+  'theme-sun-cyan':        '/logos/tfm-logo-on-dark.png',
+  'theme-sun-orange':      '/logos/tfm-logo-on-dark.png',
+  'theme-paper-overcast':  '/logos/tfm-logo-on-white.png',
+  'theme-paper-newsprint': '/logos/tfm-logo-on-parchment.png',
+};
+
 export const THEME_COLORS = {
   'theme-sun-cyan': {
     accent:  '#00e5ff',
