@@ -1,7 +1,6 @@
 import { Stage } from 'react-konva';
 import './FieldCanvas.css';
 import { useFieldInteraction } from './useFieldInteraction';
-import { useAnimationLoop } from './useAnimationLoop';
 import FieldRenderer from './FieldRenderer';
 import FieldGrid from './FieldGrid';
 
@@ -12,12 +11,10 @@ export default function FieldCanvas() {
     cursorStyle, isBoxSelect,
     mousePos, shiftHeld, hoveredId, guidingPlayerId, placingHighlight,
     marqueeRect, liveMarqueeIds,
-    elements, colors, selectedId, marqueeIds,
+    elements, positions, colors, selectedId, marqueeIds,
     drawingPath, presentMode, scrimmageVisible,
     handlers,
   } = useFieldInteraction();
-
-  const positions = useAnimationLoop();
 
   return (
     <div className="field-canvas-container" ref={containerRef} style={{ cursor: cursorStyle }}>
