@@ -134,12 +134,26 @@ Push to `lite` → Lite site auto-deploys. Push to `main` → Full site auto-dep
   - Actions: play, pause, reset, seek (lower-bound clamp), setSpeed, toggleAnimation
   - getDuration(elements) exported as pure function — not stored state
   - animationEnabled: false is a no-op on play() and seek()
-- Session 4 — Animation runtime engine: TODO
+- Session 4 — Animation runtime engine: COMPLETE
+  - src/utils/animationRuntime.js — pure function, no store calls, no UI wiring
+  - computePositions(elements, currentTime) → Map<elementId, {x, y}>
+  - All players interpolate simultaneously from time 0
+  - Linear and quadratic bezier interpolation (reuses bezierCtrl from curveUtils)
+  - Pre-snap segments hold at p1 for their full duration
+  - Zero-duration segments treated as instantaneous (no divide-by-zero)
+  - Football follows carrying player's computed position at x + PLAYER_RADIUS
+  - Players with no routeId absent from Map (stay at stored position)
+  - 14 edge cases verified: empty, no routeId, t=0, past end, midpoint,
+    pre-snap, zero-duration, multi-segment, bezier endpoints, football follow
 
-### Phase 3 — Editor animation UI
-- Scrub bar with event markers
+### Phase 2 — Animation foundation: COMPLETE (all 4 sessions)
+
+### Phase 3 — Editor animation UI (next)
+- Player-route linking UI (wires the routeId/playerId fields from Phase 2 Session 1)
+- Scrub bar connected to useAnimationStore
+- Playback engine: rAF loop calling computePositions → positions prop into FieldRenderer
 - Event editor
-- Animation wiring: all element types including football attachment + text/highlight visibility
+- Text and highlight visibility wiring
 
 ### Phase 4 — Present Mode animation integration
 
