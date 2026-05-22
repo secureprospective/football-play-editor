@@ -187,6 +187,7 @@ export default function Inspector() {
               <option value="square">Square</option>
             </select>
           </label>
+          <div className="inspector-placeholder">Route: None (wired in Phase 3)</div>
         </div>
       )}
 
@@ -317,6 +318,7 @@ export default function Inspector() {
 
             </div>
           )}
+          <div className="inspector-placeholder">Player: None (wired in Phase 3)</div>
         </div>
       )}
 

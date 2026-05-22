@@ -61,6 +61,7 @@ function migratePath(el) {
     return {
       ...el,
       style: migratedStyle,
+      playerId: el.playerId !== undefined ? el.playerId : null,
       segments: el.segments.map(seg =>
         seg.duration !== undefined ? seg : { ...seg, duration: 0.5 }
       ),
@@ -79,7 +80,7 @@ function migratePath(el) {
     });
   }
   const { points, ...rest } = el;
-  return { ...rest, segments };
+  return { ...rest, playerId: null, segments };
 }
 
 function loadFromStorage() {
@@ -95,8 +96,12 @@ function loadFromStorage() {
             if (scrimmage && scrimmage.y > FIELD_CONFIG.STAGE_HEIGHT) {
               scrimmage.y = FIELD_CONFIG.SCRIMMAGE_DEFAULT_Y;
             }
-            // Migrate old path format
+            // Migrate old path format and backfill Phase 2 linkage fields
             pl.elements = pl.elements.map(el => migratePath(el));
+            pl.elements = pl.elements.map(el => {
+              if (el.type === 'player' && el.routeId === undefined) return { ...el, routeId: null };
+              return el;
+            });
 
           });
         });
@@ -550,7 +555,13 @@ const useEditorStore = create((set, get) => ({
     if (!play) return;
     pushHistory();
     get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
-      elements: play.elements.filter(el => el.id !== id)
+      elements: play.elements
+        .filter(el => el.id !== id)
+        .map(el => {
+          if (el.type === 'player' && el.routeId === id) return { ...el, routeId: null };
+          if (el.type === 'path' && el.playerId === id) return { ...el, playerId: null };
+          return el;
+        }),
     });
     set(state => ({ selectedId: state.selectedId === id ? null : state.selectedId }));
   },
@@ -576,10 +587,14 @@ const useEditorStore = create((set, get) => ({
       const data = JSON.parse(jsonString);
       if (!data.playbook) throw new Error('Invalid playbook file');
       const pb = { ...data.playbook, id: genId('pb') };
-      // Migrate any old-format paths in the imported playbook
+      // Migrate any old-format paths and backfill Phase 2 linkage fields
       pb.formations?.forEach(fm => {
         fm.plays?.forEach(pl => {
           pl.elements = pl.elements.map(el => migratePath(el));
+          pl.elements = pl.elements.map(el => {
+            if (el.type === 'player' && el.routeId === undefined) return { ...el, routeId: null };
+            return el;
+          });
         });
       });
       set(state => ({ playbooks: [...state.playbooks, pb] }));

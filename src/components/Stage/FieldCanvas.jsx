@@ -212,6 +212,7 @@ export default function FieldCanvas() {
         label: 'X',
         style: { shape: 'circle', colorIndex: 0 },
         groupId: null,
+        routeId: null,
       };
       addElement(newPlayer);
       setSelectedId(newPlayer.id);
@@ -334,6 +335,7 @@ export default function FieldCanvas() {
         segments: [],
         _startPoint: resolved,
         style: { thickness: 3, endArrow: true, endT: false, lineStyle: 'solid', colorIndex: 0 },
+        playerId: null,
       });
       return;
     }
