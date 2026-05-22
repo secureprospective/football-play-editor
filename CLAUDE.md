@@ -148,12 +148,29 @@ Push to `lite` → Lite site auto-deploys. Push to `main` → Full site auto-dep
 
 ### Phase 2 — Animation foundation: COMPLETE (all 4 sessions)
 
-### Phase 3 — Editor animation UI (next)
-- Player-route linking UI (wires the routeId/playerId fields from Phase 2 Session 1)
-- Scrub bar connected to useAnimationStore
-- Playback engine: rAF loop calling computePositions → positions prop into FieldRenderer
+### Phase 3 — Editor animation UI
+
+- Session 1 — Player-route linking UI: COMPLETE
+  - Route dropdown on player inspector: lists unlinked paths as "Route N", onChange calls linkPlayerToRoute/unlinkPlayerFromRoute
+  - On link: entire route translates so first node snaps to player center (one undo step)
+  - Linked drag: dragging player carries route (total-delta, no drift); dragging route carries player (incremental delta)
+  - Fixed pre-existing bug: whole-path drag now correctly translates curve control points
+  - Path inspector: read-only "Player N" display + Unlink button
+  - Store: linkPlayerToRoute + unlinkPlayerFromRoute actions (both call pushHistory)
+- Session 2 — Scrub bar + playback controls: COMPLETE
+  - AnimationBar component below the field canvas (56px grid row: toolbox · scrubbar · inspector)
+  - Controls: Anim toggle, ◀◀ reset, ▶/⏸ play-pause, scrub slider, time display, speed selector (0.25x–2x)
+  - Wired entirely to useAnimationStore; resets on active play change
+  - Disabled state when animationEnabled=false; play+scrub disabled when no linked routes
+- Session 3 — rAF playback loop + animated positions: COMPLETE
+  - useAnimationLoop hook: rAF loop ticks currentTime, reads fresh store state each frame (no stale closures)
+  - Auto-pauses at route end; scrub effect recomputes positions when not playing
+  - FieldCanvas passes positions Map to FieldRenderer
+  - FieldRenderer: player shape, label, and football use computed positions; elements absent from Map stay at stored position
+
+### Phase 3 — remaining
+- Session 4 — Text and highlight visibility wiring (startTime/endTime stubs → currentTime)
 - Event editor
-- Text and highlight visibility wiring
 
 ### Phase 4 — Present Mode animation integration
 
