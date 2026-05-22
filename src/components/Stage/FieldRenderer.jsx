@@ -328,7 +328,7 @@ export default function FieldRenderer({
           })
         }
         {/* Highlights */}
-        {elements.filter(el => el.type === 'highlight' && (currentTime === 0 || isVisible(el.visibility, currentTime))).map(el => {
+        {elements.filter(el => el.type === 'highlight' && ((!presentMode && currentTime === 0) || isVisible(el.visibility, currentTime))).map(el => {
           const isSelected = !presentMode && el.id === selectedId;
           const inMarquee  = !presentMode && (liveMarqueeIds.includes(el.id) || marqueeIds.includes(el.id));
           return (
@@ -411,7 +411,7 @@ export default function FieldRenderer({
           );
         })}
         {/* Text annotations */}
-        {elements.filter(el => el.type === 'text' && el.content && (currentTime === 0 || isVisible(el.visibility, currentTime))).map(el => {
+        {elements.filter(el => el.type === 'text' && el.content && ((!presentMode && currentTime === 0) || isVisible(el.visibility, currentTime))).map(el => {
           const isSelected = !presentMode && el.id === selectedId;
           const inMarquee  = !presentMode && (liveMarqueeIds.includes(el.id) || marqueeIds.includes(el.id));
           return (
