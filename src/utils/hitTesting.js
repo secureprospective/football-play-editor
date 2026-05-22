@@ -97,14 +97,18 @@ export function hitTestHandle(px, py, hx, hy) {
   return hitTestCircle(px, py, hx, hy, HANDLE_HIT_RADIUS);
 }
 
-export function hitTestPlayer(px, py, player) {
+export function hitTestPlayer(px, py, player, positions) {
   const radius = (player.style?.radius || FIELD_CONFIG.PLAYER_RADIUS) + 4;
-  return hitTestCircle(px, py, player.x, player.y, radius);
+  const ex = positions?.get(player.id)?.x ?? player.x;
+  const ey = positions?.get(player.id)?.y ?? player.y;
+  return hitTestCircle(px, py, ex, ey, radius);
 }
 
-export function hitTestFootball(px, py, football) {
-  const dx = px - football.x;
-  const dy = py - football.y;
+export function hitTestFootball(px, py, football, positions) {
+  const ex = positions?.get(football.id)?.x ?? football.x;
+  const ey = positions?.get(football.id)?.y ?? football.y;
+  const dx = px - ex;
+  const dy = py - ey;
   return (dx * dx) / (FOOTBALL_RX * FOOTBALL_RX) + (dy * dy) / (FOOTBALL_RY * FOOTBALL_RY) <= 1;
 }
 
@@ -135,7 +139,7 @@ export function hitTestText(px, py, textEl) {
  * Returns:
  * { type: 'handle'|'player'|'path'|null, elementId, nodeIndex, segmentIndex, segmentPoint }
  */
-export function masterHitTest(px, py, elements, selectedId) {
+export function masterHitTest(px, py, elements, selectedId, positions = new Map()) {
   // 1. Handles on selected path — control points checked before endpoint nodes
   if (selectedId) {
     const selected = elements.find(el => el.id === selectedId);
@@ -186,7 +190,7 @@ export function masterHitTest(px, py, elements, selectedId) {
   // 3. Players
   for (let i = elements.length - 1; i >= 0; i--) {
     const el = elements[i];
-    if (el.type === 'player' && hitTestPlayer(px, py, el)) {
+    if (el.type === 'player' && hitTestPlayer(px, py, el, positions)) {
       return { type: 'player', elementId: el.id, nodeIndex: null, segmentIndex: null, segmentPoint: null };
     }
   }
@@ -194,7 +198,7 @@ export function masterHitTest(px, py, elements, selectedId) {
   // 4. Football — after players so player wins in overlap (see plan note: TEST & POSSIBLE PIVOT)
   for (let i = elements.length - 1; i >= 0; i--) {
     const el = elements[i];
-    if (el.type === 'football' && hitTestFootball(px, py, el)) {
+    if (el.type === 'football' && hitTestFootball(px, py, el, positions)) {
       return { type: 'football', elementId: el.id, nodeIndex: null, segmentIndex: null, segmentPoint: null };
     }
   }

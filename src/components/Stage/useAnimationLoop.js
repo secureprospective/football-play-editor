@@ -4,21 +4,23 @@ import useEditorStore from '../../store/useEditorStore';
 import { computePositions } from '../../utils/animationRuntime';
 
 export function useAnimationLoop() {
+  const positionsRef = useRef(new Map());
+  const [, forceRender] = useState(0);
   const rafRef    = useRef(null);
   const lastTsRef = useRef(null);
-  const [positions, setPositions] = useState(() => new Map());
 
-  // Subscribe to isPlaying and currentTime so effects re-run on changes
-  const isPlaying  = useAnimationStore(s => s.isPlaying);
+  const isPlaying   = useAnimationStore(s => s.isPlaying);
   const currentTime = useAnimationStore(s => s.currentTime);
 
-  // Start/stop rAF loop when isPlaying changes
+  function updatePositions(newMap) {
+    positionsRef.current = newMap;
+    forceRender(n => n + 1);
+  }
+
+  // rAF loop — runs while isPlaying is true
   useEffect(() => {
     if (!isPlaying) {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
+      if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
       lastTsRef.current = null;
       return;
     }
@@ -28,7 +30,6 @@ export function useAnimationLoop() {
       const dt = (timestamp - lastTsRef.current) / 1000;
       lastTsRef.current = timestamp;
 
-      // Read fresh from store — avoids stale closure on currentTime/playbackSpeed
       const { currentTime: ct, playbackSpeed, seek, pause } = useAnimationStore.getState();
       const elements = useEditorStore.getState().getActivePlay()?.elements || [];
       const duration  = getDuration(elements);
@@ -36,13 +37,12 @@ export function useAnimationLoop() {
 
       if (nextTime >= duration) {
         seek(duration);
-        setPositions(computePositions(elements, duration));
-        pause();
+        pause(); // isPlaying → false; scrub effect will compute final-frame positions
         return;
       }
 
       seek(nextTime);
-      setPositions(computePositions(elements, nextTime));
+      updatePositions(computePositions(elements, nextTime));
       rafRef.current = requestAnimationFrame(tick);
     }
 
@@ -50,20 +50,17 @@ export function useAnimationLoop() {
     rafRef.current = requestAnimationFrame(tick);
 
     return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
+      if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
     };
   }, [isPlaying]);
 
-  // Recompute positions when scrubbing (not playing)
+  // Scrub — recompute positions whenever currentTime changes while not playing
   useEffect(() => {
     if (!isPlaying) {
       const elements = useEditorStore.getState().getActivePlay()?.elements || [];
-      setPositions(computePositions(elements, currentTime));
+      updatePositions(computePositions(elements, currentTime));
     }
   }, [currentTime, isPlaying]);
 
-  return positions;
+  return positionsRef;
 }

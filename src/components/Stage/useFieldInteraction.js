@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import useEditorStore from '../../store/useEditorStore';
+import { useAnimationLoop } from './useAnimationLoop';
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
 import { TOOL_MODES } from '../../constants/toolModes';
 import { masterHitTest, hitTestPathSegments, hitTestPlayer, exceededDragThreshold } from '../../utils/hitTesting';
@@ -60,7 +61,8 @@ export function useFieldInteraction() {
   const theme  = useEditorStore(s => s.theme);
   const colors = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
 
-  const elements = getActivePlay()?.elements || [];
+  const elements     = getActivePlay()?.elements || [];
+  const positionsRef = useAnimationLoop();
 
   const stageRef     = useRef(null);
   const containerRef = useRef(null);
@@ -168,7 +170,7 @@ export function useFieldInteraction() {
     dragStartPos.current  = pos;
     isDraggingRef.current = false;
 
-    const hit = masterHitTest(pos.x, pos.y, elements, selectedId);
+    const hit = masterHitTest(pos.x, pos.y, elements, selectedId, positionsRef.current);
 
     if (activeTool === TOOL_MODES.ADD_PLAYER) {
       const snapped = snapPoint(pos, snapIncrement, snapEnabled);
@@ -342,11 +344,12 @@ export function useFieldInteraction() {
     if (hit.type === 'player') {
       setSelectedId(hit.elementId);
       const player = elements.find(el => el.id === hit.elementId);
+      const animPos = positionsRef.current.get(player.id);
       const routeId = player?.routeId || null;
       const linkedPath = routeId ? elements.find(el => el.id === routeId) : null;
       dragTargetRef.current = {
         ...hit,
-        playerStart: { x: player.x, y: player.y },
+        playerStart: { x: animPos?.x ?? player.x, y: animPos?.y ?? player.y },
         linkedRouteId: routeId,
         linkedRouteStartSegments: linkedPath ? JSON.parse(JSON.stringify(linkedPath.segments)) : null,
       };
@@ -391,6 +394,22 @@ export function useFieldInteraction() {
         isDraggingRef.current = true;
         if (dragTargetRef.current?.type === 'player' && marqueeIds.length === 0) {
           setGuidingPlayerId(dragTargetRef.current.elementId);
+        }
+        // Commit any animated positions to stored before drag takes over,
+        // then clear the Map so FieldRenderer uses stored positions going forward.
+        if (positionsRef.current.size > 0 && dragTargetRef.current) {
+          const { type: dType, elementId: dId } = dragTargetRef.current;
+          if (dType === 'player') {
+            const ap = positionsRef.current.get(dId);
+            if (ap) updateElement(dId, { x: ap.x, y: ap.y });
+          } else if (dType === 'path') {
+            const pathEl = elements.find(e => e.id === dId);
+            if (pathEl?.playerId) {
+              const ap = positionsRef.current.get(pathEl.playerId);
+              if (ap) updateElement(pathEl.playerId, { x: ap.x, y: ap.y });
+            }
+          }
+          positionsRef.current = new Map();
         }
       } else return;
     }
@@ -554,6 +573,7 @@ export function useFieldInteraction() {
     marqueeRect,
     liveMarqueeIds,
     elements,
+    positions: positionsRef.current,
     colors,
     selectedId,
     marqueeIds,
