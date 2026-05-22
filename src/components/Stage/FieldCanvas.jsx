@@ -676,7 +676,9 @@ export default function FieldCanvas() {
     const rendered = [];
 
     el.segments.forEach((seg, i) => {
-      rendered.push(renderSegment(seg, color, thick, isSelected, `${el.id}_seg_${i}`, lineStyle));
+      const segCi = seg.colorIndex !== undefined ? seg.colorIndex : ci;
+      const segColor = segCi >= 0 ? colors.palette[segCi] : colors.text;
+      rendered.push(renderSegment(seg, segColor, thick, isSelected, `${el.id}_seg_${i}`, lineStyle));
     });
 
     // Arrow on the last segment end point

@@ -74,12 +74,14 @@ function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = fals
           if (!p1 || !p2) return null;
           const x1 = sx(p1.x), y1 = sy(p1.y);
           const x2 = sx(p2.x), y2 = sy(p2.y);
+          const segCi = seg.colorIndex !== undefined ? seg.colorIndex : ci;
+          const segColor = segCi >= 0 ? colors.palette[segCi] : colors.text;
 
           if (seg.preSnap) {
             return (
               <line key={`${path.id}-${i}`}
                 x1={x1} y1={y1} x2={x2} y2={y2}
-                stroke={routeColor} strokeWidth={1.5}
+                stroke={segColor} strokeWidth={1.5}
                 strokeDasharray="3 2" opacity={0.6}
               />
             );
@@ -90,7 +92,7 @@ function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = fals
             return (
               <path key={`${path.id}-${i}`}
                 d={`M ${x1} ${y1} Q ${cp.x} ${cp.y} ${x2} ${y2}`}
-                stroke={routeColor} strokeWidth={1.5}
+                stroke={segColor} strokeWidth={1.5}
                 strokeDasharray={routeDash}
                 fill="none"
               />
@@ -99,7 +101,7 @@ function PlayThumbnail({ elements, width = 300, height = 160, playersOnly = fals
           return (
             <line key={`${path.id}-${i}`}
               x1={x1} y1={y1} x2={x2} y2={y2}
-              stroke={routeColor} strokeWidth={1.5}
+              stroke={segColor} strokeWidth={1.5}
               strokeDasharray={routeDash}
             />
           );

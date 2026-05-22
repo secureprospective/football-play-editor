@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import './Inspector.css';
 import useEditorStore from '../../store/useEditorStore';
 import { THEME_COLORS } from '../../constants/themeColors';
@@ -8,6 +9,19 @@ export default function Inspector() {
   const selected = elements.find(el => el.id === selectedId);
   const tc = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
   const palette = tc.palette.map((fill, i) => ({ fill, label: tc.labels[i] }));
+
+  const [activeSegColorId, setActiveSegColorId] = useState(null);
+
+  // Reset segment color mode when the selected element changes
+  useEffect(() => { setActiveSegColorId(null); }, [selected?.id]);
+
+  // ESC cancels segment color mode
+  useEffect(() => {
+    if (!activeSegColorId) return;
+    function onKey(e) { if (e.key === 'Escape') setActiveSegColorId(null); }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [activeSegColorId]);
 
   if (marqueeIds.length > 0) {
     return (
@@ -41,12 +55,20 @@ export default function Inspector() {
   }
 
   function setColorIndex(index) {
-    updateElement(selected.id, {
-      style: { ...selected.style, colorIndex: index },
-    });
+    const changes = { style: { ...selected.style, colorIndex: index } };
+    if (selected.segments) {
+      changes.segments = selected.segments.map(({ colorIndex: _ci, ...rest }) => rest);
+    }
+    updateElement(selected.id, changes);
   }
 
   const activeIndex = selected.style?.colorIndex ?? -1;
+  const activeSeg = activeSegColorId
+    ? selected.segments?.find(s => s.id === activeSegColorId)
+    : null;
+  const paletteActiveIndex = activeSeg
+    ? (activeSeg.colorIndex !== undefined ? activeSeg.colorIndex : -1)
+    : activeIndex;
 
   if (selected.type === 'text') {
     return (
@@ -170,14 +192,21 @@ export default function Inspector() {
 
       {selected.type === 'path' && (
         <div className="inspector-body">
-          <label>Color</label>
-          <div className="color-btn-row">
+          <label>{activeSegColorId ? `Color — Seg ${(selected.segments?.findIndex(s => s.id === activeSegColorId) ?? 0) + 1}` : 'Color'}</label>
+          <div className={`color-btn-row${activeSegColorId ? ' seg-color-active' : ''}`}>
             {palette.map(({ fill }, i) => (
               <button
                 key={i}
-                className={`color-btn ${activeIndex === i ? 'color-btn-active' : ''}`}
+                className={`color-btn ${paletteActiveIndex === i ? 'color-btn-active' : ''}`}
                 style={{ background: fill }}
-                onClick={() => setColorIndex(i)}
+                onClick={() => {
+                  if (activeSegColorId) {
+                    updateSegment(selected.id, activeSegColorId, { colorIndex: i });
+                    setActiveSegColorId(null);
+                  } else {
+                    setColorIndex(i);
+                  }
+                }}
                 title={fill}
               />
             ))}
@@ -189,7 +218,15 @@ export default function Inspector() {
                 value={selected.style?.thickness || 3}
                 onChange={e => handleStyleChange('thickness', parseInt(e.target.value))}
               />
-              <span>{selected.style?.thickness || 3}px</span>
+              <input
+                type="number" min="1" max="12" step="1"
+                value={selected.style?.thickness || 3}
+                onChange={e => {
+                  const v = parseInt(e.target.value);
+                  if (!isNaN(v)) handleStyleChange('thickness', Math.max(1, Math.min(12, v)));
+                }}
+                onKeyDown={e => e.stopPropagation()}
+              />
             </div>
           </label>
           <div className="check-pair-row">
@@ -238,10 +275,12 @@ export default function Inspector() {
               {selected.segments.map((seg, i) => (
                 <div key={seg.id} className="inspector-segment-row">
                   <div className="seg-row-header">
-                    <span className="seg-label">
-                      {seg.curve ? '⌒' : '╱'} Seg {i + 1}
-                      {seg.preSnap ? ' · Pre-snap' : ''}
-                    </span>
+                    <button
+                      className={`seg-label-btn${activeSegColorId === seg.id ? ' seg-label-btn-active' : ''}`}
+                      onClick={() => setActiveSegColorId(id => id === seg.id ? null : seg.id)}
+                    >
+                      Seg {i + 1}
+                    </button>
                     <button
                       className={`seg-presnap-btn ${seg.preSnap ? 'active' : ''}`}
                       onClick={() => updateSegment(selected.id, seg.id, { preSnap: !seg.preSnap })}
