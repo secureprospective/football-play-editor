@@ -164,11 +164,13 @@ Version 1.0 is complete. Bug fixes and minor QoL improvements only.
 Do not add features that compromise performance on limited hardware.
 
 ### TFM Playbook (full — next major version)
-**The next phase is mobile phone support.** This is the primary roadmap item.
-When mobile work begins, it branches from the v1.0.0 tag and becomes a new major version.
-The full version will eventually include animation (Phase 2–5 in the animation roadmap below).
+**Phase 2 (animation foundation) is the next active work.** To start it, Christopher will
+say "start TFM Phase 2" — read the prompt at:
+`docs/PHASE2_PROMPT.md`
 
-Do not start mobile work or animation until Christopher explicitly opens that session.
+That prompt is self-contained. Read it fully before doing anything else in an animation session.
+
+Mobile phone support comes after animation is complete.
 
 ---
 
