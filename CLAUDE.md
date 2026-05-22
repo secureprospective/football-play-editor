@@ -132,9 +132,10 @@ Deploy: automatic on push to main
   - Coach navigates freely through app; tapping a play card in PlayView toggles it into/out of print queue (no editor navigation in print mode)
   - Selected play cards show amber outline + queue position badge
   - PrintStaging on Playbook layer: drag to reorder queue, Text/Plays format toggle, Youth/Adult size toggle, Print PDF + Clear buttons, scale warning
-  - PrintSheet: 5×4 card grid (landscape letter, 0.5in margins) for Plays format; two-column roster sheet for Text format
-  - Plays cards: num-bar 12% / diagram 76% / label 12%; adult cards 2in×1.5in landscape; thumbnails render at 300×200 with white background
-  - Text sheet: 2 columns (plays 1–10 left, 11–20 right), compact 0.25in rows, auto height
+  - PrintSheet: 4 identical wristband cards per page (2×2), each card 4.75"×2.75"
+  - Plays format: each card is a 4×2 grid of 8 play slots; number header (15%) + PlayThumbnail diagram (85%); queue of 20 chunks into groups of 8 across multiple pages; play numbers = global queue position
+  - Text format: 4 identical call-sheet cards; black header bar; 2-column layout (plays 1–10 left, 11–20 right); zebra striping; always 1 page
+  - Page layout: landscape letter, 0.5in margins, 0.5in col-gap + 2in row-gap for easy cutting
   - PlayThumbnail: bgColor prop added for white print background (backward compatible)
   - ⚑ KNOWN ISSUE: printQueue stores element snapshots at queue-add time. If coach edits a play after queuing it, the print output shows the old version. Fix: store only IDs and resolve live from store at render time. Deferred — not blocking.
 
