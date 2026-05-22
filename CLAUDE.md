@@ -116,9 +116,16 @@ Push to `lite` → Lite site auto-deploys. Push to `main` → Full site auto-dep
   - Static only — Phase 3 wires to animation runtime
 
 ### Phase 2 — Animation foundation
-- FieldCanvas split (render / interaction separation)
-- Animation runtime engine
-- Separate animation Zustand store
+- Session 1 — Player-route linkage (data model): COMPLETE
+  - routeId: string | null on every player element (default null)
+  - playerId: string | null on every path element (default null)
+  - migratePath() backfills playerId on existing paths
+  - loadFromStorage() and importPlaybook() backfill routeId on existing players
+  - deleteElement() clears stale cross-references on deletion
+  - Inspector: read-only "Route: None" on player, "Player: None" on path (Phase 3 wires UI)
+- Session 2 — FieldCanvas split (render / interaction separation): TODO
+- Session 3 — Animation store: TODO
+- Session 4 — Animation runtime engine: TODO
 
 ### Phase 3 — Editor animation UI
 - Scrub bar with event markers
