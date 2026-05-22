@@ -339,7 +339,19 @@ export function useFieldInteraction() {
 
     if (hit.type === 'controlPoint') { setSelectedId(hit.elementId); dragTargetRef.current = hit; return; }
     if (hit.type === 'handle')       { setSelectedId(hit.elementId); dragTargetRef.current = hit; return; }
-    if (hit.type === 'player')       { setSelectedId(hit.elementId); dragTargetRef.current = hit; return; }
+    if (hit.type === 'player') {
+      setSelectedId(hit.elementId);
+      const player = elements.find(el => el.id === hit.elementId);
+      const routeId = player?.routeId || null;
+      const linkedPath = routeId ? elements.find(el => el.id === routeId) : null;
+      dragTargetRef.current = {
+        ...hit,
+        playerStart: { x: player.x, y: player.y },
+        linkedRouteId: routeId,
+        linkedRouteStartSegments: linkedPath ? JSON.parse(JSON.stringify(linkedPath.segments)) : null,
+      };
+      return;
+    }
     if (hit.type === 'football')     { setSelectedId(hit.elementId); dragTargetRef.current = hit; return; }
     if (hit.type === 'text')         { setSelectedId(hit.elementId); dragTargetRef.current = hit; return; }
     if (hit.type === 'highlight')    { setSelectedId(hit.elementId); dragTargetRef.current = hit; return; }
@@ -445,7 +457,25 @@ export function useFieldInteraction() {
       if (type === 'player' || type === 'football' || type === 'text' || type === 'highlight') {
         const delta = resolveDragDelta(dragStartPos.current, pos);
         const newPos = snapPoint({ x: dragStartPos.current.x + delta.x, y: dragStartPos.current.y + delta.y }, snapIncrement, snapEnabled);
-        updateElement(elementId, { x: newPos.x, y: newPos.y });
+        const { linkedRouteId, linkedRouteStartSegments, playerStart } = dragTargetRef.current;
+        if (type === 'player' && linkedRouteId && linkedRouteStartSegments && playerStart) {
+          const rd = { x: newPos.x - playerStart.x, y: newPos.y - playerStart.y };
+          updateElements([
+            { id: elementId, changes: { x: newPos.x, y: newPos.y } },
+            {
+              id: linkedRouteId,
+              changes: {
+                segments: linkedRouteStartSegments.map(seg => ({
+                  ...seg,
+                  points: seg.points.map(p => ({ x: p.x + rd.x, y: p.y + rd.y })),
+                  ...(seg.controlPoint ? { controlPoint: { x: seg.controlPoint.x + rd.x, y: seg.controlPoint.y + rd.y } } : {}),
+                })),
+              },
+            },
+          ]);
+        } else {
+          updateElement(elementId, { x: newPos.x, y: newPos.y });
+        }
         return;
       }
 
@@ -453,12 +483,20 @@ export function useFieldInteraction() {
         const delta = resolveDragDelta(dragStartRef.current, pos);
         const el = elements.find(e => e.id === elementId);
         if (!el?.segments) return;
-        updateElement(elementId, {
-          segments: el.segments.map(seg => ({
-            ...seg,
-            points: seg.points.map(p => ({ x: p.x + delta.x, y: p.y + delta.y })),
-          })),
-        });
+        const translatedSegments = el.segments.map(seg => ({
+          ...seg,
+          points: seg.points.map(p => ({ x: p.x + delta.x, y: p.y + delta.y })),
+          ...(seg.controlPoint ? { controlPoint: { x: seg.controlPoint.x + delta.x, y: seg.controlPoint.y + delta.y } } : {}),
+        }));
+        const linkedPlayer = el.playerId ? elements.find(e => e.id === el.playerId) : null;
+        if (linkedPlayer) {
+          updateElements([
+            { id: elementId, changes: { segments: translatedSegments } },
+            { id: linkedPlayer.id, changes: { x: linkedPlayer.x + delta.x, y: linkedPlayer.y + delta.y } },
+          ]);
+        } else {
+          updateElement(elementId, { segments: translatedSegments });
+        }
         dragStartRef.current = pos;
         return;
       }

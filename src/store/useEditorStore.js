@@ -548,6 +548,61 @@ const useEditorStore = create((set, get) => ({
     });
   },
 
+  linkPlayerToRoute: (playerId, routeId) => {
+    const { activePlaybookId, activeFormationId, activePlayId, getActivePlay, pushHistory } = get();
+    const play = getActivePlay();
+    if (!play) return;
+
+    const player = play.elements.find(el => el.id === playerId);
+    const path   = play.elements.find(el => el.id === routeId);
+    if (!player || !path) return;
+
+    // Translate the route so its first node snaps to the player's center
+    let translatedSegments = path.segments;
+    const firstPoint = path.segments?.[0]?.points?.[0];
+    if (firstPoint && path.segments?.length) {
+      const dx = player.x - firstPoint.x;
+      const dy = player.y - firstPoint.y;
+      if (dx !== 0 || dy !== 0) {
+        translatedSegments = path.segments.map(seg => ({
+          ...seg,
+          points: seg.points.map(p => ({ x: p.x + dx, y: p.y + dy })),
+          ...(seg.controlPoint ? { controlPoint: { x: seg.controlPoint.x + dx, y: seg.controlPoint.y + dy } } : {}),
+        }));
+      }
+    }
+
+    pushHistory();
+    get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
+      elements: play.elements.map(el => {
+        if (el.id === playerId) return { ...el, routeId };
+        if (el.id === routeId)  return { ...el, playerId, segments: translatedSegments };
+        // Clear stale back-ref on old path if player previously had a different route
+        if (el.type === 'path'   && el.playerId === playerId  && el.id !== routeId)  return { ...el, playerId: null };
+        // Clear stale back-ref on old player if path was previously owned by different player
+        if (el.type === 'player' && el.routeId  === routeId   && el.id !== playerId) return { ...el, routeId: null };
+        return el;
+      }),
+    });
+  },
+
+  unlinkPlayerFromRoute: (playerId) => {
+    const { activePlaybookId, activeFormationId, activePlayId, getActivePlay, pushHistory } = get();
+    const play = getActivePlay();
+    if (!play) return;
+    const player = play.elements.find(el => el.id === playerId);
+    if (!player?.routeId) return;
+    const routeId = player.routeId;
+    pushHistory();
+    get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
+      elements: play.elements.map(el => {
+        if (el.id === playerId) return { ...el, routeId: null };
+        if (el.id === routeId)  return { ...el, playerId: null };
+        return el;
+      }),
+    });
+  },
+
   deleteElement: (id) => {
     if (id === 'scrimmage_line') return;
     const { pushHistory, activePlaybookId, activeFormationId, activePlayId, getActivePlay } = get();

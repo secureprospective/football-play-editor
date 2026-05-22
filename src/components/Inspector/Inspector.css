@@ -198,6 +198,22 @@
 
 .inspector-id { font-size: 9px; color: var(--color-border-mid); font-family: monospace; }
 
+.inspector-link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 36px;
+  border-top: 1px solid var(--color-border);
+  margin-top: 4px;
+  padding-top: 10px;
+}
+
+.inspector-link-label {
+  font-size: 11px;
+  color: var(--color-text);
+}
+
 .color-btn-row {
   display: flex;
   gap: 8px;

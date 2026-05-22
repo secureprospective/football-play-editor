@@ -4,8 +4,10 @@ import useEditorStore from '../../store/useEditorStore';
 import { THEME_COLORS } from '../../constants/themeColors';
 
 export default function Inspector() {
-  const { getActivePlay, selectedId, updateElement, updateSegment, theme, marqueeIds } = useEditorStore();
+  const { getActivePlay, selectedId, updateElement, updateSegment, theme, marqueeIds, linkPlayerToRoute, unlinkPlayerFromRoute } = useEditorStore();
   const elements = getActivePlay()?.elements || [];
+  const allPaths   = elements.filter(el => el.type === 'path');
+  const allPlayers = elements.filter(el => el.type === 'player');
   const selected = elements.find(el => el.id === selectedId);
   const tc = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
   const palette = tc.palette.map((fill, i) => ({ fill, label: tc.labels[i] }));
@@ -187,7 +189,23 @@ export default function Inspector() {
               <option value="square">Square</option>
             </select>
           </label>
-          <div className="inspector-placeholder">Route: None (wired in Phase 3)</div>
+          <label>Route
+            <select
+              value={selected.routeId || 'none'}
+              onChange={e => {
+                if (e.target.value === 'none') unlinkPlayerFromRoute(selected.id);
+                else linkPlayerToRoute(selected.id, e.target.value);
+              }}
+              onKeyDown={e => e.stopPropagation()}
+            >
+              <option value="none">— None —</option>
+              {allPaths
+                .filter(p => !p.playerId || p.playerId === selected.id)
+                .map(p => (
+                  <option key={p.id} value={p.id}>Route {allPaths.indexOf(p) + 1}</option>
+                ))}
+            </select>
+          </label>
         </div>
       )}
 
@@ -318,7 +336,28 @@ export default function Inspector() {
 
             </div>
           )}
-          <div className="inspector-placeholder">Player: None (wired in Phase 3)</div>
+          {(() => {
+            const linkedPlayer = selected.playerId
+              ? elements.find(el => el.id === selected.playerId)
+              : null;
+            const playerIndex = linkedPlayer ? allPlayers.indexOf(linkedPlayer) : -1;
+            return (
+              <div className="inspector-link-row">
+                <span className="inspector-link-label">
+                  Player: {linkedPlayer ? `Player ${playerIndex + 1}` : 'None'}
+                </span>
+                {linkedPlayer && (
+                  <button
+                    className="seg-label-btn"
+                    onClick={() => unlinkPlayerFromRoute(selected.playerId)}
+                    onKeyDown={e => e.stopPropagation()}
+                  >
+                    Unlink
+                  </button>
+                )}
+              </div>
+            );
+          })()}
         </div>
       )}
 
