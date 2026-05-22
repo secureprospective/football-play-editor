@@ -11,6 +11,7 @@ import Inspector     from './components/Inspector/Inspector';
 import PresentOverlay from './components/PresentMode/PresentOverlay';
 import PrintGlow from './components/PrintMode/PrintGlow';
 import PrintSheet from './components/PrintMode/PrintSheet';
+import AnimationBar from './components/AnimationBar/AnimationBar';
 
 // Konva is large — lazy load so card views don't pay the parse cost
 const FieldCanvas = lazy(() => import('./components/Stage/FieldCanvas'));
@@ -60,6 +61,9 @@ export default function App() {
       </div>
       <div className="inspector-area">
         <Inspector />
+      </div>
+      <div className="scrubbar-area">
+        <AnimationBar />
       </div>
     </div>
   );

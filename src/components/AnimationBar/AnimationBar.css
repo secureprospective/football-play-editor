@@ -1,0 +1,95 @@
+.anim-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  height: 100%;
+  background: var(--color-panel-alt);
+  border-top: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.anim-btn {
+  background: var(--color-panel);
+  border: 1px solid var(--color-border-mid);
+  border-radius: 2px;
+  color: var(--color-text);
+  font-size: 13px;
+  padding: 0 10px;
+  height: 36px;
+  min-width: 36px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  font-family: inherit;
+}
+
+.anim-btn:hover:not(:disabled) {
+  background: var(--color-panel-alt);
+  border-color: var(--color-accent);
+}
+
+.anim-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.anim-toggle.active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
+.anim-play {
+  font-size: 15px;
+  min-width: 40px;
+}
+
+.anim-scrub {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--color-accent);
+  height: 28px;
+  cursor: pointer;
+}
+
+.anim-scrub:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.anim-time {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  min-width: 80px;
+  text-align: center;
+}
+
+.anim-speed {
+  background: var(--color-panel);
+  border: 1px solid var(--color-border-mid);
+  border-radius: 2px;
+  color: var(--color-text);
+  font-size: 12px;
+  padding: 0 4px;
+  height: 36px;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+
+.anim-speed:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.anim-bar-disabled .anim-btn:not(.anim-toggle),
+.anim-bar-disabled .anim-scrub,
+.anim-bar-disabled .anim-time,
+.anim-bar-disabled .anim-speed {
+  opacity: 0.35;
+  pointer-events: none;
+}
