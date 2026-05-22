@@ -94,7 +94,7 @@ export default function PresentOverlay() {
 
       <div className="present-brand">
         <img src={logo} alt="TFM" className="app-brand-logo" />
-        <span className="app-brand-title">TFM Playbook</span>
+        <span className="app-brand-title">TFM Playbook Lite</span>
       </div>
     </div>
   );

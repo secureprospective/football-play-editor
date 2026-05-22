@@ -23,9 +23,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/icon-192.png', 'icons/icon-512.png'],
       manifest: {
-        name: 'Football Play Editor',
-        short_name: 'Play Editor',
-        description: 'Draw and present football plays on the sideline.',
+        name: 'TFM Playbook Lite',
+        short_name: 'TFM Lite',
+        description: 'Draw and present football plays on the sideline. Optimized for limited hardware.',
         theme_color: '#141414',
         background_color: '#0f172a',
         display: 'standalone',

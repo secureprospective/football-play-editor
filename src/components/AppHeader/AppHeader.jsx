@@ -29,7 +29,7 @@ export default function AppHeader({ crumbs = [], active, onAdd, addLabel, action
 
       <div className="app-header-brand">
         <img src={logo} alt="TFM" className="app-brand-logo" />
-        <span className="app-brand-title">TFM Playbook</span>
+        <span className="app-brand-title">TFM Playbook Lite</span>
       </div>
 
       <div className="app-header-right">

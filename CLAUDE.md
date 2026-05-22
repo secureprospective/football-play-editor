@@ -139,10 +139,43 @@ Deploy: automatic on push to main
   - PlayThumbnail: bgColor prop added for white print background (backward compatible)
   - ⚑ KNOWN ISSUE: printQueue stores element snapshots at queue-add time. If coach edits a play after queuing it, the print output shows the old version. Fix: store only IDs and resolve live from store at render time. Deferred — not blocking.
 
+## Version History
+
+### v1.0.0 — TFM Playbook Lite (tagged on main)
+This is the 1.0 release. It is intentionally scoped for **coaches on limited/old hardware**
+(Windows 10 tablets, low-RAM laptops, cheap Chromebooks). Performance, bundle size, and
+offline reliability are the binding constraints for this version.
+
+**What 1.0 includes:** Full play editor (draw, routes, players, segments, per-segment color),
+playbook/formation/play navigation, Present Mode, Print Mode (wristband cards), PWA install,
+four-theme system, TFM branding (logo + Cinzel title).
+
+**Known deferred issues (not blocking 1.0):**
+- printQueue stale snapshot — store IDs not snapshots; fix in next session
+- Konva chunk size warning — address when animation phase begins
+- Animation Phase 2 — full feature set deferred to TFM Playbook (full)
+
+---
+
+## Product Roadmap
+
+### TFM Playbook Lite (this repo, main branch)
+Version 1.0 is complete. Bug fixes and minor QoL improvements only.
+Do not add features that compromise performance on limited hardware.
+
+### TFM Playbook (full — next major version)
+**The next phase is mobile phone support.** This is the primary roadmap item.
+When mobile work begins, it branches from the v1.0.0 tag and becomes a new major version.
+The full version will eventually include animation (Phase 2–5 in the animation roadmap below).
+
+Do not start mobile work or animation until Christopher explicitly opens that session.
+
+---
+
 ## What is next (immediate)
 Phase 1 complete. Animation pre-planning questions answered. Ready for Phase 2.
 
-Phase 2: Animation foundation
+Phase 2: Animation foundation (TFM Playbook full — deferred)
 - FieldCanvas split (render / interaction separation)
 - Separate animation Zustand store (never touches undo/redo stack)
 - Animation runtime engine

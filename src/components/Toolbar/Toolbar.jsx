@@ -107,7 +107,7 @@ export default function Toolbar() {
       {/* Brand — always visible, between nav and actions */}
       <div className="toolbar-brand">
         <img src={logo} alt="TFM" className="app-brand-logo" />
-        <span className="app-brand-title">TFM Playbook</span>
+        <span className="app-brand-title">TFM Playbook Lite</span>
       </div>
 
       {/* Right — actions (scrollable) or drawing state */}
