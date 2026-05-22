@@ -3,6 +3,7 @@ import './FieldCanvas.css';
 import { useFieldInteraction } from './useFieldInteraction';
 import FieldRenderer from './FieldRenderer';
 import FieldGrid from './FieldGrid';
+import useAnimationStore from '../../store/useAnimationStore';
 
 export default function FieldCanvas() {
   const {
@@ -15,6 +16,8 @@ export default function FieldCanvas() {
     drawingPath, presentMode, scrimmageVisible,
     handlers,
   } = useFieldInteraction();
+
+  const currentTime = useAnimationStore(s => s.currentTime);
 
   return (
     <div className="field-canvas-container" ref={containerRef} style={{ cursor: cursorStyle }}>
@@ -45,6 +48,7 @@ export default function FieldCanvas() {
           marqueeRect={marqueeRect}
           isBoxSelect={isBoxSelect}
           positions={positions}
+          currentTime={currentTime}
         />
       </Stage>
     </div>

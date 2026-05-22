@@ -24,11 +24,18 @@ function zigzagPoints(p1, p2, amplitude = 6, frequency = 8) {
   return pts;
 }
 
+function isVisible(visibility, t) {
+  if (!visibility) return true;
+  if (visibility.startTime !== null && t < visibility.startTime) return false;
+  if (visibility.endTime   !== null && t > visibility.endTime)   return false;
+  return true;
+}
+
 export default function FieldRenderer({
   elements, colors, selectedId, marqueeIds, liveMarqueeIds,
   drawingPath, mousePos, presentMode, scrimmageVisible,
   shiftHeld, hoveredId, guidingPlayerId, placingHighlight, marqueeRect, isBoxSelect,
-  positions = new Map(),
+  positions = new Map(), currentTime = 0,
 }) {
   const selectedEl = elements.find(el => el.id === selectedId);
 
@@ -321,7 +328,7 @@ export default function FieldRenderer({
           })
         }
         {/* Highlights */}
-        {elements.filter(el => el.type === 'highlight').map(el => {
+        {elements.filter(el => el.type === 'highlight' && (currentTime === 0 || isVisible(el.visibility, currentTime))).map(el => {
           const isSelected = !presentMode && el.id === selectedId;
           const inMarquee  = !presentMode && (liveMarqueeIds.includes(el.id) || marqueeIds.includes(el.id));
           return (
@@ -404,7 +411,7 @@ export default function FieldRenderer({
           );
         })}
         {/* Text annotations */}
-        {elements.filter(el => el.type === 'text' && el.content).map(el => {
+        {elements.filter(el => el.type === 'text' && el.content && (currentTime === 0 || isVisible(el.visibility, currentTime))).map(el => {
           const isSelected = !presentMode && el.id === selectedId;
           const inMarquee  = !presentMode && (liveMarqueeIds.includes(el.id) || marqueeIds.includes(el.id));
           return (

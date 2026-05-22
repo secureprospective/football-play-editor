@@ -2,6 +2,73 @@ import { useState, useEffect } from 'react';
 import './Inspector.css';
 import useEditorStore from '../../store/useEditorStore';
 import { THEME_COLORS } from '../../constants/themeColors';
+import { getDuration } from '../../store/useAnimationStore';
+
+function VisibilityControls({ visibility, duration, onChange }) {
+  const timed = visibility?.startTime !== null && visibility?.startTime !== undefined;
+  const startTime = visibility?.startTime ?? 0;
+  const endTime   = visibility?.endTime   ?? null;
+  const maxTime   = duration > 0 ? duration : 10;
+
+  function setTimed(enabled) {
+    onChange(enabled
+      ? { startTime: 0, endTime: null, fade: false }
+      : { startTime: null, endTime: null, fade: false }
+    );
+  }
+
+  return (
+    <div className="inspector-visibility">
+      <div className="inspector-segments-label">Visibility</div>
+      <label className="check-row">
+        <input type="checkbox" checked={timed} onChange={e => setTimed(e.target.checked)}
+          onKeyDown={e => e.stopPropagation()} />
+        Timed
+      </label>
+      {timed && (
+        <>
+          <label>Show at (s)
+            <div className="range-row">
+              <input type="range" min="0" max={maxTime} step="0.1"
+                value={startTime}
+                onChange={e => onChange({ ...visibility, startTime: parseFloat(e.target.value) })}
+                onKeyDown={e => e.stopPropagation()}
+              />
+              <input type="number" min="0" max={maxTime} step="0.1"
+                value={startTime}
+                onChange={e => {
+                  const v = parseFloat(e.target.value);
+                  if (!isNaN(v)) onChange({ ...visibility, startTime: Math.max(0, Math.min(maxTime, v)) });
+                }}
+                onKeyDown={e => e.stopPropagation()}
+              />
+            </div>
+          </label>
+          <label>Hide at (s, blank = never)
+            <div className="range-row">
+              <input type="range" min="0" max={maxTime} step="0.1"
+                value={endTime ?? maxTime}
+                onChange={e => onChange({ ...visibility, endTime: parseFloat(e.target.value) })}
+                onKeyDown={e => e.stopPropagation()}
+              />
+              <input type="number" min="0" max={maxTime} step="0.1"
+                value={endTime ?? ''}
+                placeholder="∞"
+                onChange={e => {
+                  const raw = e.target.value;
+                  if (raw === '') { onChange({ ...visibility, endTime: null }); return; }
+                  const v = parseFloat(raw);
+                  if (!isNaN(v)) onChange({ ...visibility, endTime: Math.max(0, Math.min(maxTime, v)) });
+                }}
+                onKeyDown={e => e.stopPropagation()}
+              />
+            </div>
+          </label>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function Inspector() {
   const { getActivePlay, selectedId, updateElement, updateSegment, theme, marqueeIds, linkPlayerToRoute, unlinkPlayerFromRoute } = useEditorStore();
@@ -85,10 +152,11 @@ export default function Inspector() {
               onKeyDown={e => e.stopPropagation()}
             />
           </label>
-          <label className="check-row inspector-placeholder">
-            <input type="checkbox" disabled />
-            Visibility timing — wired in Phase 3
-          </label>
+          <VisibilityControls
+            visibility={selected.visibility}
+            duration={getDuration(elements)}
+            onChange={v => updateElement(selected.id, { visibility: v })}
+          />
         </div>
         <div className="inspector-footer">
           <span className="inspector-id">id: {selected.id}</span>
@@ -121,10 +189,11 @@ export default function Inspector() {
               <span>{Math.round((selected.opacity ?? 0.3) * 100)}%</span>
             </div>
           </label>
-          <label className="check-row inspector-placeholder">
-            <input type="checkbox" disabled />
-            Visibility timing — wired in Phase 3
-          </label>
+          <VisibilityControls
+            visibility={selected.visibility}
+            duration={getDuration(elements)}
+            onChange={v => updateElement(selected.id, { visibility: v })}
+          />
         </div>
         <div className="inspector-footer">
           <span className="inspector-id">id: {selected.id}</span>

@@ -198,6 +198,15 @@
 
 .inspector-id { font-size: 9px; color: var(--color-border-mid); font-family: monospace; }
 
+.inspector-visibility {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 4px;
+  border-top: 1px solid var(--color-border);
+  margin-top: 4px;
+}
+
 .inspector-link-row {
   display: flex;
   align-items: center;
