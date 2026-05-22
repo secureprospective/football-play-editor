@@ -180,11 +180,15 @@ Push to `lite` → Lite site auto-deploys. Push to `main` → Full site auto-dep
 
 ### Phase 3 — COMPLETE (all 4 sessions)
 
-### Phase 4 — Present Mode animation integration (next)
-- Play and replay controls in Present Mode
-- animationEnabled toggle to skip animation data on cheap tablets
-- rAF loop and positions prop wired into Present Mode render path
-- Visibility filter applies in Present Mode
+### Phase 4 — Present Mode animation integration: COMPLETE
+- Full-width scrub bar with 32px touch thumb (hides when Anim disabled)
+- Control row: [‹] caption [›] · [▶/⏸/↺] [speed select 56px] [Anim toggle]
+- Single play button cycles play → pause → replay
+- Anim toggle disables animation entirely for cheap tablets
+- Resets animation on play navigation (useEffect on activePlayId)
+- FieldRenderer visibility filter applies in Present Mode at t=0 (no editor override)
+
+### Phase 5 — Polish + performance tuning (next)
 
 ### Phase 4 — Present Mode animation integration
 
