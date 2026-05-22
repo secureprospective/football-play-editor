@@ -128,7 +128,12 @@ Push to `lite` → Lite site auto-deploys. Push to `main` → Full site auto-dep
   - FieldRenderer.jsx: pure render, all Konva layer JSX, no store calls
   - FieldCanvas.jsx: thin shell (~40 lines), composes hook + renderer via props
   - Animation drives FieldRenderer from a timeline by passing computed positions as props
-- Session 3 — Animation store: TODO
+- Session 3 — Animation store: COMPLETE
+  - src/store/useAnimationStore.js — fully isolated from useEditorStore
+  - State: isPlaying, currentTime, playbackSpeed, animationEnabled
+  - Actions: play, pause, reset, seek (lower-bound clamp), setSpeed, toggleAnimation
+  - getDuration(elements) exported as pure function — not stored state
+  - animationEnabled: false is a no-op on play() and seek()
 - Session 4 — Animation runtime engine: TODO
 
 ### Phase 3 — Editor animation UI
