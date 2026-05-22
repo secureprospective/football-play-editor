@@ -110,7 +110,7 @@ export default function PrintStaging() {
               onClick={() => setPrintSize('adult')}
             >Adult</button>
           </div>
-          <span className="print-queue-count">{printQueue.length} / 20</span>
+          <span className="print-queue-count">{printQueue.length} plays</span>
         </div>
         <div className="print-staging-actions">
           <button

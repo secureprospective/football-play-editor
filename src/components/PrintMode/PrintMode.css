@@ -244,7 +244,7 @@
 
   .print-sheet-wrapper {
     display: block !important;
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
   }
@@ -254,166 +254,172 @@
     margin: 0.5in;
   }
 
-  /* ── Card grid (Plays format) ── */
-  .print-card-grid {
+  /* ── Page — 2×2 grid of 4 identical cards ── */
+  /* Printable area: 10in × 7.5in (after 0.5in margins) */
+  /* 2 cols × 4.75in = 9.5in + 0.5in col-gap = 10in ✓ */
+  /* 2 rows × 2.75in = 5.5in + 2in row-gap = 7.5in ✓ (room for cutting) */
+  .print-page {
+    width: 10in;
+    height: 7.5in;
     display: grid;
-    gap: 0;
+    grid-template-columns: repeat(2, 4.75in);
+    grid-template-rows: repeat(2, 2.75in);
+    gap: 2in 0.5in;
+    page-break-after: always;
+    break-after: page;
   }
 
-  /* Adult: landscape cards, 5×4 = 20 slots (5×2in = 10in wide; 4×1.5in = 6in tall) */
-  .print-grid-adult {
-    grid-template-columns: repeat(5, 2in);
-    grid-template-rows: repeat(4, 1.5in);
+  .print-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
   }
 
-  /* Youth: square cards, 5×4 = 20 slots (5×1.5in = 7.5in wide; 4×1.5in = 6in tall) */
-  .print-grid-youth {
-    grid-template-columns: repeat(5, 1.5in);
-    grid-template-rows: repeat(4, 1.5in);
+  .print-page-break {
+    page-break-after: always;
+    break-after: page;
   }
 
-  .print-card {
+  /* ── Wristband card — shared base ── */
+  .wristband-card {
+    width: 4.75in;
+    height: 2.75in;
     box-sizing: border-box;
-    outline: 0.5pt solid #000;
+    background: #ffffff;
     overflow: hidden;
-    position: relative;
-    page-break-inside: avoid;
+  }
+
+  /* ── Diagram card (Plays format) ── */
+  .wristband-card-diagram {
+    border: 1pt solid #000;
+  }
+
+  /* 4 cols × 2 rows = 8 play slots per card */
+  .play-block-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    width: 100%;
+    height: 100%;
+  }
+
+  .play-block {
+    border: 0.5pt solid #000;
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
-  .print-card-adult {
-    width: 2in;
-    height: 1.5in; /* 5×4 = 20 cards on landscape letter */
-  }
-
-  .print-card-youth {
-    width: 1.5in;
-    height: 1.5in;
-  }
-
-  .print-card-empty {
-    background: #fff;
-  }
-
-  /* Number bar — dedicated top strip, not overlaid */
-  .print-card-num-bar {
-    flex: 0 0 12%;
+  /* Number header — 15% of slot height */
+  .play-block-header {
+    flex: 0 0 15%;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    padding: 0 4pt;
-    border-bottom: 0.25pt solid rgba(0, 0, 0, 0.25);
-    font-size: 6.5pt;
+    justify-content: center;
+    background: #e0e0e0;
+    border-bottom: 0.5pt solid #000;
+    font-size: 7pt;
     font-weight: 700;
     color: #000;
+    font-family: Arial, sans-serif;
     line-height: 1;
   }
 
-  /* Diagram — 76% of card height */
-  .print-card-diagram {
-    flex: 0 0 76%;
+  /* Diagram area — 85% of slot height */
+  .play-block-diagram {
+    flex: 1;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0.5pt;
+    background: #ffffff;
   }
 
-  .print-card-diagram svg {
+  .play-block-diagram svg {
     width: 100% !important;
     height: 100% !important;
     display: block;
   }
 
-  /* Name label — thin strip at bottom */
-  .print-card-label {
-    flex: 0 0 12%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 5.5pt;
-    font-weight: 700;
-    color: #000;
-    text-align: center;
-    padding: 0 2pt;
-    line-height: 1;
-    border-top: 0.25pt solid rgba(0, 0, 0, 0.25);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* ── Text format — two-column roster sheet ── */
-  .print-text-sheet {
-    display: flex;
-    flex-direction: row;
-    width: 10in;
-    height: auto;
-    max-height: 7.5in;
-    align-items: flex-start;
-    gap: 0;
-  }
-
-  .print-text-column {
-    flex: 1;
-    height: auto;
+  /* ── Text card (Text format) ── */
+  .wristband-card-text {
+    border: 2pt solid #000;
     display: flex;
     flex-direction: column;
-    border: 0.5pt solid #000;
   }
 
-  .print-text-divider {
-    width: 0.15in;
-    flex-shrink: 0;
-  }
-
-  .print-text-header {
+  .text-card-body {
     display: flex;
-    align-items: center;
-    border-bottom: 0.5pt solid #000;
-    background: #d0d0d0;
-    padding: 3pt 4pt;
-    flex-shrink: 0;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
   }
 
-  .print-text-hnum {
-    width: 0.3in;
-    font-size: 8pt;
-    font-weight: 700;
-    flex-shrink: 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5pt;
-  }
-
-  .print-text-hname {
+  .text-card-column {
     flex: 1;
-    font-size: 8pt;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5pt;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
-  .print-text-row {
+  /* 2pt vertical divider between columns */
+  .text-card-divider {
+    width: 2pt;
+    background: #000;
+    flex-shrink: 0;
+  }
+
+  /* Black header bar with white text */
+  .text-card-header {
     display: flex;
     align-items: center;
-    border-bottom: 0.25pt solid #ccc;
-    padding: 2pt 3pt;
-    flex: 0 0 auto;
-    min-height: 0.25in;
+    background: #000;
+    color: #fff;
+    padding: 1pt 3pt;
+    font-size: 6pt;
+    font-weight: 700;
+    font-family: Arial, sans-serif;
+    text-transform: uppercase;
+    flex-shrink: 0;
   }
 
-  .print-text-rnum {
-    width: 0.3in;
-    font-size: 7pt;
+  .text-card-hnum {
+    width: 0.2in;
+    flex-shrink: 0;
+  }
+
+  .text-card-hname {
+    flex: 1;
+  }
+
+  /* 10 data rows per column — flex: 1 distributes height equally */
+  .text-card-row {
+    display: flex;
+    align-items: center;
+    padding: 0 3pt;
+    flex: 1;
+    min-height: 0;
+    border-bottom: 0.25pt solid #ccc;
+    background: #ffffff;
+    font-family: Arial, sans-serif;
+  }
+
+  .text-card-row-alt {
+    background: #e0e0e0;
+  }
+
+  .text-card-rnum {
+    width: 0.2in;
+    font-size: 6pt;
     font-weight: 700;
     flex-shrink: 0;
     color: #000;
   }
 
-  .print-text-rname {
+  .text-card-rname {
     flex: 1;
-    font-size: 7pt;
+    font-size: 6pt;
     color: #000;
     white-space: nowrap;
     overflow: hidden;

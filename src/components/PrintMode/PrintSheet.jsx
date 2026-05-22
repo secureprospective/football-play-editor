@@ -2,71 +2,114 @@ import useEditorStore from '../../store/useEditorStore';
 import PlayThumbnail from '../PlayThumbnail/PlayThumbnail';
 import './PrintMode.css';
 
-const TOTAL_SLOTS = 20;
+function DiagramCard({ chunk, offset }) {
+  return (
+    <div className="wristband-card wristband-card-diagram">
+      <div className="play-block-grid">
+        {chunk.map((item, i) => (
+          <div key={i} className="play-block">
+            <div className="play-block-header">
+              {item ? offset + i + 1 : ''}
+            </div>
+            <div className="play-block-diagram">
+              {item && (
+                <PlayThumbnail
+                  elements={item.elements}
+                  width={150}
+                  height={120}
+                  bgColor="#ffffff"
+                />
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-function TextSheet({ slots }) {
+function DiagramSheet({ printQueue }) {
+  const filled = Array.from({ length: 20 }, (_, i) => printQueue[i] || null);
+  const chunks = [];
+  for (let i = 0; i < 20; i += 8) {
+    const chunk = filled.slice(i, i + 8);
+    if (chunk.some(s => s !== null)) chunks.push({ chunk, offset: i });
+  }
+  if (chunks.length === 0) chunks.push({ chunk: Array(8).fill(null), offset: 0 });
+
+  return (
+    <>
+      {chunks.map(({ chunk, offset }, pageIdx) => (
+        <div
+          key={pageIdx}
+          className={`print-page${pageIdx < chunks.length - 1 ? ' print-page-break' : ''}`}
+        >
+          {[0, 1, 2, 3].map(copy => (
+            <DiagramCard key={copy} chunk={chunk} offset={offset} />
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
+function TextCard({ slots }) {
   const left  = slots.slice(0, 10);
   const right = slots.slice(10, 20);
 
-  const renderColumn = (col, offset) => (
-    <div className="print-text-column">
-      <div className="print-text-header">
-        <span className="print-text-hnum">#</span>
-        <span className="print-text-hname">Play</span>
-      </div>
-      {col.map((item, i) => (
-        <div key={i} className="print-text-row">
-          <span className="print-text-rnum">{offset + i + 1}</span>
-          <span className="print-text-rname">{item?.name || ''}</span>
+  return (
+    <div className="wristband-card wristband-card-text">
+      <div className="text-card-body">
+        <div className="text-card-column">
+          <div className="text-card-header">
+            <span className="text-card-hnum">#</span>
+            <span className="text-card-hname">PLAY</span>
+          </div>
+          {left.map((item, i) => (
+            <div key={i} className={`text-card-row${i % 2 === 0 ? ' text-card-row-alt' : ''}`}>
+              <span className="text-card-rnum">{i + 1}</span>
+              <span className="text-card-rname">{item?.name || ''}</span>
+            </div>
+          ))}
         </div>
-      ))}
+        <div className="text-card-divider" />
+        <div className="text-card-column">
+          <div className="text-card-header">
+            <span className="text-card-hnum">#</span>
+            <span className="text-card-hname">PLAY</span>
+          </div>
+          {right.map((item, i) => (
+            <div key={i} className={`text-card-row${i % 2 === 0 ? ' text-card-row-alt' : ''}`}>
+              <span className="text-card-rnum">{i + 11}</span>
+              <span className="text-card-rname">{item?.name || ''}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
+}
 
+function TextSheet({ printQueue }) {
+  const slots = Array.from({ length: 20 }, (_, i) => printQueue[i] || null);
   return (
-    <div className="print-text-sheet">
-      {renderColumn(left, 0)}
-      <div className="print-text-divider" />
-      {renderColumn(right, 10)}
+    <div className="print-page">
+      <TextCard slots={slots} />
+      <TextCard slots={slots} />
+      <TextCard slots={slots} />
+      <TextCard slots={slots} />
     </div>
   );
 }
 
 export default function PrintSheet() {
-  const { printQueue, printFormat, printSize } = useEditorStore();
-
-  const slots    = Array.from({ length: TOTAL_SLOTS }, (_, i) => printQueue[i] || null);
-  const sizeClass = `print-card-${printSize}`;
-
+  const { printQueue, printFormat } = useEditorStore();
   return (
     <div className="print-sheet-wrapper">
-      {printFormat === 'text' ? (
-        <TextSheet slots={slots} />
-      ) : (
-        <div className={`print-card-grid print-grid-${printSize}`}>
-          {slots.map((item, i) => (
-            <div
-              key={i}
-              className={`print-card ${sizeClass} ${!item ? 'print-card-empty' : ''}`}
-            >
-              {item && (
-                <>
-                  <div className="print-card-num-bar">{i + 1}</div>
-                  <div className="print-card-diagram">
-                    <PlayThumbnail
-                      elements={item.elements}
-                      width={300}
-                      height={200}
-                      bgColor="#ffffff"
-                    />
-                  </div>
-                  <div className="print-card-label">{item.name}</div>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      {printFormat === 'text'
+        ? <TextSheet printQueue={printQueue} />
+        : <DiagramSheet printQueue={printQueue} />
+      }
     </div>
   );
 }
