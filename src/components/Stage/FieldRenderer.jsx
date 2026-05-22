@@ -28,6 +28,7 @@ export default function FieldRenderer({
   elements, colors, selectedId, marqueeIds, liveMarqueeIds,
   drawingPath, mousePos, presentMode, scrimmageVisible,
   shiftHeld, hoveredId, guidingPlayerId, placingHighlight, marqueeRect, isBoxSelect,
+  positions = new Map(),
 }) {
   const selectedEl = elements.find(el => el.id === selectedId);
 
@@ -177,13 +178,15 @@ export default function FieldRenderer({
   function renderFootball(el) {
     const isSelected = !presentMode && el.id === selectedId;
     const inMarquee  = !presentMode && (liveMarqueeIds.includes(el.id) || marqueeIds.includes(el.id));
-    let visualX = el.x;
-    let visualY = el.y;
-    if (el.attachedToElementId) {
+    const animPos = positions.get(el.id);
+    let visualX = animPos?.x ?? el.x;
+    let visualY = animPos?.y ?? el.y;
+    if (!animPos && el.attachedToElementId) {
       const player = elements.find(e => e.id === el.attachedToElementId && e.type === 'player');
       if (player) {
-        visualX = player.x + FOOTBALL_ATTACH_OFFSET;
-        visualY = player.y;
+        const playerAnimPos = positions.get(player.id);
+        visualX = (playerAnimPos?.x ?? player.x) + FOOTBALL_ATTACH_OFFSET;
+        visualY = playerAnimPos?.y ?? player.y;
       }
     }
     return (
@@ -366,10 +369,13 @@ export default function FieldRenderer({
           const stroke = isSelected ? '#ffff00' : inMarquee ? colors.accent : labelColor;
           const sw = isSelected || inMarquee ? 3 : 2;
           const r  = FIELD_CONFIG.PLAYER_RADIUS;
+          const animPos = positions.get(el.id);
+          const px = animPos?.x ?? el.x;
+          const py = animPos?.y ?? el.y;
           if (shape === 'square') {
             return (
               <Rect key={el.id}
-                x={el.x - r} y={el.y - r}
+                x={px - r} y={py - r}
                 width={r * 2} height={r * 2}
                 fill={fill} stroke={stroke} strokeWidth={sw} cornerRadius={3}
               />
@@ -377,16 +383,19 @@ export default function FieldRenderer({
           }
           return (
             <Circle key={el.id}
-              x={el.x} y={el.y} radius={r}
+              x={px} y={py} radius={r}
               fill={fill} stroke={stroke} strokeWidth={sw}
             />
           );
         })}
         {elements.filter(el => el.type === 'player' && el.label).map(el => {
           const isSelected = !presentMode && el.id === selectedId;
+          const animPos = positions.get(el.id);
+          const px = animPos?.x ?? el.x;
+          const py = animPos?.y ?? el.y;
           return (
             <Text key={el.id + '_label'}
-              x={el.x - 12} y={el.y - 7}
+              x={px - 12} y={py - 7}
               text={el.label}
               fontSize={FIELD_CONFIG.PLAYER_FONT_SIZE}
               fill={isSelected ? '#ffff00' : (el.style?.colorIndex >= 0 ? colors.labels[el.style.colorIndex] : colors.text)}
