@@ -172,9 +172,19 @@ Push to `lite` → Lite site auto-deploys. Push to `main` → Full site auto-dep
   - On drag start: animated position committed to stored position, Map cleared — no jump, stored truth stays in sync
   - useAnimationLoop lives inside useFieldInteraction (not FieldCanvas) so positions are accessible at hit-test time
 
-### Phase 3 — remaining
-- Session 4 — Text and highlight visibility wiring (startTime/endTime stubs → currentTime)
-- Event editor
+- Session 4 — Text and highlight visibility timing: COMPLETE
+  - VisibilityControls component: Timed checkbox, Show at / Hide at sliders
+  - FieldRenderer filters text and highlight by isVisible(el.visibility, currentTime)
+  - Elements always visible at t=0 (static editor view); filter only applies when t > 0
+  - FieldCanvas reads currentTime from useAnimationStore and passes to FieldRenderer
+
+### Phase 3 — COMPLETE (all 4 sessions)
+
+### Phase 4 — Present Mode animation integration (next)
+- Play and replay controls in Present Mode
+- animationEnabled toggle to skip animation data on cheap tablets
+- rAF loop and positions prop wired into Present Mode render path
+- Visibility filter applies in Present Mode
 
 ### Phase 4 — Present Mode animation integration
 
