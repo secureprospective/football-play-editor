@@ -12,6 +12,15 @@ export function useAnimationLoop() {
   const isPlaying   = useAnimationStore(s => s.isPlaying);
   const currentTime = useAnimationStore(s => s.currentTime);
 
+  // Pause when page goes to background — stops burning CPU/GPU on cheap tablets
+  useEffect(() => {
+    function onVisibilityChange() {
+      if (document.hidden) useAnimationStore.getState().pause();
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, []);
+
   function updatePositions(newMap) {
     positionsRef.current = newMap;
     forceRender(n => n + 1);

@@ -28,6 +28,7 @@ export default function FieldCanvas() {
         height={stageSize.height}
         scaleX={scaleX}
         scaleY={scaleY}
+        pixelRatio={1}
         {...handlers}
       >
         <FieldGrid />
