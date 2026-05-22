@@ -123,7 +123,11 @@ Push to `lite` → Lite site auto-deploys. Push to `main` → Full site auto-dep
   - loadFromStorage() and importPlaybook() backfill routeId on existing players
   - deleteElement() clears stale cross-references on deletion
   - Inspector: read-only "Route: None" on player, "Player: None" on path (Phase 3 wires UI)
-- Session 2 — FieldCanvas split (render / interaction separation): TODO
+- Session 2 — FieldCanvas split (render / interaction separation): COMPLETE
+  - useFieldInteraction.js: all pointer/keyboard/drag/marquee/drawing state + handlers
+  - FieldRenderer.jsx: pure render, all Konva layer JSX, no store calls
+  - FieldCanvas.jsx: thin shell (~40 lines), composes hook + renderer via props
+  - Animation drives FieldRenderer from a timeline by passing computed positions as props
 - Session 3 — Animation store: TODO
 - Session 4 — Animation runtime engine: TODO
 
