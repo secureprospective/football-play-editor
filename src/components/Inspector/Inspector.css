@@ -145,7 +145,7 @@
   letter-spacing: 0.04em;
 }
 .seg-col-delay-hdr {
-  width: 38px;
+  width: 34px;
   text-align: center;
   flex-shrink: 0;
 }
@@ -194,20 +194,17 @@
 }
 
 .seg-delay-input {
-  width: 38px;
-  height: 22px;
-  font-size: 11px;
+  width: 34px;
+  flex-shrink: 0;
+  font-size: 10px;
   font-family: inherit;
-  padding: 1px 3px;
+  padding: 1px 2px;
   text-align: center;
   border: 1px solid var(--color-border-mid);
-  border-radius: 2px;
-  background: var(--color-panel);
+  border-radius: 4px;
+  background: var(--color-panel-alt);
   color: var(--color-text);
-  -moz-appearance: textfield;
 }
-.seg-delay-input::-webkit-inner-spin-button,
-.seg-delay-input::-webkit-outer-spin-button { -webkit-appearance: none; }
 
 .seg-presnap-btn {
   background: var(--color-panel-alt);
