@@ -59,14 +59,20 @@
 
 .app-header-add-btn:hover:not(:disabled) { filter: brightness(1.1); }
 
-/* Brand — same treatment as Toolbar */
+/* Brand — same treatment as Toolbar. Renders as <a> link to TFM site */
 .app-header-brand {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
   padding: 0 8px;
+  text-decoration: none;
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity 0.1s ease;
 }
+
+.app-header-brand:hover { opacity: 0.75; }
 
 .app-brand-logo {
   height: 30px;

@@ -224,14 +224,20 @@
   white-space: nowrap;
 }
 
-/* ── Brand — Cinzel stays, it's identity ── */
+/* ── Brand — Cinzel stays, it's identity. Renders as <a> link to TFM site ── */
 .toolbar-brand {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
   padding: 0 10px;
+  text-decoration: none;
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity 0.1s ease;
 }
+
+.toolbar-brand:hover { opacity: 0.75; }
 
 .app-brand-logo {
   height: 30px;

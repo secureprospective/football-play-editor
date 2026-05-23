@@ -30,10 +30,16 @@ export default function AppHeader({ crumbs = [], active, onAdd, addLabel, action
         </nav>
       </div>
 
-      <div className="app-header-brand">
+      <a
+        className="app-header-brand"
+        href="https://techfreedomministries.org/"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Tech Freedom Ministries"
+      >
         <img src={logo} alt="TFM" className="app-brand-logo" />
         <span className="app-brand-title">TFM Playbook</span>
-      </div>
+      </a>
 
       <div className="app-header-right">
         {actions}

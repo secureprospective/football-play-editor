@@ -115,11 +115,17 @@ export default function Toolbar() {
         </button>
       </div>
 
-      {/* Brand — always visible, between nav and actions */}
-      <div className="toolbar-brand">
+      {/* Brand — links to TFM website */}
+      <a
+        className="toolbar-brand"
+        href="https://techfreedomministries.org/"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Tech Freedom Ministries"
+      >
         <img src={logo} alt="TFM" className="app-brand-logo" />
         <span className="app-brand-title">TFM Playbook</span>
-      </div>
+      </a>
 
       {/* Right — actions (scrollable) or drawing state */}
       {drawingPath ? (
