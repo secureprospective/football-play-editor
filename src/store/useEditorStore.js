@@ -7,7 +7,7 @@ const STORAGE_KEY = 'football_playbook_v1';
 const THEME_KEY = 'football_theme_v1';
 const DEFAULT_THEME = 'theme-sun-cyan';
 
-function genId(prefix = 'id') {
+export function genId(prefix = 'id') {
   return prefix + '_' + Math.random().toString(36).slice(2, 9);
 }
 

@@ -3,6 +3,7 @@ import useEditorStore from '../../store/useEditorStore';
 import useAnimationStore, { getDuration } from '../../store/useAnimationStore';
 import { VIEW_MODES } from '../../constants/toolModes';
 import { THEME_LOGO } from '../../constants/themeColors';
+import { SPEEDS } from '../../constants/animationConfig';
 import './PresentOverlay.css';
 
 export default function PresentOverlay() {
@@ -17,12 +18,6 @@ export default function PresentOverlay() {
     play: startPlay, pause, reset, toggleAnimation, setSpeed,
   } = useAnimationStore();
 
-  const SPEEDS = [
-    { label: '0.25x', value: 0.0625 },
-    { label: '0.5x',  value: 0.125  },
-    { label: '1x',    value: 0.25   },
-    { label: '2x',    value: 0.5    },
-  ];
 
   const logo      = THEME_LOGO[theme] || THEME_LOGO['theme-sun-cyan'];
   const activePlay     = getActivePlay();

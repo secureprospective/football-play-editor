@@ -38,7 +38,7 @@ function playerPositionAtTime(path, currentTime) {
 
   for (const seg of path.segments) {
     if (!seg.points?.length) continue;
-    const duration = seg.duration ?? 0;
+    const duration = seg.duration ?? 0.5;
     const p2 = seg.points[seg.points.length - 1];
 
     if (duration <= 0) {

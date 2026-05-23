@@ -207,10 +207,7 @@ export default function Inspector() {
       <div className="inspector">
         <div className="inspector-header">Football</div>
         <div className="inspector-body">
-          <label className="check-row inspector-placeholder">
-            <input type="checkbox" disabled />
-            Attached to player — wired in Phase 3
-          </label>
+          <div className="inspector-hint">Football animation — coming soon</div>
         </div>
         <div className="inspector-footer">
           <span className="inspector-id">id: {selected.id}</span>

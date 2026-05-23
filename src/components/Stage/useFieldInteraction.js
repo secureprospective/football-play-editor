@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import useEditorStore from '../../store/useEditorStore';
+import useEditorStore, { genId } from '../../store/useEditorStore';
 import { useAnimationLoop } from './useAnimationLoop';
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
 import { TOOL_MODES } from '../../constants/toolModes';
@@ -8,13 +8,6 @@ import { snapPoint, constrainToAngle } from '../../utils/snapToGrid';
 import { defaultCurveCP } from '../../utils/curveUtils';
 import { THEME_COLORS } from '../../constants/themeColors';
 
-function generateId() {
-  return 'el_' + Math.random().toString(36).slice(2, 9);
-}
-
-function generateSegId() {
-  return 'seg_' + Math.random().toString(36).slice(2, 9);
-}
 
 function getPathTailPoint(path) {
   if (!path?.segments?.length) return null;
@@ -175,7 +168,7 @@ export function useFieldInteraction() {
     if (activeTool === TOOL_MODES.ADD_PLAYER) {
       const snapped = snapPoint(pos, snapIncrement, snapEnabled);
       const newPlayer = {
-        id: generateId(), type: 'player',
+        id: genId("el"), type: 'player',
         x: snapped.x, y: snapped.y,
         label: 'X',
         style: { shape: 'circle', colorIndex: 0 },
@@ -193,7 +186,7 @@ export function useFieldInteraction() {
       if (!hasFootball) {
         const snapped = snapPoint(pos, snapIncrement, snapEnabled);
         const newFootball = {
-          id: generateId(), type: 'football',
+          id: genId("el"), type: 'football',
           x: snapped.x, y: snapped.y,
           attachedToElementId: null,
         };
@@ -207,7 +200,7 @@ export function useFieldInteraction() {
     if (activeTool === TOOL_MODES.ADD_TEXT) {
       const snapped = snapPoint(pos, snapIncrement, snapEnabled);
       const newText = {
-        id: generateId(), type: 'text',
+        id: genId("el"), type: 'text',
         x: snapped.x, y: snapped.y,
         content: 'Text',
         visibility: { startTime: null, endTime: null, fade: false },
@@ -227,7 +220,7 @@ export function useFieldInteraction() {
         const dy = snapped.y - placingHighlight.y;
         const radius = Math.max(20, Math.sqrt(dx * dx + dy * dy));
         const newHighlight = {
-          id: generateId(), type: 'highlight',
+          id: genId("el"), type: 'highlight',
           x: placingHighlight.x, y: placingHighlight.y,
           radius,
           color: '#ffff00',
@@ -250,7 +243,7 @@ export function useFieldInteraction() {
         const resolved = resolveRoutePoint(pos, tail);
         const controlPoint = isCurve ? defaultCurveCP(tail, resolved) : undefined;
         const newSeg = {
-          id: generateSegId(),
+          id: genId("seg"),
           points: [tail, resolved],
           curve: isCurve,
           preSnap: false,
@@ -287,7 +280,7 @@ export function useFieldInteraction() {
       clearSelection();
       setActivePathId(null);
       setDrawingPath({
-        id: generateId(),
+        id: genId("el"),
         type: 'path',
         segments: [],
         _startPoint: resolved,

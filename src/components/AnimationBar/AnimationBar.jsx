@@ -1,14 +1,8 @@
 import { useEffect } from 'react';
 import useAnimationStore, { getDuration } from '../../store/useAnimationStore';
 import useEditorStore from '../../store/useEditorStore';
+import { SPEEDS } from '../../constants/animationConfig';
 import './AnimationBar.css';
-
-const SPEEDS = [
-  { label: '0.25x', value: 0.0625 },
-  { label: '0.5x',  value: 0.125  },
-  { label: '1x',    value: 0.25   },
-  { label: '2x',    value: 0.5    },
-];
 
 export default function AnimationBar() {
   const {

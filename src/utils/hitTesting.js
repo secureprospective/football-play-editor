@@ -112,19 +112,23 @@ export function hitTestFootball(px, py, football, positions) {
   return (dx * dx) / (FOOTBALL_RX * FOOTBALL_RX) + (dy * dy) / (FOOTBALL_RY * FOOTBALL_RY) <= 1;
 }
 
-export function hitTestHighlight(px, py, highlight) {
-  const dx = px - highlight.x;
-  const dy = py - highlight.y;
+export function hitTestHighlight(px, py, highlight, positions) {
+  const ex = positions?.get(highlight.id)?.x ?? highlight.x;
+  const ey = positions?.get(highlight.id)?.y ?? highlight.y;
+  const dx = px - ex;
+  const dy = py - ey;
   return Math.sqrt(dx * dx + dy * dy) <= highlight.radius + 8;
 }
 
-export function hitTestText(px, py, textEl) {
+export function hitTestText(px, py, textEl, positions) {
+  const ex = positions?.get(textEl.id)?.x ?? textEl.x;
+  const ey = positions?.get(textEl.id)?.y ?? textEl.y;
   const content = textEl.content || '';
   const w = Math.max(40, content.length * TEXT_CHAR_WIDTH);
   const h = TEXT_FONT_SIZE;
   const pad = 6;
-  return px >= textEl.x - pad && px <= textEl.x + w + pad &&
-         py >= textEl.y - pad && py <= textEl.y + h + pad;
+  return px >= ex - pad && px <= ex + w + pad &&
+         py >= ey - pad && py <= ey + h + pad;
 }
 
 /**
@@ -182,7 +186,7 @@ export function masterHitTest(px, py, elements, selectedId, positions = new Map(
   // 2. Text — checked before players because text renders on top visually
   for (let i = elements.length - 1; i >= 0; i--) {
     const el = elements[i];
-    if (el.type === 'text' && hitTestText(px, py, el)) {
+    if (el.type === 'text' && hitTestText(px, py, el, positions)) {
       return { type: 'text', elementId: el.id, nodeIndex: null, segmentIndex: null, segmentPoint: null };
     }
   }
@@ -195,7 +199,7 @@ export function masterHitTest(px, py, elements, selectedId, positions = new Map(
     }
   }
 
-  // 4. Football — after players so player wins in overlap (see plan note: TEST & POSSIBLE PIVOT)
+  // 4. Football — after players so player wins when they overlap
   for (let i = elements.length - 1; i >= 0; i--) {
     const el = elements[i];
     if (el.type === 'football' && hitTestFootball(px, py, el, positions)) {
@@ -223,7 +227,7 @@ export function masterHitTest(px, py, elements, selectedId, positions = new Map(
   // 6. Highlights — last priority, matches visual z-order (under everything)
   for (let i = elements.length - 1; i >= 0; i--) {
     const el = elements[i];
-    if (el.type === 'highlight' && hitTestHighlight(px, py, el)) {
+    if (el.type === 'highlight' && hitTestHighlight(px, py, el, positions)) {
       return { type: 'highlight', elementId: el.id, nodeIndex: null, segmentIndex: null, segmentPoint: null };
     }
   }
