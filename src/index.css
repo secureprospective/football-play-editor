@@ -9,7 +9,13 @@ body {
   color: var(--color-text);
 }
 
+/* Shared mono font stack — used by all chrome (buttons, inputs, labels, readouts) */
+:root {
+  --s-font: 'SF Mono', 'Consolas', 'Courier New', monospace;
+}
+
 .theme-sun-cyan {
+  /* ── Legacy color tokens (canvas + card content) ── */
   --color-bg:          #0a0a0a;
   --color-panel:       #141414;
   --color-panel-alt:   #0f0f0f;
@@ -27,9 +33,38 @@ body {
   --color-delete-bg:   #1a0505;
   --color-delete-border:#ff3b3b;
   --color-shadow:      rgba(0,0,0,0.45);
+
+  /* ── Rugged chrome tokens ── */
+  --s-panel:           #1e2229;
+  --s-panel-deep:      #191d23;
+  --s-border-hard:     #0a0c0e;
+  --s-btn-face:        linear-gradient(160deg, #2d333d 0%, #242930 100%);
+  --s-btn-active-face: linear-gradient(160deg, #1a2028 0%, #131820 100%);
+  --s-btn-raised:      0 2px 0 #0a0c0e, inset 0 1px 0 rgba(255,255,255,0.07);
+  --s-btn-pressed:     inset 0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+  --s-panel-shadow:    inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 4px rgba(0,0,0,0.4);
+  --s-rail-shadow:     inset -1px 0 0 rgba(255,255,255,0.02), 2px 0 5px rgba(0,0,0,0.3);
+  --s-bar-shadow:      inset 0 1px 0 rgba(255,255,255,0.04), 0 -2px 5px rgba(0,0,0,0.3);
+  --s-well:            #0c0f13;
+  --s-well-shadow:     inset 2px 2px 4px rgba(0,0,0,0.5);
+  --s-accent:          linear-gradient(180deg, #00d4ff 0%, #00a8cc 100%);
+  --s-accent-border:   #007a99;
+  --s-accent-text:     #001a22;
+  --s-danger:          #ff6b00;
+  --s-danger-border:   #3a1a0a;
+  --s-danger-face:     linear-gradient(160deg, #2a1a0d 0%, #1a0f06 100%);
+  --s-text-muted:      #606878;
+  --s-text-dim:        #3a4150;
+  --s-rivet:           radial-gradient(circle at 35% 35%, #3a4150, #0d0f12);
+  --s-rivet-shine:     rgba(255,255,255,0.04);
+  --s-play-border:     #1a3a1a;
+  --s-play-color:      #44cc66;
+  --s-play-face:       linear-gradient(160deg, #1a2a1a 0%, #111a11 100%);
+  --s-knurl:           rgba(255,255,255,0.12);
 }
 
 .theme-sun-orange {
+  /* ── Legacy color tokens (canvas + card content) ── */
   --color-bg:          #080808;
   --color-panel:       #111111;
   --color-panel-alt:   #0f0f0f;
@@ -47,9 +82,38 @@ body {
   --color-delete-bg:   #1a0800;
   --color-delete-border:#ff6a00;
   --color-shadow:      rgba(0,0,0,0.45);
+
+  /* ── Rugged chrome tokens ── */
+  --s-panel:           #1e2229;
+  --s-panel-deep:      #191d23;
+  --s-border-hard:     #0a0c0e;
+  --s-btn-face:        linear-gradient(160deg, #2d333d 0%, #242930 100%);
+  --s-btn-active-face: linear-gradient(160deg, #1a2028 0%, #131820 100%);
+  --s-btn-raised:      0 2px 0 #0a0c0e, inset 0 1px 0 rgba(255,255,255,0.07);
+  --s-btn-pressed:     inset 0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+  --s-panel-shadow:    inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 4px rgba(0,0,0,0.4);
+  --s-rail-shadow:     inset -1px 0 0 rgba(255,255,255,0.02), 2px 0 5px rgba(0,0,0,0.3);
+  --s-bar-shadow:      inset 0 1px 0 rgba(255,255,255,0.04), 0 -2px 5px rgba(0,0,0,0.3);
+  --s-well:            #0c0f13;
+  --s-well-shadow:     inset 2px 2px 4px rgba(0,0,0,0.5);
+  --s-accent:          linear-gradient(180deg, #ff8c2a 0%, #d96000 100%);
+  --s-accent-border:   #a04000;
+  --s-accent-text:     #1a0800;
+  --s-danger:          #ff6b00;
+  --s-danger-border:   #3a1a0a;
+  --s-danger-face:     linear-gradient(160deg, #2a1a0d 0%, #1a0f06 100%);
+  --s-text-muted:      #606878;
+  --s-text-dim:        #3a4150;
+  --s-rivet:           radial-gradient(circle at 35% 35%, #3a4150, #0d0f12);
+  --s-rivet-shine:     rgba(255,255,255,0.04);
+  --s-play-border:     #1a3a1a;
+  --s-play-color:      #44cc66;
+  --s-play-face:       linear-gradient(160deg, #1a2a1a 0%, #111a11 100%);
+  --s-knurl:           rgba(255,255,255,0.12);
 }
 
 .theme-paper-overcast {
+  /* ── Legacy color tokens (canvas + card content) ── */
   --color-bg:          #eaeff4;
   --color-panel:       #dde4ec;
   --color-panel-alt:   #f2f6fa;
@@ -67,9 +131,38 @@ body {
   --color-delete-bg:   #fde8e8;
   --color-delete-border:#dc2626;
   --color-shadow:      rgba(0,0,0,0.12);
+
+  /* ── Rugged chrome tokens ── */
+  --s-panel:           #e0e4ea;
+  --s-panel-deep:      #d8dce4;
+  --s-border-hard:     #b0b8c4;
+  --s-btn-face:        linear-gradient(160deg, #eaeef4 0%, #d8dce6 100%);
+  --s-btn-active-face: linear-gradient(160deg, #c8d0dc 0%, #bcc4d0 100%);
+  --s-btn-raised:      0 2px 0 #a0a8b4, inset 0 1px 0 rgba(255,255,255,0.7);
+  --s-btn-pressed:     inset 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2);
+  --s-panel-shadow:    inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 4px rgba(0,0,0,0.12);
+  --s-rail-shadow:     inset -1px 0 0 rgba(255,255,255,0.5), 2px 0 5px rgba(0,0,0,0.1);
+  --s-bar-shadow:      inset 0 1px 0 rgba(255,255,255,0.6), 0 -2px 5px rgba(0,0,0,0.1);
+  --s-well:            #c8cdd8;
+  --s-well-shadow:     inset 2px 2px 4px rgba(0,0,0,0.12);
+  --s-accent:          linear-gradient(180deg, #1db88a 0%, #148c66 100%);
+  --s-accent-border:   #0a6644;
+  --s-accent-text:     #ffffff;
+  --s-danger:          #cc4400;
+  --s-danger-border:   #aa3300;
+  --s-danger-face:     linear-gradient(160deg, #f0d4c4 0%, #e4c0a8 100%);
+  --s-text-muted:      #6a7280;
+  --s-text-dim:        #9aa0aa;
+  --s-rivet:           radial-gradient(circle at 35% 35%, #c8ccd4, #90949c);
+  --s-rivet-shine:     rgba(255,255,255,0.8);
+  --s-play-border:     #0a6644;
+  --s-play-color:      #148c66;
+  --s-play-face:       linear-gradient(160deg, #d4ece4 0%, #c4e0d4 100%);
+  --s-knurl:           rgba(0,0,0,0.12);
 }
 
 .theme-paper-newsprint {
+  /* ── Legacy color tokens (canvas + card content) ── */
   --color-bg:          #e8e2d8;
   --color-panel:       #ddd8ce;
   --color-panel-alt:   #f0ece4;
@@ -87,4 +180,32 @@ body {
   --color-delete-bg:   #fde8e8;
   --color-delete-border:#dc2626;
   --color-shadow:      rgba(0,0,0,0.12);
+
+  /* ── Rugged chrome tokens ── */
+  --s-panel:           #ddd8ce;
+  --s-panel-deep:      #d4cfc4;
+  --s-border-hard:     #a89e90;
+  --s-btn-face:        linear-gradient(160deg, #e8e2d8 0%, #d8d2c6 100%);
+  --s-btn-active-face: linear-gradient(160deg, #c8c0b4 0%, #bcb4a8 100%);
+  --s-btn-raised:      0 2px 0 #908880, inset 0 1px 0 rgba(255,255,255,0.6);
+  --s-btn-pressed:     inset 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2);
+  --s-panel-shadow:    inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.12);
+  --s-rail-shadow:     inset -1px 0 0 rgba(255,255,255,0.4), 2px 0 5px rgba(0,0,0,0.1);
+  --s-bar-shadow:      inset 0 1px 0 rgba(255,255,255,0.5), 0 -2px 5px rgba(0,0,0,0.1);
+  --s-well:            #c0b8ac;
+  --s-well-shadow:     inset 2px 2px 4px rgba(0,0,0,0.12);
+  --s-accent:          linear-gradient(180deg, #e03030 0%, #b82020 100%);
+  --s-accent-border:   #881818;
+  --s-accent-text:     #ffffff;
+  --s-danger:          #cc2200;
+  --s-danger-border:   #881800;
+  --s-danger-face:     linear-gradient(160deg, #e8d0c8 0%, #dcc0b4 100%);
+  --s-text-muted:      #786860;
+  --s-text-dim:        #a09088;
+  --s-rivet:           radial-gradient(circle at 35% 35%, #c8c0b4, #888078);
+  --s-rivet-shine:     rgba(255,255,255,0.7);
+  --s-play-border:     #881818;
+  --s-play-color:      #cc2828;
+  --s-play-face:       linear-gradient(160deg, #e8ccc8 0%, #dcbcb8 100%);
+  --s-knurl:           rgba(0,0,0,0.1);
 }

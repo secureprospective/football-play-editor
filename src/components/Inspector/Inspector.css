@@ -1,12 +1,32 @@
 .inspector {
-  background: var(--color-panel);
-  border-left: 2px solid var(--color-border);
+  background: var(--s-panel-deep);
+  border-left: 1px solid var(--s-border-hard);
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   width: 220px;
+  font-family: var(--s-font);
+  position: relative;
 }
+
+/* Rivet decorations — top-right and bottom-right corners */
+.inspector::before,
+.inspector::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--s-rivet);
+  border: 1px solid var(--s-border-hard);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.8), 0 1px 0 var(--s-rivet-shine);
+  position: absolute;
+  right: 8px;
+  pointer-events: none;
+  z-index: 1;
+}
+.inspector::before { top: 6px; }
+.inspector::after  { bottom: 6px; }
 
 .inspector-empty {
   flex: 1;
@@ -15,19 +35,26 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: var(--color-border-mid);
-  font-size: 12px;
+  color: var(--s-text-dim);
+  font-size: 11px;
+  font-family: var(--s-font);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   text-align: center;
   padding: 16px;
 }
 
 .inspector-header {
-  background: var(--color-panel-alt);
+  background: var(--s-panel);
   padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-accent);
-  border-bottom: 1px solid var(--color-border);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--s-font);
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--s-accent-border);
+  border-bottom: 1px solid var(--s-border-hard);
   flex-shrink: 0;
 }
 
@@ -39,36 +66,50 @@
   flex: 1;
 }
 
+/* Section labels */
 .inspector-body label {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  font-size: 11px;
-  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--s-font);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--s-text-dim);
 }
 
+/* Recessed well — text inputs sit below the surface */
 .inspector-body input[type="text"],
 .inspector-body select {
-  background: var(--color-panel-alt);
-  border: 1px solid var(--color-border-mid);
-  border-radius: 4px;
-  color: var(--color-text);
-  padding: 10px 10px;
-  font-size: 13px;
+  background: var(--s-well);
+  border: 1px solid var(--s-border-hard);
+  border-radius: 2px;
+  box-shadow: var(--s-well-shadow);
+  color: var(--s-text-muted);
+  font-family: var(--s-font);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 0 8px;
   width: 100%;
   min-height: 44px;
 }
 
+.inspector-body input[type="text"]:focus,
+.inspector-body select:focus {
+  outline: none;
+  border-color: var(--s-accent-border);
+}
 
 .inspector-body input[type="range"] {
   width: 100%;
-  accent-color: var(--color-accent);
+  accent-color: var(--s-accent-border);
   height: 28px;
   cursor: pointer;
 }
 
 .inspector-body input[type="checkbox"] {
-  accent-color: var(--color-accent);
+  accent-color: var(--s-accent-border);
   width: 20px;
   height: 20px;
   margin-right: 10px;
@@ -85,8 +126,10 @@
 }
 
 .inspector-body .range-row span {
-  font-size: 11px;
-  color: var(--color-text);
+  font-size: 10px;
+  font-family: var(--s-font);
+  font-weight: 700;
+  color: var(--s-text-muted);
   min-width: 28px;
   text-align: right;
   flex-shrink: 0;
@@ -95,11 +138,14 @@
 .inspector-body .range-row input[type="number"] {
   width: 34px;
   flex-shrink: 0;
-  background: var(--color-panel-alt);
-  border: 1px solid var(--color-border-mid);
-  border-radius: 4px;
-  color: var(--color-text);
+  background: var(--s-well);
+  border: 1px solid var(--s-border-hard);
+  border-radius: 2px;
+  box-shadow: var(--s-well-shadow);
+  color: var(--s-text-muted);
+  font-family: var(--s-font);
   font-size: 10px;
+  font-weight: 700;
   padding: 1px 2px;
   text-align: center;
 }
@@ -121,35 +167,42 @@
   gap: 0;
 }
 
+/* ── Segment section ── */
 .inspector-segments {
   display: flex;
   flex-direction: column;
   gap: 6px;
   padding-top: 4px;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--s-border-hard);
   margin-top: 4px;
 }
 
-.inspector-segments-label { font-size: 11px; color: var(--color-text-muted); font-weight: 600; }
+.inspector-segments-label {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--s-font);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--s-text-dim);
+}
 
-/* Column header row that aligns with [Seg#][delay][Pre-snap] rows */
 .inspector-segments-col-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--s-font);
+  color: var(--s-text-dim);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
 }
 .seg-col-delay-hdr {
   width: 28px;
   text-align: center;
   flex-shrink: 0;
 }
-/* Spacer sized to approximate the Pre-snap button so Delay stays centered */
 .seg-col-presnap-hdr {
   width: 62px;
   flex-shrink: 0;
@@ -168,84 +221,107 @@
   gap: 6px;
 }
 
+/* Segment label button — raised bevel, small */
 .seg-label-btn {
-  background: none;
-  border: 1px solid var(--color-border-mid);
+  background: var(--s-btn-face);
+  border: 1px solid var(--s-border-hard);
   border-radius: 2px;
+  box-shadow: var(--s-btn-raised);
   padding: 1px 7px;
-  font-size: 11px;
-  font-family: inherit;
-  color: var(--color-text-muted);
+  font-size: 10px;
+  font-family: var(--s-font);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--s-text-muted);
   cursor: pointer;
   flex: 0 0 auto;
   white-space: nowrap;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.06s ease;
+  min-height: 18px;
 }
 
 .seg-label-btn:hover {
-  background: var(--color-panel-alt);
-  color: var(--color-text);
+  filter: brightness(1.12);
 }
 
+/* Pre-snap button active state */
 .seg-label-btn.seg-label-btn-active {
-  background: rgba(245, 158, 11, 0.12);
-  border-color: #f59e0b;
-  color: #f59e0b;
+  background: linear-gradient(160deg, #3a2a0a 0%, #2a1e06 100%);
+  border-color: #b8960a;
+  color: #c8a010;
+  box-shadow: var(--s-btn-pressed);
+  transform: translateY(2px);
 }
 
+/* Segment delay input — recessed well, compact */
 .inspector-body input.seg-delay-input[type="text"] {
   min-height: 0 !important;
   height: 18px;
   width: 28px;
   min-width: 0;
   font-size: 10px;
-  font-family: inherit;
+  font-family: var(--s-font);
+  font-weight: 700;
   padding: 0 2px;
   box-sizing: border-box;
   flex-shrink: 0;
   appearance: none;
   -webkit-appearance: none;
   text-align: center;
-  border: 1px solid var(--color-border-mid);
-  border-radius: 4px;
-  background: var(--color-panel-alt);
-  color: var(--color-text);
+  border: 1px solid var(--s-border-hard);
+  border-radius: 2px;
+  background: var(--s-well);
+  box-shadow: var(--s-well-shadow);
+  color: var(--s-text-muted);
 }
 
+/* Pre-snap button — raised bevel, small */
 .seg-presnap-btn {
-  background: var(--color-panel-alt);
-  border: 1px solid var(--color-border-mid);
-  border-radius: 4px;
-  color: var(--color-text-muted);
-  font-size: 10px;
+  background: var(--s-btn-face);
+  border: 1px solid var(--s-border-hard);
+  border-radius: 2px;
+  box-shadow: var(--s-btn-raised);
+  color: var(--s-text-muted);
+  font-size: 9px;
+  font-family: var(--s-font);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   padding: 0 6px;
   min-height: 18px;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s, color 0.15s;
+  transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.06s ease;
   flex-shrink: 0;
 }
 
 .seg-presnap-btn.active {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-accent-text);
+  background: linear-gradient(160deg, #3a2a0a 0%, #2a1e06 100%);
+  border-color: #b8960a;
+  color: #c8a010;
+  box-shadow: var(--s-btn-pressed);
+  transform: translateY(2px);
 }
 
 .inspector-footer {
   padding: 8px 12px;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--s-border-hard);
   flex-shrink: 0;
 }
 
-.inspector-id { font-size: 9px; color: var(--color-border-mid); font-family: monospace; }
+.inspector-id {
+  font-size: 9px;
+  color: var(--s-text-dim);
+  font-family: var(--s-font);
+}
 
 .inspector-visibility {
   display: flex;
   flex-direction: column;
   gap: 6px;
   padding-top: 4px;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--s-border-hard);
   margin-top: 4px;
 }
 
@@ -255,16 +331,21 @@
   justify-content: space-between;
   gap: 6px;
   min-height: 36px;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--s-border-hard);
   margin-top: 4px;
   padding-top: 10px;
 }
 
 .inspector-link-label {
-  font-size: 11px;
-  color: var(--color-text);
+  font-size: 10px;
+  font-family: var(--s-font);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--s-text-muted);
 }
 
+/* Color picker — lens style circles */
 .color-btn-row {
   display: flex;
   gap: 8px;
@@ -272,81 +353,87 @@
 }
 
 .color-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  border: 3px solid transparent;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--s-border-hard);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   touch-action: manipulation;
-  transition: border-color 0.15s, transform 0.1s;
+  transition: box-shadow 0.08s ease;
   flex-shrink: 0;
   padding: 0;
 }
 
-.color-btn:hover {
-  transform: scale(1.08);
-}
-
 .color-btn-active {
-  border-color: var(--color-text);
-  transform: scale(1.08);
+  box-shadow: 0 0 0 2px var(--s-accent-border), 0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .color-btn-row.seg-color-active {
-  box-shadow: 0 0 0 2px #f59e0b, 0 0 10px rgba(245, 158, 11, 0.35);
+  box-shadow: 0 0 0 2px #b8960a;
   border-radius: 4px;
   padding: 4px 4px;
 }
 
-/* ── Football journey inspector ─────────────────────────────────────── */
+/* ── Football journey inspector ── */
 .inspector-field-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  font-size: 10px;
+  font-family: var(--s-font);
+  font-weight: 600;
+  letter-spacing: 0.04em;
   padding: 4px 0;
   gap: 8px;
 }
-.inspector-field-label { color: var(--color-border-mid); flex-shrink: 0; }
-.inspector-field-value  { color: var(--color-text); font-variant-numeric: tabular-nums; }
-
-.inspector-hint {
-  font-size: 11px;
-  color: var(--color-border-mid);
-  padding: 4px 0 6px;
-  line-height: 1.4;
+.inspector-field-label {
+  color: var(--s-text-dim);
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+.inspector-field-value {
+  color: var(--s-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
-/* Journey section — mirrors .inspector-segments layout */
+.inspector-hint {
+  font-size: 10px;
+  font-family: var(--s-font);
+  color: var(--s-text-dim);
+  padding: 4px 0 6px;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+}
+
 .inspector-journey-section {
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding-top: 4px;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--s-border-hard);
   margin-top: 6px;
 }
 
-/* Column header — mirrors .inspector-segments-col-header */
 .journey-col-header {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--s-font);
+  color: var(--s-text-dim);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   padding: 2px 0 0;
 }
 .journey-hdr-at   { width: 38px; flex-shrink: 0; text-align: center; }
 .journey-hdr-type { width: 62px; flex-shrink: 0; }
 .journey-hdr-to   { flex: 1; }
 
-/* Each event — no card border, flat row like segment rows */
 .inspector-journey-event {
   display: flex;
   flex-direction: column;
@@ -359,7 +446,7 @@
   gap: 4px;
 }
 
-/* Time input — sized to match header width */
+/* Journey inputs — recessed wells */
 .inspector-body input.journey-time-input[type="number"] {
   width: 38px;
   min-width: 0;
@@ -367,20 +454,21 @@
   height: 20px;
   flex-shrink: 0;
   font-size: 11px;
-  font-family: inherit;
+  font-family: var(--s-font);
+  font-weight: 700;
   padding: 0 3px;
   text-align: center;
-  border: 1px solid var(--color-border-mid);
-  border-radius: 3px;
-  background: var(--color-panel-alt);
-  color: var(--color-text);
+  border: 1px solid var(--s-border-hard);
+  border-radius: 2px;
+  background: var(--s-well);
+  box-shadow: var(--s-well-shadow);
+  color: var(--s-text-muted);
   -moz-appearance: textfield;
   box-sizing: border-box;
 }
 .inspector-body input.journey-time-input[type="number"]::-webkit-inner-spin-button,
 .inspector-body input.journey-time-input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
-/* Type + player selects */
 .inspector-body select.journey-type-select {
   width: 62px;
   min-width: 0;
@@ -388,11 +476,13 @@
   height: 20px;
   flex-shrink: 0;
   font-size: 11px;
+  font-family: var(--s-font);
   padding: 0 2px;
-  border: 1px solid var(--color-border-mid);
-  border-radius: 3px;
-  background: var(--color-panel-alt);
-  color: var(--color-text);
+  border: 1px solid var(--s-border-hard);
+  border-radius: 2px;
+  background: var(--s-well);
+  box-shadow: var(--s-well-shadow);
+  color: var(--s-text-muted);
   box-sizing: border-box;
 }
 .inspector-body select.journey-player-select {
@@ -401,11 +491,13 @@
   min-height: 0 !important;
   height: 20px;
   font-size: 11px;
+  font-family: var(--s-font);
   padding: 0 2px;
-  border: 1px solid var(--color-border-mid);
-  border-radius: 3px;
-  background: var(--color-panel-alt);
-  color: var(--color-text);
+  border: 1px solid var(--s-border-hard);
+  border-radius: 2px;
+  background: var(--s-well);
+  box-shadow: var(--s-well-shadow);
+  color: var(--s-text-muted);
   box-sizing: border-box;
 }
 
@@ -415,18 +507,20 @@
   flex-shrink: 0;
   border: none;
   background: transparent;
-  color: var(--color-danger, #dc2626);
+  color: var(--s-danger);
   font-size: 14px;
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
+  transition: background 0.08s;
 }
-.journey-delete-btn:hover { background: color-mix(in srgb, var(--color-danger, #dc2626) 15%, transparent); }
+.journey-delete-btn:hover {
+  background: color-mix(in srgb, var(--s-danger) 15%, transparent);
+}
 
-/* Flight duration row — pass/toss only, same pattern as segment duration */
 .journey-flight-row {
   display: flex;
   align-items: center;
@@ -434,11 +528,12 @@
   padding-left: 10px;
 }
 .journey-flight-label {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--s-font);
+  color: var(--s-text-dim);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -447,20 +542,20 @@
   min-width: 0;
 }
 
-/* Arc sub-row — indented, appears only under pass/toss rows */
 .journey-arc-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding-left: 42px; /* aligns under Type column */
+  padding-left: 42px;
   margin-bottom: 2px;
 }
 .journey-arc-status {
   font-size: 10px;
+  font-family: var(--s-font);
   white-space: nowrap;
 }
-.arc-drawn   { color: var(--color-accent); }
-.arc-missing { color: var(--color-border-mid); font-style: italic; }
+.arc-drawn   { color: var(--s-accent-border); }
+.arc-missing { color: var(--s-text-dim); }
 
 .journey-add-row {
   display: flex;

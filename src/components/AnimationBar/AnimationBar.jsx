@@ -3,6 +3,7 @@ import { useShallow } from 'zustand/shallow';
 import useAnimationStore, { getDuration } from '../../store/useAnimationStore';
 import useDataStore from '../../store/useDataStore';
 import { SPEEDS } from '../../constants/animationConfig';
+import { triggerHaptic } from '../../utils/haptics';
 import './AnimationBar.css';
 
 export default function AnimationBar() {
@@ -25,7 +26,8 @@ export default function AnimationBar() {
   return (
     <div className={`anim-bar${disabled ? ' anim-bar-disabled' : ''}`}>
       <button
-        className={`anim-btn anim-toggle${animationEnabled ? ' active' : ''}`}
+        className={`anim-toggle${animationEnabled ? ' active' : ''}`}
+        onPointerDown={triggerHaptic}
         onClick={toggleAnimation}
         title={animationEnabled ? 'Disable animation' : 'Enable animation'}
       >
@@ -34,6 +36,7 @@ export default function AnimationBar() {
 
       <button
         className="anim-btn"
+        onPointerDown={triggerHaptic}
         onClick={reset}
         disabled={disabled}
         title="Reset to start"
@@ -43,6 +46,7 @@ export default function AnimationBar() {
 
       <button
         className="anim-btn anim-play"
+        onPointerDown={triggerHaptic}
         onClick={isPlaying ? pause : play}
         disabled={disabled || noRoutes}
         title={isPlaying ? 'Pause' : 'Play'}

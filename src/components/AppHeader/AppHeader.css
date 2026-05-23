@@ -2,13 +2,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--color-panel);
-  border-bottom: 2px solid var(--color-border);
+  background: var(--s-panel);
+  border-bottom: 1px solid var(--s-border-hard);
+  box-shadow: var(--s-panel-shadow);
   height: 48px;
   width: 100%;
   padding: 0 8px;
   flex-shrink: 0;
   gap: 8px;
+  font-family: var(--s-font);
 }
 
 .app-header-nav {
@@ -35,25 +37,51 @@
   flex-shrink: 0;
 }
 
+/* Add button — accent/pressed state, it's a primary action */
 .app-header-add-btn {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-accent-text);
-  font-weight: 600;
+  background: var(--s-accent);
+  border: 1px solid var(--s-accent-border);
+  border-radius: 2px;
+  box-shadow: 0 2px 0 var(--s-accent-border), inset 0 1px 0 rgba(255,255,255,0.15);
+  color: var(--s-accent-text);
+  font-family: var(--s-font);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  height: 30px;
+  padding: 0 14px;
+  cursor: pointer;
   flex-shrink: 0;
+  transition: filter 0.06s ease;
+  touch-action: manipulation;
 }
 
-.app-header-add-btn:hover:not(:disabled) {
-  opacity: 0.85;
-  background: var(--color-accent) !important;
-}
+.app-header-add-btn:hover:not(:disabled) { filter: brightness(1.1); }
 
+/* Brand — raised bevel button, links to TFM site */
 .app-header-brand {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
-  padding: 0 8px;
+  padding: 0 10px;
+  height: 30px;
+  background: var(--s-btn-face);
+  border: 1px solid var(--s-border-hard);
+  border-radius: 2px;
+  box-shadow: var(--s-btn-raised);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.06s ease, box-shadow 0.06s ease, filter 0.06s ease;
+}
+
+.app-header-brand:hover { filter: brightness(1.12); }
+
+.app-header-brand:active {
+  background: var(--s-btn-active-face);
+  box-shadow: var(--s-btn-pressed);
+  transform: translateY(2px);
 }
 
 .app-brand-logo {
