@@ -259,7 +259,7 @@ function FootballInspector({ football, elements, allPlayers }) {
 }
 
 export default function Inspector() {
-  const { getActivePlay, selectedId, updateElement, updateSegment, marqueeIds, linkPlayerToRoute, unlinkPlayerFromRoute } = useDataStore();
+  const { getActivePlay, selectedId, updateElement, updateSegment, updateSegmentLive, pushHistory, marqueeIds, linkPlayerToRoute, unlinkPlayerFromRoute } = useDataStore();
   const { theme } = useUIStore();
   const elements = getActivePlay()?.elements || [];
   const allPaths   = elements.filter(el => el.type === 'path');
@@ -597,7 +597,9 @@ export default function Inspector() {
                     <input
                       type="range" min="0.1" max="3.0" step="0.1"
                       value={seg.duration ?? 0.5}
-                      onChange={e => updateSegment(selected.id, seg.id, { duration: parseFloat(e.target.value) })}
+                      onChange={e => updateSegmentLive(selected.id, seg.id, { duration: parseFloat(e.target.value) })}
+                      onPointerUp={() => pushHistory()}
+                      onTouchEnd={() => pushHistory()}
                       onKeyDown={e => e.stopPropagation()}
                     />
                     <input
@@ -605,8 +607,9 @@ export default function Inspector() {
                       value={seg.duration ?? 0.5}
                       onChange={e => {
                         const v = parseFloat(e.target.value);
-                        if (!isNaN(v)) updateSegment(selected.id, seg.id, { duration: Math.max(0.1, Math.min(3.0, v)) });
+                        if (!isNaN(v)) updateSegmentLive(selected.id, seg.id, { duration: Math.max(0.1, Math.min(3.0, v)) });
                       }}
+                      onBlur={() => pushHistory()}
                       onWheel={e => {
                         e.preventDefault();
                         const cur = seg.duration ?? 0.5;

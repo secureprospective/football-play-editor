@@ -92,7 +92,7 @@ The app is in a 6-phase cleanup sweep right now. Some phases ship visible fixes;
 |---|---|---|---|
 | A | Code cleanup — dead code, unused files | No | ✅ Shipped |
 | B | Visible bug fixes (3 fixes — see below) | **Yes** | ✅ Shipped |
-| C | Inspector duration slider responsiveness | **Yes** (subtle) | ⏳ Not started |
+| C | Inspector duration slider responsiveness | **Yes** (subtle) | ✅ Shipped |
 | D | App-wide performance sweep | No | ⏳ Not started |
 | E | Animation runtime tuning | No | ⏳ Not started |
 | F | Storage-full warning banner | **Yes** (new banner) | ⏳ Not started |
@@ -106,7 +106,7 @@ Time and token budget will decide whether these ship in one session or several. 
 | B | ✅ Shipped | **Print Mode staging buttons** that appeared blank now show a visible background (Text/Plays toggle, Youth/Adult toggle, Clear/Print) |
 | B | ✅ Shipped | **Print queue no longer shows old play data** — if you queued a play, edited it, then printed, the card showed the pre-edit version. Now resolves the live play at print time. |
 | B | ✅ Shipped | **Present Mode blur on older Safari** — frosted backdrop on the bottom bar now renders correctly |
-| C | ⏳ Coming | **Inspector duration slider** feels responsive on cheap tablets — was generating excess work per drag |
+| C | ✅ Shipped | **Inspector duration slider** feels responsive on cheap tablets — was generating excess work per drag |
 | F | ⏳ Coming | **Storage full warning** — visible banner if your browser storage fills, before you lose any work |
 
 Phases A, D, and E are invisible — code organization and performance improvements that make the app faster without changing what you see.

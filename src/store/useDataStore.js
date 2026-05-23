@@ -397,6 +397,20 @@ const useDataStore = create((set, get) => ({
     pushHistory();
   },
 
+  // Like updateSegment but does NOT push a history entry — use during continuous drag.
+  // Call pushHistory() explicitly on pointer/touch up to commit one undo step.
+  updateSegmentLive: (pathId, segmentId, changes) => {
+    const { activePlaybookId, activeFormationId, activePlayId, getActivePlay } = get();
+    const play = getActivePlay();
+    if (!play) return;
+    get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
+      elements: play.elements.map(el => {
+        if (el.id !== pathId) return el;
+        return { ...el, segments: el.segments.map(seg => seg.id === segmentId ? { ...seg, ...changes } : seg) };
+      }),
+    });
+  },
+
   deleteElement: (id) => {
     if (id === 'scrimmage_line') return;
     const { pushHistory, activePlaybookId, activeFormationId, activePlayId, getActivePlay } = get();
@@ -577,23 +591,21 @@ const useDataStore = create((set, get) => ({
   },
 
   undo: () => {
-    const { history, historyIndex, activePlaybookId, activeFormationId, activePlayId } = get();
+    const { history, historyIndex, activePlaybookId, activeFormationId, activePlayId, selectedId } = get();
     if (historyIndex <= 0) return;
-    const prev = history[historyIndex - 1];
-    get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
-      elements: JSON.parse(JSON.stringify(prev)),
-    });
-    set({ historyIndex: historyIndex - 1, selectedId: null, marqueeIds: [] });
+    const restored = JSON.parse(JSON.stringify(history[historyIndex - 1]));
+    get().updatePlay(activePlaybookId, activeFormationId, activePlayId, { elements: restored });
+    const keepSelected = selectedId && restored.some(el => el.id === selectedId);
+    set({ historyIndex: historyIndex - 1, selectedId: keepSelected ? selectedId : null, marqueeIds: [] });
   },
 
   redo: () => {
-    const { history, historyIndex, activePlaybookId, activeFormationId, activePlayId } = get();
+    const { history, historyIndex, activePlaybookId, activeFormationId, activePlayId, selectedId } = get();
     if (historyIndex >= history.length - 1) return;
-    const next = history[historyIndex + 1];
-    get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
-      elements: JSON.parse(JSON.stringify(next)),
-    });
-    set({ historyIndex: historyIndex + 1, selectedId: null, marqueeIds: [] });
+    const restored = JSON.parse(JSON.stringify(history[historyIndex + 1]));
+    get().updatePlay(activePlaybookId, activeFormationId, activePlayId, { elements: restored });
+    const keepSelected = selectedId && restored.some(el => el.id === selectedId);
+    set({ historyIndex: historyIndex + 1, selectedId: keepSelected ? selectedId : null, marqueeIds: [] });
   },
 
   canUndo: () => get().historyIndex > 0,
