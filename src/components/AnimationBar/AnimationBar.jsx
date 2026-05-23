@@ -1,18 +1,21 @@
 import { useEffect } from 'react';
+import { useShallow } from 'zustand/shallow';
 import useAnimationStore, { getDuration } from '../../store/useAnimationStore';
 import useDataStore from '../../store/useDataStore';
 import { SPEEDS } from '../../constants/animationConfig';
 import './AnimationBar.css';
 
 export default function AnimationBar() {
-  const {
-    isPlaying, currentTime, playbackSpeed, animationEnabled,
-    play, pause, reset, seek, setSpeed, toggleAnimation,
-  } = useAnimationStore();
+  const { isPlaying, currentTime, playbackSpeed, animationEnabled,
+          play, pause, reset, seek, setSpeed, toggleAnimation } = useAnimationStore(useShallow(s => ({
+    isPlaying: s.isPlaying, currentTime: s.currentTime, playbackSpeed: s.playbackSpeed,
+    animationEnabled: s.animationEnabled, play: s.play, pause: s.pause, reset: s.reset,
+    seek: s.seek, setSpeed: s.setSpeed, toggleAnimation: s.toggleAnimation,
+  })));
 
-  const { getActivePlay, activePlayId } = useDataStore();
-  const elements = getActivePlay()?.elements || [];
-  const duration = getDuration(elements);
+  const activePlayId = useDataStore(s => s.activePlayId);
+  const elements     = useDataStore(s => s.getActivePlay()?.elements || []);
+  const duration     = getDuration(elements);
 
   useEffect(() => { reset(); }, [activePlayId]);
 
