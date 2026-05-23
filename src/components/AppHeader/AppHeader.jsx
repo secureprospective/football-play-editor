@@ -5,8 +5,8 @@ import useUIStore from '../../store/useUIStore';
 import { THEME_LOGO } from '../../constants/themeColors';
 
 export default function AppHeader({ crumbs = [], active, onAdd, addLabel, actions }) {
-  const { goBack } = useDataStore();
-  const { theme } = useUIStore();
+  const goBack = useDataStore(s => s.goBack);
+  const theme  = useUIStore(s => s.theme);
   const logo = THEME_LOGO[theme] || THEME_LOGO['theme-sun-cyan'];
 
   return (
