@@ -197,9 +197,58 @@ Push to `lite` → Lite site auto-deploys. Push to `main` → Full site auto-dep
   - Removed hard-coded hold in animationRuntime.js — pre-snap segments now interpolate like any other segment
   - Pre-snap flag is a visual/rendering concept (dashed line) only; it no longer freezes the player during playback
 
-### Football animation — next major feature
-- Planning doc: docs/FOOTBALL_ANIMATION_PLAN.md
-- Handoff prompt: docs/FOOTBALL_ANIMATION_PROMPT.md (trigger: "football")
+### Phase 6 — Football animation + UI polish: COMPLETE
+
+- Architecture refactor: COMPLETE
+  - useEditorStore split into useDataStore (elements, history, selection) + useUIStore (tool, drawing, theme, present/print)
+  - useFieldInteraction stabilized via getState() — no stale closures in pointer handlers
+
+- Per-segment delay field: COMPLETE
+  - delay: float (seconds) on every route segment (default 0, migration via ?? 0)
+  - Inspector: compact text input in segment row header (specificity fix: `.inspector-body input.seg-delay-input[type="text"]`)
+  - Animation runtime: delay window holds player at segment start before interpolation begins
+
+- Football journey model: COMPLETE
+  - journey: { snapToPlayer, events[] } on football element
+  - Events: handoff (instant), toss (10% slower than snap), pass (same as snap)
+  - Flight constants: SNAP_REAL_SECS=0.13915s, TOSS=SNAP×1.1, PASS=SNAP (exported from animationRuntime.js)
+  - Snap: linear flight from LOS to carrier at snapTime
+  - Handoff: instant transfer at event.time
+  - Pass/Toss: linear flight from thrower to interceptPoint (or receiver's catch position as default)
+  - Arc drawing removed entirely — replaced by draggable ◇ intercept node
+  - interceptPoint: {x,y} | null stored on pass/toss events; null = receiver's animated position at catch time
+  - Per-event flight duration slider (0.05–0.80s) in inspector; null = use constant default
+  - ⚑ FLAG: flight duration slider layout marked for possible future refinement
+
+- Football tool toggle: COMPLETE
+  - Clicking football tool when football exists toggles selection (no canvas click needed)
+  - Football selected → renders in Layer 2 (above players); unselected → Layer 1 (below players)
+  - Uses activeTool useEffect in useFieldInteraction — fires on button press, not canvas interaction
+
+- Intercept node (◇): COMPLETE
+  - Yellow dashed diamond renders for each pass/toss event when football is selected
+  - Draggable with snap-to-grid; hit radius 16px; history pushed once on drag end (not per-move)
+  - Inspector shows "Target ✓" / "Drag ◇ on field to set target"
+  - getInterceptPoint() exported from animationRuntime — used by both FieldRenderer and useFieldInteraction
+
+- In-flight ring: COMPLETE
+  - Yellow selection ring on football during: snap flight (SNAP_REAL_SECS window), handoff (0.1s pulse), pass/toss (per event.duration ?? constant)
+  - isFootballInFlight() pure function exported from animationRuntime; called in renderFootball()
+  - Works identically in editor and Present Mode
+
+- Journey Events inspector: COMPLETE
+  - Column-header table layout (At · Type · To) — matches Segment section pattern
+  - Flat borderless rows; arc sub-row replaced with target hint + flight duration slider
+  - CSS specificity pattern: `.inspector-body select.journey-type-select` to beat global 44px rule
+
+- Present Mode hide/show panel: COMPLETE
+  - Thin 28px strip always anchored at bottom with ▼ Hide / ▲ Show label
+  - Tapping slides scrub bar + control bar off screen (max-height + opacity CSS transition)
+  - Resets to visible each time Present Mode opens (local useState, not persisted)
+
+- Rebrand: COMPLETE
+  - "Lite" removed from AppHeader, PresentOverlay, Toolbar, index.html, vite.config.js
+  - App is now "TFM Playbook" throughout
 
 ---
 
@@ -240,59 +289,20 @@ Version 1.0 is complete and frozen. Bug fixes and minor QoL improvements only �
 Do not add features that compromise performance on limited hardware.
 
 ### TFM Playbook (full — main branch → tfm-playbook.pages.dev)
-**Phase 2 (animation foundation) is the next active work.** All Phase 2+ session branches merge to `main`.
-To start it, Christopher will say "start TFM Phase 2" — read the prompt at:
-`docs/PHASE2_PROMPT.md`
+Phases 1–6 complete. Active development continues on main. All session branches merge to main.
 
-That prompt is self-contained. Read it fully before doing anything else in an animation session.
-
-Mobile phone support comes after animation is complete.
+Mobile phone support deferred until football animation arc is fully stabilized.
 
 ---
 
 ## What is next (immediate)
-Phases 1–5 S2 complete. Next: football animation (Options A + B).
-Trigger phrase: "football" → reads docs/FOOTBALL_ANIMATION_PROMPT.md
+Phase 6 complete. Football animation is fully functional.
 
-Deferred (not blocking animation arc):
-- Card refactor — useCardInteraction hook + CardShell
-- Route branching (option route)
-
-## Animation Phase — Pre-planning Notes
-*Resolve these before the animation planning session starts.*
-
-### Questions — ANSWERED
-1. **Playback style: Simultaneous.** All players move at once from the snap. No sequenced unfolding.
-
-2. **Where animation lives: Field editor + Present Mode.**
-   - Field editor: full animation controls (play, scrub, timing)
-   - Present Mode: play and replay only. A toggle to disable animation entirely so the app doesn't load animation data when the coach doesn't need it — keeps memory slim on cheap tablets.
-
-3. **Timing model: Option B — Choreographed per-segment timing.**
-   Uses the `duration` field already on every route segment (built in Phase 1). Each segment plays at its own speed — short routes are faster, deep routes take longer, pre-snap motion has its own pace. This matches real football timing (QB drop on count 3, crosser hits window at count 4, etc.).
-   
-   ⚑ FLAG — Christopher's note: "We might need to test it for variations in the controls like stops and starts or something unforeseen. Things might become clearer when we get there." Do not over-engineer timing controls before seeing how choreographed playback feels in practice. Build the basic per-segment duration first, then let real testing reveal what's missing.
-
-### Code changes required before animation can start
-
-**1. Player-route linkage — critical, data model change**
-The `elements` array is flat. Players and routes have no data relationship. There is no `routeId` on a player or `playerId` on a path. Animation cannot work without knowing "player X follows route Y." Requires a design decision (one player owns one route? routes can be unowned?) and a data migration similar to the segment migration already in the store. Do this in its own session before animation.
-
-**2. FieldCanvas.jsx split — important, do before animation**
-677 lines mixing interaction events, drawing logic, rendering, and Konva state. Animation requires driving the render layer from a timeline, not React events. Plan a refactor session to separate rendering from interaction before the animation build starts.
-
-**3. Animation state must be a separate store — architecture decision**
-History (undo/redo) in useEditorStore snapshots full play element state. Animation playback state (isPlaying, currentTime, frame) must never touch this stack. Wire animation as a separate lightweight Zustand store. Plan this boundary explicitly during the architecture session.
-
-**4. Konva code splitting — bundle size**
-The chunk size warning is from Konva. Animation will add Konva tween/animation APIs and grow the bundle further. Address with dynamic import() code splitting before or during the animation phase.
-
-### Recommended session order before animation build
-1. QoL / UI polish (current focus)
-2. Player-route linkage (data model session)
-3. FieldCanvas refactor (render/interaction split)
-4. Animation architecture planning
-5. Animation build
+Active work areas:
+- UI polish pass — inspector layout refinements, Present Mode UX
+- Flight duration slider refinement (⚑ flagged)
+- Route branching (option route) — deferred indefinitely
+- Card refactor — useCardInteraction hook + CardShell — deferred
 
 ---
 
