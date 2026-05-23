@@ -59,20 +59,30 @@
 
 .app-header-add-btn:hover:not(:disabled) { filter: brightness(1.1); }
 
-/* Brand — same treatment as Toolbar. Renders as <a> link to TFM site */
+/* Brand — raised bevel button, links to TFM site */
 .app-header-brand {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
-  padding: 0 8px;
+  padding: 0 10px;
+  height: 30px;
+  background: var(--s-btn-face);
+  border: 1px solid var(--s-border-hard);
+  border-radius: 2px;
+  box-shadow: var(--s-btn-raised);
   text-decoration: none;
   cursor: pointer;
-  opacity: 1;
-  transition: opacity 0.1s ease;
+  transition: transform 0.06s ease, box-shadow 0.06s ease, filter 0.06s ease;
 }
 
-.app-header-brand:hover { opacity: 0.75; }
+.app-header-brand:hover { filter: brightness(1.12); }
+
+.app-header-brand:active {
+  background: var(--s-btn-active-face);
+  box-shadow: var(--s-btn-pressed);
+  transform: translateY(2px);
+}
 
 .app-brand-logo {
   height: 30px;
@@ -85,7 +95,7 @@
   font-family: 'Cinzel', serif;
   font-size: 13px;
   font-weight: 600;
-  color: var(--s-text-dim);
+  color: var(--color-text);
   white-space: nowrap;
   letter-spacing: 0.05em;
 }
