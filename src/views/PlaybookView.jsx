@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useShallow } from 'zustand/shallow';
 import './Views.css';
 import useDataStore from '../store/useDataStore';
 import useUIStore from '../store/useUIStore';
@@ -96,8 +97,13 @@ function PlaybookCard({
 }
 
 export default function PlaybookView() {
-  const { playbooks, navigateTo, addPlaybook, deletePlaybook, updatePlaybook, reorderPlaybooks } = useDataStore();
-  const { printModeActive, togglePrintMode } = useUIStore();
+  const { navigateTo, addPlaybook, deletePlaybook, updatePlaybook, reorderPlaybooks } = useDataStore(useShallow(s => ({
+    navigateTo: s.navigateTo, addPlaybook: s.addPlaybook,
+    deletePlaybook: s.deletePlaybook, updatePlaybook: s.updatePlaybook,
+    reorderPlaybooks: s.reorderPlaybooks,
+  })));
+  const playbooks = useDataStore(s => s.playbooks);
+  const { printModeActive, togglePrintMode } = useUIStore(useShallow(s => ({ printModeActive: s.printModeActive, togglePrintMode: s.togglePrintMode })));
 
   const [showInput, setShowInput]     = useState(false);
   const [newName, setNewName]         = useState('');
