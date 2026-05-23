@@ -296,12 +296,20 @@ Mobile phone support deferred until football animation arc is fully stabilized.
 ---
 
 ## What is next (immediate)
-Phase 6 complete. Football animation is fully functional.
+Phase 6 complete. Full codebase audit completed by Opus (2026-05-23) — 6-phase cleanup plan written to `docs/AUDIT_CLEANUP_PLAN.md`.
 
-**Next session: Full codebase audit — dead code, architecture, cross-browser, scale risks.**
-Trigger phrase: `football` → reads `docs/AUDIT_PROMPT.md` — read it fully before doing anything.
+**Next session: Execute the audit cleanup plan (intended executor: Sonnet).**
+Trigger phrase: `football` → reads `docs/AUDIT_CLEANUP_PLAN.md` — read it fully before doing anything. The plan requires Sonnet to also load `/mnt/storage/claudebox/Christopher_in_Context.md` and `/mnt/storage/claudebox/VSCode_workflow.md` at session start.
 
-Active work areas after audit:
+Cleanup plan phases (run in order, one per session):
+- Phase A — Mechanical cleanup (dead code, unused destructures, stale assets)
+- Phase B — Visible bug fixes (--color-surface, printQueue stale snapshot, backdrop-filter prefix)
+- Phase C — Slider history bloat fix (duration slider draft+commit pattern)
+- Phase D — Selector sweep (useShallow conversion across ~10 files)
+- Phase E — Animation runtime hoist (snapTime computed once per frame)
+- Phase F — Storage safety net (surface localStorage quota errors)
+
+Active work areas after cleanup:
 - UI polish pass — inspector layout refinements, Present Mode UX
 - Flight duration slider refinement (⚑ flagged)
 - Route branching (option route) — deferred indefinitely

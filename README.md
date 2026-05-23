@@ -60,11 +60,57 @@ TFM Playbook is a play-drawing tool for football coaches. You can:
 
 - **Build a playbook** — organize plays by formation
 - **Draw plays** — place players, draw routes (straight or curved), add motion and blocking assignments
+- **Animate plays** — link routes to players, set per-segment durations, and watch the play run in Present Mode (full version only)
+- **Choreograph the football** — place a football, set who snaps it, then add handoff, toss, or pass events with adjustable flight time (full version only)
 - **Color-code everything** — assign colors to routes and players by role
 - **Print wristband cards** — print play diagrams that fit on a coach's wristband card
 - **Present on the sideline** — full-screen play display for showing players the play on a tablet or laptop
 
 Your playbook is saved automatically on your computer. Nothing goes to the internet.
+
+---
+
+## Recent updates
+
+**Live now in TFM Playbook (full version):**
+
+| Shipped | What's new |
+|---|---|
+| ✅ | **Football animation** — place a football, set a snap target, add handoff / toss / pass events, then hit play in Present Mode to watch the play run |
+| ✅ | **Per-event flight duration** — set how long each pass/toss/handoff takes in the football inspector |
+| ✅ | **Intercept node** — drag the yellow diamond on the field to set exactly where a pass/toss lands |
+| ✅ | **Hide/show panel** in Present Mode — collapse the bottom controls so the play fills the screen |
+| ✅ | **In-flight ring** — football glows yellow while in motion so it's easy to follow during playback |
+
+**Coming in the next 1–2 deploys (cleanup phase):**
+
+| Status | Fix |
+|---|---|
+| Coming | **Print Mode staging buttons** that appeared blank now show a visible background (Text/Plays toggle, Youth/Adult toggle, Clear/Print) |
+| Coming | **Print queue no longer shows old play data** — if you queued a play, edited it, then printed, the card showed the pre-edit version. Now resolves the live play at print time. |
+| Coming | **Inspector duration slider** will feel responsive on cheap tablets — was generating excess work per drag |
+| Coming | **Storage full warning** — visible banner if your browser storage fills, before you lose any work |
+| Coming | **Present Mode blur on older Safari** — frosted backdrop on the bottom bar now renders correctly |
+
+Most cleanup work is invisible — code organization and performance improvements that make the app faster without changing what you see.
+
+---
+
+## For testers — how to report issues
+
+If something looks wrong:
+
+1. Note what you were doing when it happened — which playbook, which formation, which play, which tool.
+2. Take a screenshot if it is a visual problem.
+3. Try refreshing the page — note whether the issue persists.
+4. Send the screenshot and short description to Christopher.
+
+**Things that are intentionally limited in this build:**
+
+- Phone screens are not supported yet (planned after animation work fully stabilizes).
+- Right-click to finish a route only works on desktop, not touch — use the **Done** button on touch.
+- Dashed line per-segment is wired in the inspector but not honored — the entire route uses one line style.
+- Curve control point drag — curves use auto-tension; manual control point is deferred.
 
 ---
 
