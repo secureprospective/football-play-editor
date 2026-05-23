@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useShallow } from 'zustand/shallow';
 import './Views.css';
 import useDataStore from '../store/useDataStore';
 import useUIStore from '../store/useUIStore';
@@ -91,18 +92,18 @@ function PlayCard({ pl, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDown, o
 }
 
 export default function PlayView() {
-  const {
-    getActivePlaybook, getActiveFormation,
-    activePlaybookId, activeFormationId,
-    navigateTo,
-    addPlay, deletePlay, updatePlay, duplicatePlay,
-    reorderPlays,
-  } = useDataStore();
+  const { navigateTo, addPlay, deletePlay, updatePlay, duplicatePlay, reorderPlays } = useDataStore(useShallow(s => ({
+    navigateTo: s.navigateTo, addPlay: s.addPlay, deletePlay: s.deletePlay,
+    updatePlay: s.updatePlay, duplicatePlay: s.duplicatePlay, reorderPlays: s.reorderPlays,
+  })));
+  const activePlaybookId  = useDataStore(s => s.activePlaybookId);
+  const activeFormationId = useDataStore(s => s.activeFormationId);
+  const formation         = useDataStore(s => s.getActiveFormation());
+  const playbook          = useDataStore(s => s.getActivePlaybook());
 
-  const { printModeActive, printQueue, togglePrintQueueItem } = useUIStore();
-
-  const formation = getActiveFormation();
-  const playbook  = getActivePlaybook();
+  const { printModeActive, printQueue, togglePrintQueueItem } = useUIStore(useShallow(s => ({
+    printModeActive: s.printModeActive, printQueue: s.printQueue, togglePrintQueueItem: s.togglePrintQueueItem,
+  })));
 
   const [showInput, setShowInput]     = useState(false);
   const [newName, setNewName]         = useState('');
