@@ -543,6 +543,20 @@ export default function Inspector() {
                     >
                       Seg {i + 1}
                     </button>
+                    <input
+                      type="number"
+                      className="seg-delay-input"
+                      min="0"
+                      max="3"
+                      step="0.1"
+                      value={seg.delay ?? 0}
+                      onChange={e => {
+                        const v = parseFloat(e.target.value);
+                        if (!isNaN(v)) updateSegment(selected.id, seg.id, { delay: Math.max(0, Math.min(3, Math.round(v * 10) / 10)) });
+                      }}
+                      onKeyDown={e => e.stopPropagation()}
+                      title="Delay before segment (s)"
+                    />
                     <button
                       className={`seg-presnap-btn ${seg.preSnap ? 'active' : ''}`}
                       onClick={() => updateSegment(selected.id, seg.id, { preSnap: !seg.preSnap })}

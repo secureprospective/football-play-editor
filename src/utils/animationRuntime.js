@@ -38,18 +38,25 @@ function playerPositionAtTime(path, currentTime) {
 
   for (const seg of path.segments) {
     if (!seg.points?.length) continue;
+    const delay    = seg.delay ?? 0;
     const duration = seg.duration ?? 0.5;
-    const p2 = seg.points[seg.points.length - 1];
+    const p2       = seg.points[seg.points.length - 1];
 
-    if (duration <= 0) {
+    if (duration <= 0 && delay <= 0) {
       lastPoint = p2;
       continue;
     }
 
-    const segEnd = segStart + duration;
+    const delayEnd = segStart + delay;
+    const segEnd   = delayEnd + duration;
+
+    if (currentTime < delayEnd) {
+      // In the delay window — player holds at the start of this segment
+      return { x: seg.points[0].x, y: seg.points[0].y };
+    }
 
     if (currentTime < segEnd) {
-      const t = Math.max(0, Math.min(1, (currentTime - segStart) / duration));
+      const t = Math.max(0, Math.min(1, (currentTime - delayEnd) / duration));
       return interpolateSegment(seg, t);
     }
 
@@ -60,10 +67,10 @@ function playerPositionAtTime(path, currentTime) {
   return lastPoint ? { x: lastPoint.x, y: lastPoint.y } : undefined;
 }
 
-// Sum all segment durations for a path.
+// Sum all segment durations (+ delays) for a path.
 function getPathDuration(path) {
   if (!path?.segments?.length) return 0;
-  return path.segments.reduce((sum, seg) => sum + (seg.duration ?? 0.5), 0);
+  return path.segments.reduce((sum, seg) => sum + (seg.delay ?? 0) + (seg.duration ?? 0.5), 0);
 }
 
 /**
@@ -76,7 +83,7 @@ export function getSnapTime(elements) {
     if (el.type !== 'path' || !el.segments) continue;
     let preSnapDuration = 0;
     for (const seg of el.segments) {
-      if (seg.preSnap) preSnapDuration += seg.duration ?? 0.5;
+      if (seg.preSnap) preSnapDuration += (seg.delay ?? 0) + (seg.duration ?? 0.5);
       else break; // pre-snap segments must be contiguous from the route start
     }
     maxPreSnap = Math.max(maxPreSnap, preSnapDuration);

@@ -11,7 +11,7 @@ export function getDuration(elements) {
   const paths = elements.filter(el => el.type === 'path' && el.segments?.length);
   if (!paths.length) return 0;
   const maxRoute = Math.max(...paths.map(path =>
-    path.segments.reduce((sum, seg) => sum + (seg.duration ?? 0.5), 0)
+    path.segments.reduce((sum, seg) => sum + (seg.delay ?? 0) + (seg.duration ?? 0.5), 0)
   ));
   return maxRoute + ANIMATION_END_BUFFER;
 }

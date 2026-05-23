@@ -170,6 +170,22 @@
   color: #f59e0b;
 }
 
+.seg-delay-input {
+  width: 38px;
+  height: 22px;
+  font-size: 11px;
+  font-family: inherit;
+  padding: 1px 3px;
+  text-align: center;
+  border: 1px solid var(--color-border-mid);
+  border-radius: 2px;
+  background: var(--color-panel);
+  color: var(--color-text);
+  -moz-appearance: textfield;
+}
+.seg-delay-input::-webkit-inner-spin-button,
+.seg-delay-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
 .seg-presnap-btn {
   background: var(--color-panel-alt);
   border: 1px solid var(--color-border-mid);
