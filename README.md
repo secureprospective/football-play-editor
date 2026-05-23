@@ -91,7 +91,7 @@ The app is in a 6-phase cleanup sweep right now. Some phases ship visible fixes;
 | Phase | What it does | Visible to you? | Status |
 |---|---|---|---|
 | A | Code cleanup — dead code, unused files | No | ✅ Shipped |
-| B | Visible bug fixes (3 fixes — see below) | **Yes** | ⏳ Not started |
+| B | Visible bug fixes (3 fixes — see below) | **Yes** | ✅ Shipped |
 | C | Inspector duration slider responsiveness | **Yes** (subtle) | ⏳ Not started |
 | D | App-wide performance sweep | No | ⏳ Not started |
 | E | Animation runtime tuning | No | ⏳ Not started |
@@ -103,9 +103,9 @@ Time and token budget will decide whether these ship in one session or several. 
 
 | Phase | Status | Fix |
 |---|---|---|
-| B | ⏳ Coming | **Print Mode staging buttons** that appeared blank now show a visible background (Text/Plays toggle, Youth/Adult toggle, Clear/Print) |
-| B | ⏳ Coming | **Print queue no longer shows old play data** — if you queued a play, edited it, then printed, the card showed the pre-edit version. Now resolves the live play at print time. |
-| B | ⏳ Coming | **Present Mode blur on older Safari** — frosted backdrop on the bottom bar now renders correctly |
+| B | ✅ Shipped | **Print Mode staging buttons** that appeared blank now show a visible background (Text/Plays toggle, Youth/Adult toggle, Clear/Print) |
+| B | ✅ Shipped | **Print queue no longer shows old play data** — if you queued a play, edited it, then printed, the card showed the pre-edit version. Now resolves the live play at print time. |
+| B | ✅ Shipped | **Present Mode blur on older Safari** — frosted backdrop on the bottom bar now renders correctly |
 | C | ⏳ Coming | **Inspector duration slider** feels responsive on cheap tablets — was generating excess work per drag |
 | F | ⏳ Coming | **Storage full warning** — visible banner if your browser storage fills, before you lose any work |
 
