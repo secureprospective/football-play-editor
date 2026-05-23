@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useShallow } from 'zustand/shallow';
 import useDataStore from '../../store/useDataStore';
 import useUIStore from '../../store/useUIStore';
 import useAnimationStore, { getDuration } from '../../store/useAnimationStore';
@@ -8,20 +9,23 @@ import { SPEEDS } from '../../constants/animationConfig';
 import './PresentOverlay.css';
 
 export default function PresentOverlay() {
-  const { getActivePlay, getActiveFormation, getActivePlaybook, activePlayId, navigateTo } = useDataStore();
-  const { togglePresentMode, theme } = useUIStore();
+  const { navigateTo } = useDataStore(useShallow(s => ({ navigateTo: s.navigateTo })));
+  const activePlayId = useDataStore(s => s.activePlayId);
+  const activePlay   = useDataStore(s => s.getActivePlay());
+  const formation    = useDataStore(s => s.getActiveFormation());
+  const playbook     = useDataStore(s => s.getActivePlaybook());
 
-  const {
-    isPlaying, currentTime, animationEnabled, playbackSpeed,
-    play: startPlay, pause, reset, toggleAnimation, setSpeed,
-  } = useAnimationStore();
+  const { togglePresentMode, theme } = useUIStore(useShallow(s => ({ togglePresentMode: s.togglePresentMode, theme: s.theme })));
 
+  const { isPlaying, currentTime, animationEnabled, playbackSpeed,
+          play: startPlay, pause, reset, toggleAnimation, setSpeed } = useAnimationStore(useShallow(s => ({
+    isPlaying: s.isPlaying, currentTime: s.currentTime, animationEnabled: s.animationEnabled,
+    playbackSpeed: s.playbackSpeed, play: s.play, pause: s.pause, reset: s.reset,
+    toggleAnimation: s.toggleAnimation, setSpeed: s.setSpeed,
+  })));
 
-  const logo      = THEME_LOGO[theme] || THEME_LOGO['theme-sun-cyan'];
-  const activePlay     = getActivePlay();
-  const formation = getActiveFormation();
-  const playbook  = getActivePlaybook();
-  const plays     = formation?.plays || [];
+  const logo   = THEME_LOGO[theme] || THEME_LOGO['theme-sun-cyan'];
+  const plays  = formation?.plays || [];
   const currentIndex = plays.findIndex(pl => pl.id === activePlayId);
 
   const elements = activePlay?.elements || [];
