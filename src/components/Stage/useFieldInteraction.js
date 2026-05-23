@@ -151,6 +151,8 @@ export function useFieldInteraction() {
         placingHighlightRef.current = null;
       }
       if ((e.key === 'Delete' || e.key === 'Backspace') && !useUIStore.getState().drawingPath) {
+        const tag = e.target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.target.isContentEditable) return;
         const { selectedId: sid, deleteElement } = useDataStore.getState();
         if (sid && sid !== 'scrimmage_line') deleteElement(sid);
       }
