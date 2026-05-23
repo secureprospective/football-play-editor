@@ -204,15 +204,15 @@ function footballPositionAtTime(football, result, pathById, playerById, t, snapT
  * Returns true when the football should show its highlight ring —
  * snap in-flight, handoff pulse (0.1s), pass/toss in-flight.
  */
-export function isFootballInFlight(football, elements, currentTime) {
+export function isFootballInFlight(football, elements, currentTime, snapTime = null) {
   if (currentTime <= 0) return false;
 
   const journey = football.journey;
   if (!journey?.snapToPlayer) return false;
 
-  const snapTime = getSnapTime(elements);
+  const st = snapTime ?? getSnapTime(elements);
 
-  if (currentTime > snapTime && currentTime < snapTime + SNAP_REAL_SECS) return true;
+  if (currentTime > st && currentTime < st + SNAP_REAL_SECS) return true;
 
   for (const event of (journey.events || [])) {
     if (event.time > currentTime) continue;

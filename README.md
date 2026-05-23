@@ -94,7 +94,7 @@ The app is in a 6-phase cleanup sweep right now. Some phases ship visible fixes;
 | B | Visible bug fixes (3 fixes — see below) | **Yes** | ✅ Shipped |
 | C | Inspector duration slider responsiveness | **Yes** (subtle) | ✅ Shipped |
 | D | App-wide performance sweep | No | ✅ Shipped |
-| E | Animation runtime tuning | No | ⏳ Not started |
+| E | Animation runtime tuning | No | ✅ Shipped |
 | F | Storage-full warning banner | **Yes** (new banner) | ⏳ Not started |
 
 Time and token budget will decide whether these ship in one session or several. The tracker above is the source of truth — if it says ⏳ Not started, that deploy has not landed yet.

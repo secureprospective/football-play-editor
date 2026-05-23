@@ -82,7 +82,7 @@ export function useFieldInteraction() {
   const theme  = useUIStore(s => s.theme);
   const colors = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
 
-  const positionsRef = useAnimationLoop();
+  const { positionsRef, snapTimeRef } = useAnimationLoop();
 
   // Stable DOM refs
   const stageRef     = useRef(null);
@@ -714,6 +714,7 @@ export function useFieldInteraction() {
     liveMarqueeIds,
     elements,
     positions: positionsRef.current,
+    snapTime: snapTimeRef.current,
     colors,
     selectedId,
     marqueeIds,

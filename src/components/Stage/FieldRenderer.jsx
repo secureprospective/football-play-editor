@@ -36,7 +36,7 @@ export default function FieldRenderer({
   elements, colors, selectedId, marqueeIds, liveMarqueeIds,
   drawingPath, mousePos, presentMode, scrimmageVisible,
   shiftHeld, hoveredId, guidingPlayerId, placingHighlight, marqueeRect, isBoxSelect,
-  positions = new Map(), currentTime = 0,
+  positions = new Map(), currentTime = 0, snapTime = 0,
 }) {
   const selectedEl = elements.find(el => el.id === selectedId);
 
@@ -186,7 +186,7 @@ export default function FieldRenderer({
   function renderFootball(el) {
     const isSelected  = !presentMode && el.id === selectedId;
     const inMarquee   = !presentMode && (liveMarqueeIds.includes(el.id) || marqueeIds.includes(el.id));
-    const isFlashing  = currentTime > 0 && isFootballInFlight(el, elements, currentTime);
+    const isFlashing  = currentTime > 0 && isFootballInFlight(el, elements, currentTime, snapTime);
     const showRing    = isSelected || isFlashing;
     const animPos = positions.get(el.id);
     let visualX = animPos?.x ?? el.x;

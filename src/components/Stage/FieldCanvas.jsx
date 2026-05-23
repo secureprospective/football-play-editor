@@ -13,7 +13,7 @@ export default function FieldCanvas() {
     cursorStyle, isBoxSelect,
     mousePos, shiftHeld, hoveredId, guidingPlayerId, placingHighlight,
     marqueeRect, liveMarqueeIds,
-    elements, positions, colors, selectedId, marqueeIds,
+    elements, positions, snapTime, colors, selectedId, marqueeIds,
     drawingPath, presentMode, scrimmageVisible,
     handlers,
   } = useFieldInteraction();
@@ -50,6 +50,7 @@ export default function FieldCanvas() {
           marqueeRect={marqueeRect}
           isBoxSelect={isBoxSelect}
           positions={positions}
+          snapTime={snapTime}
           currentTime={currentTime}
         />
       </Stage>

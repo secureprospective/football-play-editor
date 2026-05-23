@@ -1,10 +1,11 @@
 import { useRef, useEffect, useState } from 'react';
 import useAnimationStore, { getDuration } from '../../store/useAnimationStore';
 import useDataStore from '../../store/useDataStore';
-import { computePositions } from '../../utils/animationRuntime';
+import { computePositions, getSnapTime } from '../../utils/animationRuntime';
 
 export function useAnimationLoop() {
   const positionsRef = useRef(new Map());
+  const snapTimeRef  = useRef(0);
   const [, forceRender] = useState(0);
   const rafRef    = useRef(null);
   const lastTsRef = useRef(null);
@@ -21,8 +22,9 @@ export function useAnimationLoop() {
     return () => document.removeEventListener('visibilitychange', onVisibilityChange);
   }, []);
 
-  function updatePositions(newMap) {
-    positionsRef.current = newMap;
+  function updateFrame(elements, time, speed) {
+    snapTimeRef.current  = getSnapTime(elements);
+    positionsRef.current = computePositions(elements, time, speed);
     forceRender(n => n + 1);
   }
 
@@ -51,7 +53,7 @@ export function useAnimationLoop() {
       }
 
       seek(nextTime);
-      updatePositions(computePositions(elements, nextTime, playbackSpeed));
+      updateFrame(elements, nextTime, playbackSpeed);
       rafRef.current = requestAnimationFrame(tick);
     }
 
@@ -68,9 +70,9 @@ export function useAnimationLoop() {
     if (!isPlaying) {
       const elements = useDataStore.getState().getActivePlay()?.elements || [];
       const { playbackSpeed } = useAnimationStore.getState();
-      updatePositions(computePositions(elements, currentTime, playbackSpeed));
+      updateFrame(elements, currentTime, playbackSpeed);
     }
   }, [currentTime, isPlaying]);
 
-  return positionsRef;
+  return { positionsRef, snapTimeRef };
 }
