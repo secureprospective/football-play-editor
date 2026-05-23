@@ -306,3 +306,13 @@ Stack: React, Vite, Konva, Zustand, Cloudflare Pages.
 - `main` branch → [tfm-playbook.pages.dev](https://tfm-playbook.pages.dev) (active development)
 
 See `CLAUDE.md` for full build state, architecture notes, and session protocol.
+
+---
+
+## License
+
+This project is licensed under the [Business Source License 1.1](./LICENSE).  
+Free to use, modify, and self-host. Commercial use requires written permission  
+from Christopher Campbell / Tech Freedom Ministries.
+
+See `CLAUDE.md` for full build state, architecture notes, and session protocol.
