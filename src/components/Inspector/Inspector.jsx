@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useShallow } from 'zustand/shallow';
 import './Inspector.css';
 import useDataStore from '../../store/useDataStore';
 import useUIStore from '../../store/useUIStore';
@@ -259,9 +260,15 @@ function FootballInspector({ football, elements, allPlayers }) {
 }
 
 export default function Inspector() {
-  const { getActivePlay, selectedId, updateElement, updateSegment, updateSegmentLive, pushHistory, marqueeIds, linkPlayerToRoute, unlinkPlayerFromRoute } = useDataStore();
-  const { theme } = useUIStore();
-  const elements = getActivePlay()?.elements || [];
+  const { updateElement, updateSegment, updateSegmentLive, pushHistory, linkPlayerToRoute, unlinkPlayerFromRoute } = useDataStore(useShallow(s => ({
+    updateElement: s.updateElement, updateSegment: s.updateSegment,
+    updateSegmentLive: s.updateSegmentLive, pushHistory: s.pushHistory,
+    linkPlayerToRoute: s.linkPlayerToRoute, unlinkPlayerFromRoute: s.unlinkPlayerFromRoute,
+  })));
+  const selectedId = useDataStore(s => s.selectedId);
+  const marqueeIds = useDataStore(s => s.marqueeIds);
+  const elements   = useDataStore(s => s.getActivePlay()?.elements || []);
+  const theme      = useUIStore(s => s.theme);
   const allPaths   = elements.filter(el => el.type === 'path');
   const allPlayers = elements.filter(el => el.type === 'player');
   const selected = elements.find(el => el.id === selectedId);
