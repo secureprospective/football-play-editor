@@ -4,7 +4,7 @@ import useDataStore from '../../store/useDataStore';
 import useUIStore from '../../store/useUIStore';
 import { THEME_COLORS } from '../../constants/themeColors';
 import { getDuration } from '../../store/useAnimationStore';
-import { getSnapTime } from '../../utils/animationRuntime';
+import { getSnapTime, PASS_REAL_SECS, TOSS_REAL_SECS } from '../../utils/animationRuntime';
 
 function VisibilityControls({ visibility, duration, onChange }) {
   const timed = visibility?.startTime !== null && visibility?.startTime !== undefined;
@@ -207,14 +207,40 @@ function FootballInspector({ football, elements, allPlayers }) {
                     >×</button>
                   </div>
 
-                  {/* Target hint — pass/toss only */}
-                  {isInFlight && (
-                    <div className="journey-arc-row">
-                      <span className={`journey-arc-status ${evt.interceptPoint ? 'arc-drawn' : 'arc-missing'}`}>
-                        {evt.interceptPoint ? 'Target ✓' : 'Drag ◇ on field to set target'}
-                      </span>
-                    </div>
-                  )}
+                  {/* Flight duration + target status — pass/toss only */}
+                  {isInFlight && (() => {
+                    const defaultDur = evt.type === 'pass' ? PASS_REAL_SECS : TOSS_REAL_SECS;
+                    const dur = evt.duration ?? defaultDur;
+                    return (
+                      <>
+                        <div className="journey-flight-row">
+                          <span className="journey-flight-label">Flight</span>
+                          <div className="range-row">
+                            <input
+                              type="range" min="0.05" max="0.80" step="0.01"
+                              value={dur}
+                              onChange={e => updateJourneyEvent(football.id, evt.id, { duration: parseFloat(e.target.value) })}
+                              onKeyDown={e => e.stopPropagation()}
+                            />
+                            <input
+                              type="number" min="0.05" max="0.80" step="0.01"
+                              value={dur.toFixed(2)}
+                              onChange={e => {
+                                const v = parseFloat(e.target.value);
+                                if (!isNaN(v)) updateJourneyEvent(football.id, evt.id, { duration: Math.max(0.05, Math.min(0.80, v)) });
+                              }}
+                              onKeyDown={e => e.stopPropagation()}
+                            />
+                          </div>
+                        </div>
+                        <div className="journey-arc-row">
+                          <span className={`journey-arc-status ${evt.interceptPoint ? 'arc-drawn' : 'arc-missing'}`}>
+                            {evt.interceptPoint ? 'Target ✓' : 'Drag ◇ on field to set target'}
+                          </span>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               );
             })}

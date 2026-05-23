@@ -75,7 +75,7 @@ export function migrateFootball(fb) {
       events: fb.journey.events.map(evt => {
         const { arcPathId, ...rest } = evt;
         return (rest.type === 'pass' || rest.type === 'toss')
-          ? { ...rest, interceptPoint: rest.interceptPoint ?? null }
+          ? { ...rest, interceptPoint: rest.interceptPoint ?? null, duration: rest.duration ?? null }
           : rest;
       }),
     };
@@ -503,7 +503,7 @@ const useDataStore = create((set, get) => ({
     const football = play.elements.find(el => el.id === footballId);
     if (!football) return;
     const isInFlight = eventType === 'pass' || eventType === 'toss';
-    const newEvent = { id: genId('evt'), time: defaultTime, type: eventType, toPlayer: null, ...(isInFlight ? { interceptPoint: null } : {}) };
+    const newEvent = { id: genId('evt'), time: defaultTime, type: eventType, toPlayer: null, ...(isInFlight ? { interceptPoint: null, duration: null } : {}) };
     const events = [...(football.journey?.events || []), newEvent]
       .sort((a, b) => a.time - b.time);
     get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {

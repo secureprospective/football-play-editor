@@ -94,8 +94,8 @@ export function getSnapTime(elements) {
 // Flight durations — all in REAL seconds (multiplied by playbackSpeed for timeline duration).
 // Snap is the median; toss is 10% slower (soft lateral); pass is 10% faster (tight spiral).
 const SNAP_REAL_SECS = 0.13915;
-const TOSS_REAL_SECS = SNAP_REAL_SECS * 1.1;  // ~0.153s — 10% slower
-const PASS_REAL_SECS = SNAP_REAL_SECS;         // same as snap
+export const TOSS_REAL_SECS = SNAP_REAL_SECS * 1.1;  // ~0.153s — 10% slower
+export const PASS_REAL_SECS = SNAP_REAL_SECS;         // same as snap
 
 // Return the real-second flight duration for a pass/toss event type.
 function flightSecs(type) {
@@ -166,7 +166,7 @@ function footballPositionAtTime(football, result, pathById, playerById, t, snapT
     }
 
     if (event.type === 'pass' || event.type === 'toss') {
-      const flightDur  = flightSecs(event.type) * speed;
+      const flightDur  = (event.duration ?? flightSecs(event.type)) * speed;
       const catchTime  = event.time + flightDur;
 
       if (t < catchTime) {
@@ -222,7 +222,7 @@ export function isFootballInFlight(football, elements, currentTime) {
     }
 
     if (event.type === 'pass' || event.type === 'toss') {
-      if (currentTime < event.time + flightSecs(event.type)) return true;
+      if (currentTime < event.time + (event.duration ?? flightSecs(event.type))) return true;
     }
   }
 
@@ -282,6 +282,6 @@ export function getInterceptPoint(event, elements) {
     if (el.type === 'player') playerById.set(el.id, el);
   }
 
-  const catchTime = event.time + flightSecs(event.type);
+  const catchTime = event.time + (event.duration ?? flightSecs(event.type));
   return carrierPosAt(event.toPlayer, catchTime, pathById, playerById);
 }

@@ -426,6 +426,27 @@
 }
 .journey-delete-btn:hover { background: color-mix(in srgb, var(--color-danger, #dc2626) 15%, transparent); }
 
+/* Flight duration row — pass/toss only, same pattern as segment duration */
+.journey-flight-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 10px;
+}
+.journey-flight-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.journey-flight-row .range-row {
+  flex: 1;
+  min-width: 0;
+}
+
 /* Arc sub-row — indented, appears only under pass/toss rows */
 .journey-arc-row {
   display: flex;
