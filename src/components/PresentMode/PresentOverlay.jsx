@@ -63,7 +63,6 @@ export default function PresentOverlay() {
       pause();
     } else if (currentTime > 0) {
       reset();
-      startPlay();
     } else {
       startPlay();
     }
