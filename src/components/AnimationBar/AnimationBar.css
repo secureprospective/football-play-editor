@@ -2,31 +2,67 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 12px;
+  padding: 0 10px;
   height: 100%;
-  background: var(--color-panel-alt);
-  border-top: 1px solid var(--color-border);
+  background: var(--s-panel-deep);
+  border-top: 1px solid var(--s-border-hard);
+  box-shadow: var(--s-bar-shadow);
   overflow: hidden;
+  font-family: var(--s-font);
 }
 
-.anim-btn {
-  background: var(--color-panel);
-  border: 1px solid var(--color-border-mid);
-  border-radius: 2px;
-  color: var(--color-text);
-  font-size: 13px;
+/* Anim toggle tab — always shows accent: it is the mode indicator */
+.anim-toggle {
+  height: 30px;
   padding: 0 10px;
-  height: 36px;
-  min-width: 36px;
+  background: var(--s-btn-face);
+  border: 1px solid var(--s-border-hard);
+  border-radius: 2px;
+  box-shadow: var(--s-btn-raised);
+  color: var(--s-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--s-font);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
-  font-family: inherit;
+  transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.06s ease, color 0.06s ease;
+  touch-action: manipulation;
 }
 
-.anim-btn:hover:not(:disabled) {
-  background: var(--color-panel-alt);
-  border-color: var(--color-accent);
+.anim-toggle.active {
+  background: var(--s-accent);
+  border-color: var(--s-accent-border);
+  box-shadow: 0 2px 0 var(--s-accent-border), inset 0 1px 0 rgba(255,255,255,0.15);
+  color: var(--s-accent-text);
+}
+
+/* Standard transport button (reset ◀◀) */
+.anim-btn {
+  width: 34px;
+  height: 34px;
+  background: var(--s-btn-face);
+  border: 1px solid var(--s-border-hard);
+  border-radius: 3px;
+  box-shadow: var(--s-btn-raised);
+  color: var(--s-text-muted);
+  font-size: 13px;
+  font-family: var(--s-font);
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.06s ease, color 0.06s ease;
+  touch-action: manipulation;
+}
+
+.anim-btn:hover:not(:disabled) { filter: brightness(1.12); }
+.anim-btn:active:not(:disabled) {
+  background: var(--s-btn-active-face);
+  box-shadow: var(--s-btn-pressed);
+  transform: translateY(2px);
 }
 
 .anim-btn:disabled {
@@ -34,21 +70,53 @@
   cursor: default;
 }
 
-.anim-toggle.active {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-accent-text);
-}
-
+/* Play button — distinct housing, green family */
 .anim-play {
+  background: var(--s-play-face);
+  border-color: var(--s-play-border);
+  color: var(--s-play-color);
   font-size: 15px;
-  min-width: 40px;
+  width: 34px;
+  height: 34px;
 }
 
+.anim-play:hover:not(:disabled) { filter: brightness(1.15); }
+
+/* Timeline track — recessed carved slot */
+.anim-scrub-track {
+  flex: 1;
+  min-width: 0;
+  height: 14px;
+  background: var(--s-well);
+  border: 1px solid var(--s-border-hard);
+  border-radius: 2px;
+  box-shadow: var(--s-well-shadow);
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Native range — sits inside the track, styled to match */
 .anim-scrub {
   flex: 1;
   min-width: 0;
-  accent-color: var(--color-accent);
+  accent-color: var(--s-accent-border);
+  height: 14px;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  appearance: auto;
+  -webkit-appearance: auto;
+}
+
+/* Fallback: direct range (no track wrapper) */
+.anim-bar > .anim-scrub {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--s-accent-border);
   height: 28px;
   cursor: pointer;
 }
@@ -58,9 +126,13 @@
   cursor: default;
 }
 
+/* Time readout — monospace, muted */
 .anim-time {
-  font-size: 11px;
-  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--s-font);
+  color: var(--s-text-dim);
+  letter-spacing: 0.06em;
   white-space: nowrap;
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
@@ -68,17 +140,22 @@
   text-align: center;
 }
 
+/* Speed selector — raised control to match button language */
 .anim-speed {
-  background: var(--color-panel);
-  border: 1px solid var(--color-border-mid);
+  height: 28px;
+  background: var(--s-btn-face);
+  border: 1px solid var(--s-border-hard);
   border-radius: 2px;
-  color: var(--color-text);
-  font-size: 12px;
-  padding: 0 4px;
-  height: 36px;
+  box-shadow: var(--s-btn-raised);
+  color: var(--s-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--s-font);
+  letter-spacing: 0.04em;
+  padding: 0 6px;
   cursor: pointer;
   flex-shrink: 0;
-  font-family: inherit;
+  transition: box-shadow 0.06s ease, background 0.06s ease;
 }
 
 .anim-speed:disabled {
@@ -86,7 +163,9 @@
   cursor: default;
 }
 
+/* Disabled state — dims everything except the Anim toggle */
 .anim-bar-disabled .anim-btn:not(.anim-toggle),
+.anim-bar-disabled .anim-play,
 .anim-bar-disabled .anim-scrub,
 .anim-bar-disabled .anim-time,
 .anim-bar-disabled .anim-speed {

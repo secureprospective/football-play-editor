@@ -9,21 +9,25 @@
   z-index: 10;
 }
 
+/* Frosted glass panel — field stays visible through controls */
 .present-overlay-inner {
   display: flex;
   flex-direction: row;
   gap: 12px;
   padding: 12px 16px;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.6);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
+  border-top: 1px solid rgba(255,255,255,0.08);
   pointer-events: all;
 }
 
+/* Caption input — recessed into glass panel */
 .present-input {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 2px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
   color: #ffffff;
   font-size: 32px;
   font-weight: 700;
@@ -34,21 +38,24 @@
   flex: 1;
   min-width: 0;
   box-sizing: border-box;
+  transition: border-color 0.1s, background 0.1s;
 }
 
 .present-input:focus {
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .present-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.25);
 }
 
+/* Prev/Next navigation buttons — raised from glass surface */
 .present-nav-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
   color: #ffffff;
   font-size: 40px;
   height: 56px;
@@ -63,6 +70,7 @@
   pointer-events: all;
   line-height: 1;
   font-family: inherit;
+  transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.06s ease;
 }
 
 .present-nav-btn:disabled {
@@ -74,6 +82,13 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
+.present-nav-btn:not(:disabled):active {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+  transform: translateY(2px);
+}
+
+/* Breadcrumbs — floating top-left */
 .present-crumbs {
   position: absolute;
   top: 12px;
@@ -84,54 +99,63 @@
   opacity: 0.5;
   pointer-events: all;
   z-index: 11;
+  font-family: var(--s-font);
 }
 
 .present-crumb-btn {
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.4);
   color: #ffffff;
-  font-size: 13px;
-  font-family: inherit;
+  font-size: 10px;
+  font-family: var(--s-font);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   padding: 0 10px;
-  height: 32px;
+  height: 28px;
   cursor: pointer;
   white-space: nowrap;
   touch-action: manipulation;
-  transition: background 0.15s;
+  transition: background 0.1s;
   max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .present-crumb-btn:hover {
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .present-crumb-sep {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 14px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
   user-select: none;
   padding: 0 2px;
 }
 
+/* Exit button — top right */
 .present-exit-btn {
   position: absolute;
   top: 12px;
   right: 12px;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
   color: rgba(255, 255, 255, 0.8);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--s-font);
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
   padding: 0 16px;
-  height: 36px;
+  height: 30px;
   cursor: pointer;
   pointer-events: all;
-  font-family: inherit;
   touch-action: manipulation;
+  transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.06s ease;
 }
 
 .present-exit-btn:hover {
@@ -139,29 +163,39 @@
   color: #ffffff;
 }
 
-/* Panel toggle strip — always anchored at bottom, above the collapsible panel */
+.present-exit-btn:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* Panel toggle strip */
 .present-panel-toggle {
   width: 100%;
   height: 28px;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.5);
   border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
+  font-family: var(--s-font);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   cursor: pointer;
   pointer-events: all;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.1s, color 0.1s;
 }
+
 .present-panel-toggle:hover {
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.7);
   color: #ffffff;
 }
 
-/* Collapsible panel wraps scrub row + bottom bar */
+/* Collapsible panel */
 .present-panel {
   display: flex;
   flex-direction: column;
@@ -176,10 +210,11 @@
   pointer-events: none;
 }
 
+/* Scrub row */
 .present-scrub-row {
   width: 100%;
   padding: 6px 0 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.6);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   display: flex;
@@ -202,18 +237,18 @@
 
 .present-scrub::-webkit-slider-runnable-track {
   height: 6px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 2px;
 }
 
 .present-scrub::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: 2px;
   background: #ffffff;
-  border: 3px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 0 rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
   margin-top: -13px;
   cursor: pointer;
   touch-action: manipulation;
@@ -221,17 +256,17 @@
 
 .present-scrub::-moz-range-track {
   height: 6px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 2px;
 }
 
 .present-scrub::-moz-range-thumb {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: 2px;
   background: #ffffff;
-  border: 3px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 0 rgba(0,0,0,0.5);
   cursor: pointer;
 }
 
@@ -240,6 +275,7 @@
   cursor: default;
 }
 
+/* Present mode controls row */
 .present-anim-controls {
   display: flex;
   align-items: center;
@@ -248,10 +284,12 @@
   margin-left: 8px;
 }
 
+/* Play button */
 .present-play-btn {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
   color: #ffffff;
   font-size: 28px;
   height: 56px;
@@ -264,11 +302,16 @@
   justify-content: center;
   line-height: 1;
   font-family: inherit;
-  transition: background 0.12s;
+  transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.06s ease;
 }
 
 .present-play-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.present-play-btn:not(:disabled):active {
+  transform: translateY(2px);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .present-play-btn:disabled {
@@ -276,14 +319,17 @@
   cursor: default;
 }
 
+/* Speed select */
 .present-speed-select {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.3);
   color: #ffffff;
-  font-size: 18px;
-  font-weight: 600;
-  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--s-font);
+  letter-spacing: 0.04em;
   height: 56px;
   min-width: 64px;
   padding: 0 8px;
@@ -297,21 +343,24 @@
   color: #ffffff;
 }
 
+/* Anim toggle */
 .present-anim-toggle {
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.3);
   color: rgba(255, 255, 255, 0.6);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--s-font);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   height: 44px;
   padding: 0 12px;
   cursor: pointer;
   touch-action: manipulation;
-  font-family: inherit;
   white-space: nowrap;
-  transition: background 0.12s, color 0.12s;
+  transition: background 0.1s, color 0.1s;
 }
 
 .present-anim-toggle:hover {
@@ -329,6 +378,7 @@
   color: rgba(255, 200, 0, 1);
 }
 
+/* TFM brand watermark */
 .present-brand {
   position: absolute;
   top: 12px;
@@ -337,7 +387,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  opacity: 0.5;
+  opacity: 0.45;
   pointer-events: none;
 }
 

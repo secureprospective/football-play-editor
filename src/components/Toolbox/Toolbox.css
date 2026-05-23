@@ -2,37 +2,71 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: var(--color-panel);
-  border-right: 2px solid var(--color-border);
-  padding: 6px 0;
+  background: var(--s-panel-deep);
+  border-right: 1px solid var(--s-border-hard);
+  box-shadow: var(--s-rail-shadow);
+  padding: 20px 0 8px;
   gap: 4px;
   height: 100%;
   width: 56px;
+  position: relative;
+  font-family: var(--s-font);
+}
+
+/* Rivet decorations — structural fasteners top and bottom of rail */
+.toolbox::before,
+.toolbox::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--s-rivet);
+  border: 1px solid var(--s-border-hard);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.8), 0 1px 0 var(--s-rivet-shine);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.toolbox::before { top: 6px; }
+.toolbox::after  { bottom: 6px; }
+
+/* Tool group divider — structural seam in the rail */
+.toolbox-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--s-border-hard);
+  flex-shrink: 0;
+  margin: 2px 0;
 }
 
 .tool-btn {
-  width: 44px;
-  height: 44px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  color: var(--color-text-muted);
+  width: 38px;
+  height: 38px;
+  background: var(--s-btn-face);
+  border: 1px solid var(--s-border-hard);
+  border-radius: 2px;
+  box-shadow: var(--s-btn-raised);
+  color: var(--s-text-muted);
   font-size: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s, color 0.15s;
+  transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.06s ease, color 0.06s ease;
   flex-shrink: 0;
   touch-action: manipulation;
 }
 
-.tool-btn:hover { background: var(--color-panel-alt); color: var(--color-text); }
+.tool-btn:hover:not(.active) { color: var(--s-text-muted); filter: brightness(1.12); }
 
+/* Active tool — pressed into the faceplate */
 .tool-btn.active {
-  background: var(--color-accent);
-  color: var(--color-accent-text);
-  border-color: var(--color-accent);
+  background: var(--s-accent);
+  border-color: var(--s-accent-border);
+  box-shadow: var(--s-btn-pressed);
+  color: var(--s-accent-text);
+  transform: translateY(2px);
 }
 
 /* Theme dot picker — pinned to bottom of toolbox */
@@ -41,27 +75,26 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 35px;
-  padding-bottom: 8px;
+  gap: 10px;
+  padding-bottom: 20px;
 }
 
+/* Color lens — convex plastic lens pressed into the rail */
 .toolbox-dot {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: var(--dot);
-  border: 2px solid transparent;
+  border: 2px solid var(--s-border-hard);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2);
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
   touch-action: manipulation;
-  transition: border-color 0.15s, transform 0.15s;
+  transition: box-shadow 0.08s ease;
 }
 
-.toolbox-dot:hover {
-  transform: scale(1.2);
-}
-
+/* Selected swatch — outer ring offset from the lens */
 .toolbox-dot[aria-pressed="true"] {
-  border-color: var(--color-text);
+  box-shadow: 0 0 0 2px var(--s-accent-border), 0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2);
 }

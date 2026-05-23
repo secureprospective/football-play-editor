@@ -1,6 +1,7 @@
 import './Toolbox.css';
 import useUIStore from '../../store/useUIStore';
 import { TOOL_MODES } from '../../constants/toolModes';
+import { triggerHaptic } from '../../utils/haptics';
 
 const THEMES = [
   { id: 'theme-sun-cyan',        dot: '#00e5ff', title: 'Sun — Cyan'        },
@@ -78,6 +79,7 @@ export default function Toolbox() {
         <button
           key={tool.mode}
           className={`tool-btn ${activeTool === tool.mode ? 'active' : ''}`}
+          onPointerDown={triggerHaptic}
           onClick={() => setActiveTool(tool.mode)}
           title={tool.title}
         >

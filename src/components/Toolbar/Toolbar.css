@@ -1,12 +1,17 @@
+/* ── Shared bevel mixin applied via class — raised state ── */
+/* Used directly by .tb-btn and .tb-crumb */
+
 .toolbar {
   display: flex;
   flex-direction: row;
   align-items: center;
-  background: var(--color-panel);
-  border-bottom: 2px solid var(--color-border);
+  background: var(--s-panel);
+  border-bottom: 1px solid var(--s-border-hard);
+  box-shadow: var(--s-panel-shadow);
   height: 48px;
   width: 100%;
   overflow: hidden;
+  font-family: var(--s-font);
 }
 
 .toolbar-nav {
@@ -22,34 +27,70 @@
 
 .toolbar-breadcrumb { display: flex; align-items: center; gap: 2px; }
 
+/* ── Base button — raised bevel ── */
+.tb-btn {
+  background: var(--s-btn-face);
+  color: var(--s-text-muted);
+  border: 1px solid var(--s-border-hard);
+  border-radius: 2px;
+  box-shadow: var(--s-btn-raised);
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--s-font);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  height: 30px;
+  min-width: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+  transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.06s ease, color 0.06s ease;
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+
+.tb-btn:hover:not(:disabled) { color: var(--s-text-muted); filter: brightness(1.12); }
+.tb-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── Breadcrumb tabs ── */
 .tb-crumb {
-  background: var(--color-panel-alt);
-  border: 1px solid var(--color-border-mid);
-  border-radius: 5px;
-  color: var(--color-text);
-  font-size: 13px;
-  font-family: inherit;
+  background: var(--s-btn-face);
+  border: 1px solid var(--s-border-hard);
+  border-radius: 2px;
+  box-shadow: var(--s-btn-raised);
+  color: var(--s-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--s-font);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   cursor: pointer;
   padding: 0 12px;
-  height: 36px;
+  height: 30px;
   white-space: nowrap;
   max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   touch-action: manipulation;
-  transition: background 0.15s, color 0.15s;
+  transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.06s ease, color 0.06s ease;
   flex-shrink: 0;
   display: flex;
   align-items: center;
 }
 
-.tb-crumb:hover { background: var(--color-border); }
+.tb-crumb:hover:not(.tb-crumb-active) { filter: brightness(1.12); }
 
+/* Active crumb — pressed/accent state */
 .tb-crumb-active {
-  background: var(--color-panel-alt);
-  border: 1px solid var(--color-accent);
-  color: var(--color-accent);
-  font-weight: 600;
+  background: var(--s-accent);
+  border: 1px solid var(--s-accent-border);
+  box-shadow: var(--s-btn-pressed);
+  color: var(--s-accent-text);
+  font-weight: 700;
   cursor: default;
   pointer-events: none;
   max-width: 160px;
@@ -57,18 +98,98 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   padding: 0 12px;
-  height: 36px;
-  border-radius: 5px;
+  height: 30px;
+  border-radius: 2px;
   display: flex;
   align-items: center;
+  transform: translateY(2px);
 }
 
-.tb-crumb-sep { color: var(--color-border-mid); font-size: 14px; flex-shrink: 0; user-select: none; }
+.tb-crumb-sep {
+  color: var(--s-text-dim);
+  font-size: 14px;
+  flex-shrink: 0;
+  user-select: none;
+  padding: 0 2px;
+}
 
 .tb-back { flex-shrink: 0; }
 
-.tb-present { flex-shrink: 0; background: var(--color-panel-alt); border-color: var(--color-border-mid); }
+/* Present button — pressed/accent when active */
+.tb-present { flex-shrink: 0; }
 
+.btn-present-active {
+  background: var(--s-accent) !important;
+  border-color: var(--s-accent-border) !important;
+  color: var(--s-accent-text) !important;
+  box-shadow: var(--s-btn-pressed) !important;
+  transform: translateY(2px);
+}
+
+/* ── Active state (Snap on, LOS on) — pressed with accent border ── */
+.btn-active {
+  background: var(--s-btn-active-face);
+  border-color: var(--s-accent-border);
+  color: var(--s-accent-border);
+  box-shadow: var(--s-btn-pressed);
+  transform: translateY(2px);
+}
+
+/* LOS active — always construction yellow regardless of theme */
+.btn-los-active {
+  background: var(--s-btn-active-face);
+  border-color: #b8960a;
+  color: #c8a010;
+  box-shadow: var(--s-btn-pressed);
+  transform: translateY(2px);
+}
+
+/* ── Success (Done button in drawing mode) ── */
+.btn-success {
+  border-color: #1a4a1a;
+  color: #44cc66;
+  background: linear-gradient(160deg, #1a2a1a 0%, #111a11 100%);
+}
+.btn-success:hover:not(:disabled) { filter: brightness(1.15); }
+
+/* ── Danger (Cancel in drawing mode) ── */
+.btn-danger {
+  background: var(--s-danger-face);
+  border-color: var(--s-danger-border);
+  color: var(--s-danger);
+  box-shadow: var(--s-btn-raised);
+}
+.btn-danger:hover:not(:disabled) { filter: brightness(1.12); }
+
+/* ── Clear button — guarded emergency stop ── */
+.btn-clear-guard {
+  background: var(--s-danger-face);
+  border: 2px solid var(--s-danger-border);
+  border-radius: 3px;
+  color: var(--s-danger);
+  box-shadow: 0 2px 0 rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,100,0,0.06);
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--s-font);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  height: 34px;
+  min-width: 54px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+
+.btn-clear-guard:active {
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,100,0,0.04);
+}
+
+/* ── Actions / drawing regions ── */
 .toolbar-actions {
   display: flex;
   align-items: center;
@@ -96,48 +217,14 @@
 }
 
 .toolbar-drawing-hint {
-  font-size: 12px;
+  font-size: 11px;
+  font-family: var(--s-font);
   color: var(--color-warning);
-  font-style: italic;
+  letter-spacing: 0.04em;
   white-space: nowrap;
 }
 
-.tb-btn {
-  background: var(--color-panel-alt);
-  color: var(--color-text);
-  border: 1px solid var(--color-border-mid);
-  border-radius: 5px;
-  padding: 0 12px;
-  font-size: 13px;
-  cursor: pointer;
-  height: 36px;
-  min-width: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  white-space: nowrap;
-  transition: background 0.15s;
-  flex-shrink: 0;
-  font-family: inherit;
-  touch-action: manipulation;
-}
-
-.tb-btn:hover:not(:disabled) { background: var(--color-border); }
-.tb-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-.btn-danger  { background: var(--color-delete-bg); border-color: var(--color-danger); color: var(--color-danger); }
-.btn-danger:hover:not(:disabled) { background: var(--color-danger) !important; color: #ffffff; }
-
-.btn-success { background: var(--color-panel-alt); border-color: var(--color-success); color: var(--color-success); }
-.btn-success:hover { background: var(--color-success) !important; color: #ffffff; }
-
-.btn-active  { background: var(--color-panel-alt); border-color: var(--color-accent); color: var(--color-accent); }
-
-.btn-present-active { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-accent-text); }
-
-.tb-confirm-label { font-size: 12px; color: var(--color-danger); font-weight: 600; white-space: nowrap; padding: 0 4px; }
-
+/* ── Brand — Cinzel stays, it's identity ── */
 .toolbar-brand {
   display: flex;
   align-items: center;
@@ -157,10 +244,28 @@
   font-family: 'Cinzel', serif;
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--s-text-dim);
   white-space: nowrap;
   letter-spacing: 0.05em;
 }
 
-.tb-divider-v { width: 1px; height: 24px; background: var(--color-border); margin: 0 2px; flex-shrink: 0; }
+/* ── Structural seam divider ── */
+.tb-divider-v {
+  width: 1px;
+  height: 24px;
+  background: var(--s-border-hard);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
 
+/* ── Confirm label ── */
+.tb-confirm-label {
+  font-size: 11px;
+  font-family: var(--s-font);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--s-danger);
+  white-space: nowrap;
+  padding: 0 4px;
+}

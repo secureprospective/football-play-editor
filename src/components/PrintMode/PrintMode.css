@@ -27,8 +27,12 @@
 .btn-print-active {
   background: #f59e0b !important;
   color: #1a1a1a !important;
-  border-color: #f59e0b !important;
-  font-weight: 600;
+  border-color: #c87a00 !important;
+  box-shadow: 0 2px 0 #a06000, inset 0 1px 0 rgba(255,255,255,0.2) !important;
+  font-family: var(--s-font);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 /* ─── Print Staging Area ─────────────────────────────────────── */
@@ -38,6 +42,7 @@
   border-radius: 2px;
   margin: 0 16px 12px;
   padding: 12px;
+  font-family: var(--s-font);
 }
 
 .print-staging-header {
@@ -59,48 +64,71 @@
   gap: 8px;
 }
 
+/* Segmented toggle — bevel system */
 .print-toggle-group {
   display: flex;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--s-border-hard);
   border-radius: 2px;
   overflow: hidden;
+  gap: 1px;
+  background: var(--s-border-hard);
 }
 
 .print-toggle-btn {
   padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 500;
-  background: var(--color-panel);
-  color: var(--color-text);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--s-font);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--s-btn-face);
+  color: var(--s-text-muted);
   border: none;
   cursor: pointer;
-  transition: background 0.1s;
+  transition: filter 0.06s ease;
 }
 
 .print-toggle-btn.active {
   background: #f59e0b;
   color: #1a1a1a;
+  font-weight: 700;
 }
 
-.print-toggle-btn:not(.active):hover {
-  opacity: 0.8;
-}
+.print-toggle-btn:not(.active):hover { filter: brightness(1.12); }
 
 .print-queue-count {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+  font-family: var(--s-font);
+  letter-spacing: 0.06em;
   color: #f59e0b;
   min-width: 44px;
 }
 
+/* Print action buttons — raised bevel */
 .print-action-btn {
-  padding: 5px 12px;
-  font-size: 12px;
-  border: 1px solid var(--color-border);
-  background: var(--color-panel);
-  color: var(--color-text);
+  padding: 0 12px;
+  height: 28px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--s-font);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--s-btn-face);
+  border: 1px solid var(--s-border-hard);
+  box-shadow: var(--s-btn-raised);
+  color: var(--s-text-muted);
   border-radius: 2px;
   cursor: pointer;
+  transition: transform 0.06s ease, box-shadow 0.06s ease, filter 0.06s ease;
+}
+
+.print-action-btn:hover:not(:disabled) { filter: brightness(1.12); }
+
+.print-action-btn:active:not(:disabled) {
+  background: var(--s-btn-active-face);
+  box-shadow: var(--s-btn-pressed);
+  transform: translateY(1px);
 }
 
 .print-action-btn:disabled {
@@ -108,16 +136,22 @@
   cursor: default;
 }
 
+/* Primary print action — amber brand */
 .print-action-btn.primary {
-  background: #f59e0b;
+  background: linear-gradient(160deg, #f5a623 0%, #d97706 100%);
   color: #1a1a1a;
   font-weight: 700;
-  border-color: #f59e0b;
+  border-color: #a06000;
+  box-shadow: 0 2px 0 #a06000, inset 0 1px 0 rgba(255,255,255,0.25);
 }
 
 .print-action-btn.primary:not(:disabled):hover {
-  background: #d97706;
-  border-color: #d97706;
+  filter: brightness(1.08);
+}
+
+.print-action-btn.primary:not(:disabled):active {
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+  transform: translateY(1px);
 }
 
 /* Queue tile row */
