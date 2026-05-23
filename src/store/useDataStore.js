@@ -116,10 +116,14 @@ function loadFromStorage() {
   }
 }
 
-function saveToStorage(playbooks) {
+function saveToStorage(playbooks, setState) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(playbooks));
-  } catch { /* storage full — fail silently */ }
+    setState({ storageError: null });
+  } catch (e) {
+    const isQuota = e?.name === 'QuotaExceededError' || e?.code === 22;
+    setState({ storageError: isQuota ? 'quota' : 'unknown' });
+  }
 }
 
 const stored = loadFromStorage();
@@ -165,8 +169,9 @@ const useDataStore = create((set, get) => ({
 
   // --- Playbook Data ---
   playbooks: initialPlaybooks,
+  storageError: null, // null | 'quota' | 'unknown'
 
-  _persist: () => saveToStorage({ playbooks: get().playbooks }),
+  _persist: () => saveToStorage({ playbooks: get().playbooks }, set),
 
   getActivePlaybook: () => {
     const { playbooks, activePlaybookId } = get();

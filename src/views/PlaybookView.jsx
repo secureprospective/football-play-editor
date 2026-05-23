@@ -102,7 +102,8 @@ export default function PlaybookView() {
     deletePlaybook: s.deletePlaybook, updatePlaybook: s.updatePlaybook,
     reorderPlaybooks: s.reorderPlaybooks,
   })));
-  const playbooks = useDataStore(s => s.playbooks);
+  const playbooks     = useDataStore(s => s.playbooks);
+  const storageError  = useDataStore(s => s.storageError);
   const { printModeActive, togglePrintMode } = useUIStore(useShallow(s => ({ printModeActive: s.printModeActive, togglePrintMode: s.togglePrintMode })));
 
   const [showInput, setShowInput]     = useState(false);
@@ -204,6 +205,17 @@ export default function PlaybookView() {
         actions={printToggle}
       />
       {printModeActive && <PrintStaging />}
+
+      {storageError === 'quota' && (
+        <div className="storage-warning">
+          Storage full — recent edits were not saved. Export your playbook and remove unused playbooks to free space.
+        </div>
+      )}
+      {storageError === 'unknown' && (
+        <div className="storage-warning">
+          Storage save failed. Export your playbook to avoid losing work.
+        </div>
+      )}
 
       {showInput && (
         <div className="inline-input-row">

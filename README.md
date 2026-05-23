@@ -95,7 +95,7 @@ The app is in a 6-phase cleanup sweep right now. Some phases ship visible fixes;
 | C | Inspector duration slider responsiveness | **Yes** (subtle) | ✅ Shipped |
 | D | App-wide performance sweep | No | ✅ Shipped |
 | E | Animation runtime tuning | No | ✅ Shipped |
-| F | Storage-full warning banner | **Yes** (new banner) | ⏳ Not started |
+| F | Storage-full warning banner | **Yes** (new banner) | ✅ Shipped |
 
 Time and token budget will decide whether these ship in one session or several. The tracker above is the source of truth — if it says ⏳ Not started, that deploy has not landed yet.
 
@@ -107,7 +107,7 @@ Time and token budget will decide whether these ship in one session or several. 
 | B | ✅ Shipped | **Print queue no longer shows old play data** — if you queued a play, edited it, then printed, the card showed the pre-edit version. Now resolves the live play at print time. |
 | B | ✅ Shipped | **Present Mode blur on older Safari** — frosted backdrop on the bottom bar now renders correctly |
 | C | ✅ Shipped | **Inspector duration slider** feels responsive on cheap tablets — was generating excess work per drag |
-| F | ⏳ Coming | **Storage full warning** — visible banner if your browser storage fills, before you lose any work |
+| F | ✅ Shipped | **Storage full warning** — visible banner if your browser storage fills, before you lose any work |
 
 Phases A, D, and E are invisible — code organization and performance improvements that make the app faster without changing what you see.
 
