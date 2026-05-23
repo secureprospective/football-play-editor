@@ -132,6 +132,29 @@
 
 .inspector-segments-label { font-size: 11px; color: var(--color-text-muted); font-weight: 600; }
 
+/* Column header row that aligns with [Seg#][delay][Pre-snap] rows */
+.inspector-segments-col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.seg-col-delay-hdr {
+  width: 38px;
+  text-align: center;
+  flex-shrink: 0;
+}
+/* Spacer sized to approximate the Pre-snap button so Delay stays centered */
+.seg-col-presnap-hdr {
+  width: 62px;
+  flex-shrink: 0;
+}
+
 .inspector-segment-row {
   display: flex;
   flex-direction: column;

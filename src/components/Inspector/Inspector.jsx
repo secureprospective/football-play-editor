@@ -253,9 +253,12 @@ export default function Inspector() {
   const palette = tc.palette.map((fill, i) => ({ fill, label: tc.labels[i] }));
 
   const [activeSegColorId, setActiveSegColorId] = useState(null);
+  // delayDrafts: { [segId]: string } — holds raw text while user is mid-edit
+  // so we display "0.0" exactly instead of whatever the browser does with type="number"
+  const [delayDrafts, setDelayDrafts] = useState({});
 
-  // Reset segment color mode when the selected element changes
-  useEffect(() => { setActiveSegColorId(null); }, [selected?.id]);
+  // Reset both when selected element changes
+  useEffect(() => { setActiveSegColorId(null); setDelayDrafts({}); }, [selected?.id]);
 
   // ESC cancels segment color mode
   useEffect(() => {
@@ -533,7 +536,11 @@ export default function Inspector() {
           </div>
           {selected.segments?.length > 0 && (
             <div className="inspector-segments">
-              <div className="inspector-segments-label">Segments</div>
+              <div className="inspector-segments-col-header">
+                <span>Segment</span>
+                <span className="seg-col-delay-hdr">Delay</span>
+                <span className="seg-col-presnap-hdr"></span>
+              </div>
               {selected.segments.map((seg, i) => (
                 <div key={seg.id} className="inspector-segment-row">
                   <div className="seg-row-header">
@@ -544,17 +551,23 @@ export default function Inspector() {
                       Seg {i + 1}
                     </button>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       className="seg-delay-input"
-                      min="0"
-                      max="3"
-                      step="0.1"
-                      value={seg.delay ?? 0}
-                      onChange={e => {
-                        const v = parseFloat(e.target.value);
-                        if (!isNaN(v)) updateSegment(selected.id, seg.id, { delay: Math.max(0, Math.min(3, Math.round(v * 10) / 10)) });
+                      value={seg.id in delayDrafts ? delayDrafts[seg.id] : (seg.delay ?? 0).toFixed(1)}
+                      onChange={e => setDelayDrafts(d => ({ ...d, [seg.id]: e.target.value }))}
+                      onBlur={() => {
+                        if (seg.id in delayDrafts) {
+                          const v = parseFloat(delayDrafts[seg.id]);
+                          if (!isNaN(v)) updateSegment(selected.id, seg.id, { delay: Math.max(0, Math.min(3, Math.round(v * 10) / 10)) });
+                          setDelayDrafts(d => { const { [seg.id]: _, ...rest } = d; return rest; });
+                        }
                       }}
-                      onKeyDown={e => e.stopPropagation()}
+                      onKeyDown={e => {
+                        e.stopPropagation();
+                        if (e.key === 'Enter') e.target.blur();
+                        if (e.key === 'Escape') { setDelayDrafts(d => { const { [seg.id]: _, ...rest } = d; return rest; }); e.target.blur(); }
+                      }}
                       title="Delay before segment (s)"
                     />
                     <button
