@@ -298,7 +298,10 @@ Mobile phone support deferred until football animation arc is fully stabilized.
 ## What is next (immediate)
 Phase 6 complete. Football animation is fully functional.
 
-Active work areas:
+**Next session: Full codebase audit — dead code, architecture, cross-browser, scale risks.**
+Trigger phrase: `football` → reads `docs/AUDIT_PROMPT.md` — read it fully before doing anything.
+
+Active work areas after audit:
 - UI polish pass — inspector layout refinements, Present Mode UX
 - Flight duration slider refinement (⚑ flagged)
 - Route branching (option route) — deferred indefinitely
