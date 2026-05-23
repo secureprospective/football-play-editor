@@ -51,7 +51,7 @@ export function useAnimationLoop() {
       }
 
       seek(nextTime);
-      updatePositions(computePositions(elements, nextTime));
+      updatePositions(computePositions(elements, nextTime, playbackSpeed));
       rafRef.current = requestAnimationFrame(tick);
     }
 
@@ -67,7 +67,8 @@ export function useAnimationLoop() {
   useEffect(() => {
     if (!isPlaying) {
       const elements = useDataStore.getState().getActivePlay()?.elements || [];
-      updatePositions(computePositions(elements, currentTime));
+      const { playbackSpeed } = useAnimationStore.getState();
+      updatePositions(computePositions(elements, currentTime, playbackSpeed));
     }
   }, [currentTime, isPlaying]);
 

@@ -84,8 +84,10 @@ export function getSnapTime(elements) {
   return maxPreSnap;
 }
 
-// Snap travels at 2x normal segment speed (default segment = 0.5s, snap = 0.25s)
-const SNAP_DURATION = 0.25;
+// Snap always takes this many REAL seconds, regardless of playback speed.
+// animation-time duration = SNAP_REAL_SECS × playbackSpeed (passed in from rAF loop).
+// At 1x: 0.1 real sec. At 0.5x: 0.1 real sec. At 2x: 0.1 real sec.
+const SNAP_REAL_SECS = 0.1;
 
 // Helper: get a player's position at a specific time (for computing snap target)
 function carrierPosAt(carrierId, time, pathById, playerById) {
@@ -115,7 +117,7 @@ function carrierPosAt(carrierId, time, pathById, playerById) {
  * @param {number} snapTime   - derived snap time (0 = snap at play start)
  * @returns {{ x: number, y: number }}
  */
-function footballPositionAtTime(football, result, pathById, playerById, t, snapTime) {
+function footballPositionAtTime(football, result, pathById, playerById, t, snapTime, playbackSpeed) {
   // Phase 1: pre-snap — ball sits at LOS position.
   // <= so that at t=0 (reset state) ball is always at LOS,
   // even when snapTime=0 (no pre-snap motion defined).
@@ -127,10 +129,13 @@ function footballPositionAtTime(football, result, pathById, playerById, t, snapT
     return { x: football.x, y: football.y };
   }
 
-  // Phase 2: snap animation — ball travels straight from LOS to carrier over SNAP_DURATION
-  const snapEndTime = snapTime + SNAP_DURATION;
+  // Phase 2: snap animation — ball travels straight from LOS to carrier.
+  // Duration = SNAP_REAL_SECS × playbackSpeed so the snap always takes
+  // SNAP_REAL_SECS of REAL time regardless of the coach's speed setting.
+  const snapAnimDuration = SNAP_REAL_SECS * (playbackSpeed || 1);
+  const snapEndTime = snapTime + snapAnimDuration;
   if (t < snapEndTime) {
-    const progress   = (t - snapTime) / SNAP_DURATION;
+    const progress   = (t - snapTime) / snapAnimDuration;
     const target     = carrierPosAt(journey.snapToPlayer, snapTime, pathById, playerById);
     const targetX    = target?.x ?? football.x;
     const targetY    = target?.y ?? football.y;
@@ -192,7 +197,7 @@ function footballPositionAtTime(football, result, pathById, playerById, t, snapT
  *   Only elements with a computable position appear in the Map.
  *   Elements absent from the Map stay at their stored position.
  */
-export function computePositions(elements, currentTime) {
+export function computePositions(elements, currentTime, playbackSpeed = 1) {
   const result = new Map();
   if (!elements?.length) return result;
 
@@ -219,7 +224,7 @@ export function computePositions(elements, currentTime) {
   // Football — journey-based position (computed after players so result map is populated)
   for (const el of elements) {
     if (el.type !== 'football') continue;
-    const pos = footballPositionAtTime(el, result, pathById, playerById, currentTime, snapTime);
+    const pos = footballPositionAtTime(el, result, pathById, playerById, currentTime, snapTime, playbackSpeed);
     result.set(el.id, pos);
   }
 
