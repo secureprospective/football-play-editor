@@ -93,7 +93,7 @@ The app is in a 6-phase cleanup sweep right now. Some phases ship visible fixes;
 | A | Code cleanup — dead code, unused files | No | ✅ Shipped |
 | B | Visible bug fixes (3 fixes — see below) | **Yes** | ✅ Shipped |
 | C | Inspector duration slider responsiveness | **Yes** (subtle) | ✅ Shipped |
-| D | App-wide performance sweep | No | ⏳ Not started |
+| D | App-wide performance sweep | No | ✅ Shipped |
 | E | Animation runtime tuning | No | ⏳ Not started |
 | F | Storage-full warning banner | **Yes** (new banner) | ⏳ Not started |
 
