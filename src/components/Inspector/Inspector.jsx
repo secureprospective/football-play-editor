@@ -4,6 +4,7 @@ import useDataStore from '../../store/useDataStore';
 import useUIStore from '../../store/useUIStore';
 import { THEME_COLORS } from '../../constants/themeColors';
 import { getDuration } from '../../store/useAnimationStore';
+import { getSnapTime } from '../../utils/animationRuntime';
 
 function VisibilityControls({ visibility, duration, onChange }) {
   const timed = visibility?.startTime !== null && visibility?.startTime !== undefined;
@@ -68,6 +69,144 @@ function VisibilityControls({ visibility, duration, onChange }) {
         </>
       )}
     </div>
+  );
+}
+
+// ── Football journey inspector ───────────────────────────────────────────────
+function FootballInspector({ football, elements, allPlayers }) {
+  const {
+    setFootballSnapTo,
+    addJourneyEvent,
+    updateJourneyEvent,
+    deleteJourneyEvent,
+  } = useDataStore();
+
+  const journey  = football.journey || { snapToPlayer: null, events: [] };
+  const events   = [...(journey.events || [])].sort((a, b) => a.time - b.time);
+  const snapTime = getSnapTime(elements);
+  const duration = getDuration(elements);
+  const maxTime  = duration > 0 ? duration : 10;
+
+  function playerLabel(id) {
+    const p = allPlayers.find(pl => pl.id === id);
+    return p ? (p.label || `Player ${allPlayers.indexOf(p) + 1}`) : '[deleted]';
+  }
+
+  return (
+    <>
+      {/* Position */}
+      <div className="inspector-field-row">
+        <span className="inspector-field-label">Position</span>
+        <span className="inspector-field-value">x={Math.round(football.x)}  y={Math.round(football.y)} (LOS)</span>
+      </div>
+
+      {/* Snap to */}
+      <label>Snap to
+        <select
+          value={journey.snapToPlayer || 'none'}
+          onChange={e => setFootballSnapTo(football.id, e.target.value === 'none' ? null : e.target.value)}
+          onKeyDown={e => e.stopPropagation()}
+        >
+          <option value="none">— No snap —</option>
+          {allPlayers.map((p, i) => (
+            <option key={p.id} value={p.id}>
+              {p.label || `Player ${i + 1}`}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <div className="inspector-field-row">
+        <span className="inspector-field-label">Snap time</span>
+        <span className="inspector-field-value">{snapTime.toFixed(1)}s (auto)</span>
+      </div>
+
+      {/* Journey events */}
+      <div className="inspector-segments-label" style={{ marginTop: 10 }}>Journey Events</div>
+
+      {events.length === 0 && (
+        <div className="inspector-hint">No events — ball goes straight from snap to end of play</div>
+      )}
+
+      {events.map(evt => {
+        const isInFlight = evt.type === 'pass' || evt.type === 'toss';
+        return (
+          <div key={evt.id} className="inspector-journey-event">
+            <div className="journey-event-row">
+              {/* Time */}
+              <input
+                type="number"
+                className="journey-time-input"
+                min={snapTime.toFixed(1)}
+                max={maxTime}
+                step="0.1"
+                value={evt.time}
+                onChange={e => {
+                  const v = parseFloat(e.target.value);
+                  if (!isNaN(v)) updateJourneyEvent(football.id, evt.id, {
+                    time: Math.max(snapTime, Math.min(maxTime, Math.round(v * 10) / 10)),
+                  });
+                }}
+                onKeyDown={e => e.stopPropagation()}
+                title="Event time (s)"
+              />
+              <span className="journey-time-unit">s</span>
+
+              {/* Type */}
+              <select
+                className="journey-type-select"
+                value={evt.type}
+                onChange={e => updateJourneyEvent(football.id, evt.id, { type: e.target.value })}
+                onKeyDown={e => e.stopPropagation()}
+              >
+                <option value="handoff">Handoff</option>
+                <option value="toss">Toss</option>
+                <option value="pass">Pass</option>
+              </select>
+
+              {/* To player */}
+              <select
+                className="journey-player-select"
+                value={evt.toPlayer || 'none'}
+                onChange={e => updateJourneyEvent(football.id, evt.id, {
+                  toPlayer: e.target.value === 'none' ? null : e.target.value,
+                })}
+                onKeyDown={e => e.stopPropagation()}
+              >
+                <option value="none">— Player —</option>
+                {allPlayers.map((p, i) => (
+                  <option key={p.id} value={p.id}>{p.label || `P${i + 1}`}</option>
+                ))}
+              </select>
+
+              {/* Delete */}
+              <button
+                className="journey-delete-btn"
+                onClick={() => deleteJourneyEvent(football.id, evt.id)}
+                title="Remove event"
+              >×</button>
+            </div>
+
+            {/* Arc status for pass/toss */}
+            {isInFlight && (
+              <div className="journey-arc-row">
+                {evt.arcPathId
+                  ? <span className="journey-arc-status arc-drawn">Arc ✓</span>
+                  : <span className="journey-arc-status arc-missing">Arc: not drawn (Step 6)</span>
+                }
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Add event buttons */}
+      <div className="journey-add-row">
+        <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'handoff')}>+ Handoff</button>
+        <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'toss')}>+ Toss</button>
+        <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'pass')}>+ Pass</button>
+      </div>
+    </>
   );
 }
 
@@ -209,7 +348,11 @@ export default function Inspector() {
       <div className="inspector">
         <div className="inspector-header">Football</div>
         <div className="inspector-body">
-          <div className="inspector-hint">Football animation — coming soon</div>
+          <FootballInspector
+            football={selected}
+            elements={elements}
+            allPlayers={allPlayers}
+          />
         </div>
         <div className="inspector-footer">
           <span className="inspector-id">id: {selected.id}</span>
