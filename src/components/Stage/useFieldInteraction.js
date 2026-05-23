@@ -5,6 +5,7 @@ import { useAnimationLoop } from './useAnimationLoop';
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
 import { TOOL_MODES } from '../../constants/toolModes';
 import { masterHitTest, hitTestPathSegments, hitTestPlayer, exceededDragThreshold } from '../../utils/hitTesting';
+import { getInterceptPoint } from '../../utils/animationRuntime';
 import { snapPoint, constrainToAngle } from '../../utils/snapToGrid';
 import { defaultCurveCP } from '../../utils/curveUtils';
 import { THEME_COLORS } from '../../constants/themeColors';
@@ -219,6 +220,7 @@ export function useFieldInteraction() {
       setSelectedId: setSelId,
       clearSelection: clearSel,
       clearMarquee: clearMq,
+      setEventInterceptPoint,
     } = useDataStore.getState();
 
     if (pm) return;
@@ -234,6 +236,30 @@ export function useFieldInteraction() {
     dragStartRef.current  = pos;
     dragStartPos.current  = pos;
     isDraggingRef.current = false;
+
+    // Intercept node hit test — check before masterHitTest so small diamond takes priority.
+    // Only active when football is selected and not in a drawing/tool mode.
+    if (tool === TOOL_MODES.SELECT && selId) {
+      const selFootball = els.find(el => el.id === selId && el.type === 'football');
+      if (selFootball) {
+        const inFlightEvents = (selFootball.journey?.events || [])
+          .filter(evt => evt.type === 'pass' || evt.type === 'toss');
+        for (const evt of inFlightEvents) {
+          const pt = getInterceptPoint(evt, els);
+          if (pt) {
+            const dist = Math.sqrt((pos.x - pt.x) ** 2 + (pos.y - pt.y) ** 2);
+            if (dist < 16) { // 16px catch radius for the diamond node
+              dragTargetRef.current = {
+                type: 'interceptNode',
+                footballId: selFootball.id,
+                eventId: evt.id,
+              };
+              return;
+            }
+          }
+        }
+      }
+    }
 
     const hit = masterHitTest(pos.x, pos.y, els, selId, positionsRef.current);
 
@@ -550,6 +576,13 @@ export function useFieldInteraction() {
             si !== segmentIndex ? seg : { ...seg, points: seg.points.map((p, pi) => pi === nodeIndex ? snapped : p) }
           ),
         });
+        return;
+      }
+
+      if (type === 'interceptNode') {
+        const { footballId, eventId } = dragTargetRef.current;
+        const snapped = snapPoint(pos, snapInc, snapEn);
+        useDataStore.getState().setEventInterceptPoint(footballId, eventId, snapped);
         return;
       }
 

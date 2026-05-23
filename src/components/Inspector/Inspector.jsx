@@ -75,7 +75,6 @@ function VisibilityControls({ visibility, duration, onChange }) {
 // ── Football journey inspector ───────────────────────────────────────────────
 function FootballInspector({ football, elements, allPlayers }) {
   const { setFootballSnapTo, addJourneyEvent, updateJourneyEvent, deleteJourneyEvent } = useDataStore();
-  const { setArcDrawingMode, arcDrawingForEventId } = useUIStore();
 
   // draftTime: { id: eventId, value: string } — tracks mid-edit value so the
   // store (and its sort) only updates on blur/Enter, not on every keystroke.
@@ -208,22 +207,12 @@ function FootballInspector({ football, elements, allPlayers }) {
                     >×</button>
                   </div>
 
-                  {/* Arc sub-row — pass/toss only */}
+                  {/* Target hint — pass/toss only */}
                   {isInFlight && (
                     <div className="journey-arc-row">
-                      <span className={`journey-arc-status ${evt.arcPathId ? 'arc-drawn' : 'arc-missing'}`}>
-                        {evt.arcPathId ? 'Arc ✓' : 'No arc'}
+                      <span className={`journey-arc-status ${evt.interceptPoint ? 'arc-drawn' : 'arc-missing'}`}>
+                        {evt.interceptPoint ? 'Target ✓' : 'Drag ◇ on field to set target'}
                       </span>
-                      <button
-                        className="seg-label-btn"
-                        disabled={arcDrawingForEventId === evt.id}
-                        onClick={() => {
-                          if (evt.arcPathId) updateJourneyEvent(football.id, evt.id, { arcPathId: null });
-                          setArcDrawingMode(football.id, evt.id);
-                        }}
-                      >
-                        {arcDrawingForEventId === evt.id ? 'Drawing…' : evt.arcPathId ? 'Redraw' : 'Draw arc'}
-                      </button>
                     </div>
                   )}
                 </div>

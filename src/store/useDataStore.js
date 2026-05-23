@@ -64,9 +64,21 @@ function migratePath(el) {
 }
 
 export function migrateFootball(fb) {
-  // Backfill journey field for football elements created before Phase 2 football build
   if (!fb.journey) {
     fb.journey = { snapToPlayer: null, events: [] };
+  }
+  // Wipe arcPathId and backfill interceptPoint on all events —
+  // arc drawing is removed; pass/toss now use linear interpolation.
+  if (fb.journey.events?.length) {
+    fb.journey = {
+      ...fb.journey,
+      events: fb.journey.events.map(evt => {
+        const { arcPathId, ...rest } = evt;
+        return (rest.type === 'pass' || rest.type === 'toss')
+          ? { ...rest, interceptPoint: rest.interceptPoint ?? null }
+          : rest;
+      }),
+    };
   }
   return fb;
 }
@@ -397,12 +409,9 @@ const useDataStore = create((set, get) => ({
           if (el.type === 'player' && el.routeId === id) return { ...el, routeId: null };
           if (el.type === 'path' && el.playerId === id) return { ...el, playerId: null };
           if (el.type === 'football' && el.journey?.events) {
-            const events = el.journey.events.map(evt =>
-              evt.arcPathId === id ? { ...evt, arcPathId: null } : evt
-            );
             const snapToPlayer = el.journey.snapToPlayer === id ? null : el.journey.snapToPlayer;
-            const cleanedEvents = events.map(evt =>
-              (evt.toPlayer === id) ? { ...evt, toPlayer: null } : evt
+            const cleanedEvents = el.journey.events.map(evt =>
+              evt.toPlayer === id ? { ...evt, toPlayer: null } : evt
             );
             return { ...el, journey: { ...el.journey, snapToPlayer, events: cleanedEvents } };
           }
@@ -493,7 +502,8 @@ const useDataStore = create((set, get) => ({
     if (!play) return;
     const football = play.elements.find(el => el.id === footballId);
     if (!football) return;
-    const newEvent = { id: genId('evt'), time: defaultTime, type: eventType, toPlayer: null, arcPathId: null };
+    const isInFlight = eventType === 'pass' || eventType === 'toss';
+    const newEvent = { id: genId('evt'), time: defaultTime, type: eventType, toPlayer: null, ...(isInFlight ? { interceptPoint: null } : {}) };
     const events = [...(football.journey?.events || []), newEvent]
       .sort((a, b) => a.time - b.time);
     get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
@@ -536,20 +546,20 @@ const useDataStore = create((set, get) => ({
     pushHistory();
   },
 
-  setEventArcPath: (footballId, eventId, pathId) => {
-    const { activePlaybookId, activeFormationId, activePlayId, getActivePlay, pushHistory } = get();
+  // Updates intercept point without pushing history — pointer up pushes once at drag end.
+  setEventInterceptPoint: (footballId, eventId, point) => {
+    const { activePlaybookId, activeFormationId, activePlayId, getActivePlay } = get();
     const play = getActivePlay();
     if (!play) return;
     const football = play.elements.find(el => el.id === footballId);
     if (!football) return;
     const events = (football.journey?.events || [])
-      .map(evt => evt.id === eventId ? { ...evt, arcPathId: pathId } : evt);
+      .map(evt => evt.id === eventId ? { ...evt, interceptPoint: point } : evt);
     get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
       elements: play.elements.map(el =>
         el.id === footballId ? { ...el, journey: { ...el.journey, events } } : el
       ),
     });
-    pushHistory();
   },
 
   // --- History ---

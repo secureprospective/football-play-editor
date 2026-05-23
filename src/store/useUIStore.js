@@ -16,26 +16,11 @@ const useUIStore = create((set, get) => ({
   drawingPath: null,
   activePathId: null,
 
-  // Arc drawing mode — set when the coach is drawing a pass/toss flight path.
-  // arcDrawingForEventId: the journey eventId this arc belongs to
-  // arcDrawingFootballId: the football element that owns the event
-  arcDrawingForEventId: null,
-  arcDrawingFootballId: null,
-
   setDrawingPath:  (path) => set({ drawingPath: path }),
   setActivePathId: (id)   => set({ activePathId: id }),
 
-  // Enter arc drawing mode: switches tool to straight line so coach can draw immediately.
-  setArcDrawingMode: (footballId, eventId) => {
-    set({
-      arcDrawingForEventId: eventId,
-      arcDrawingFootballId: footballId,
-      activeTool: 'ADD_LINE_STRAIGHT',
-    });
-  },
-
   finishDrawing: () => {
-    const { drawingPath, activePathId, arcDrawingForEventId, arcDrawingFootballId } = get();
+    const { drawingPath, activePathId } = get();
     if (!drawingPath) return;
 
     const ds = useDataStore.getState();
@@ -52,25 +37,6 @@ const useUIStore = create((set, get) => ({
       }
       set({ drawingPath: null, activePathId: null });
       ds.setSelectedId(activePathId);
-
-    } else if (arcDrawingForEventId && arcDrawingFootballId) {
-      // Arc mode: add the path, then link it to the journey event.
-      // Use updateElement (no extra pushHistory) so the whole op is one undo step.
-      if (drawingPath.segments.length > 0) {
-        ds.addElement(drawingPath);  // adds path + pushes history
-        // Link arcPathId without a second history push
-        const play = ds.getActivePlay();
-        const football = play?.elements.find(el => el.id === arcDrawingFootballId);
-        if (football) {
-          const events = (football.journey?.events || []).map(evt =>
-            evt.id === arcDrawingForEventId ? { ...evt, arcPathId: drawingPath.id } : evt
-          );
-          ds.updateElement(arcDrawingFootballId, { journey: { ...football.journey, events } });
-        }
-      }
-      set({ drawingPath: null, activePathId: null, arcDrawingForEventId: null, arcDrawingFootballId: null });
-      ds.setSelectedId(arcDrawingFootballId);  // return focus to football
-
     } else {
       // Normal new path
       if (drawingPath.segments.length > 0) {
@@ -83,12 +49,7 @@ const useUIStore = create((set, get) => ({
   },
 
   cancelDrawing: () => {
-    const { arcDrawingFootballId } = get();
-    set({ drawingPath: null, activePathId: null, arcDrawingForEventId: null, arcDrawingFootballId: null });
-    // Re-select the football so the inspector stays on it
-    if (arcDrawingFootballId) {
-      useDataStore.getState().setSelectedId(arcDrawingFootballId);
-    }
+    set({ drawingPath: null, activePathId: null });
   },
 
   // --- Snap ---
@@ -128,7 +89,7 @@ const useUIStore = create((set, get) => ({
   setPrintFormat:    (format) => set({ printFormat: format }),
   setPrintSize:      (size)   => set({ printSize: size }),
 
-  // --- Theme (Option A: persists via localStorage, not in data store) ---
+  // --- Theme ---
   theme: localStorage.getItem(THEME_KEY) || DEFAULT_THEME,
   setTheme: (name) => { localStorage.setItem(THEME_KEY, name); set({ theme: name }); },
 

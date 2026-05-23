@@ -2,7 +2,7 @@ import { Layer, Rect, Circle, Text, Line, RegularPolygon, Ellipse } from 'react-
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
 import { FOOTBALL_RX, FOOTBALL_RY, TEXT_FONT_SIZE } from '../../utils/hitTesting';
 import { defaultCurveCP, bezierCtrl } from '../../utils/curveUtils';
-import { isFootballInFlight } from '../../utils/animationRuntime';
+import { isFootballInFlight, getInterceptPoint } from '../../utils/animationRuntime';
 
 const FOOTBALL_ATTACH_OFFSET = FIELD_CONFIG.PLAYER_RADIUS;
 
@@ -210,6 +210,37 @@ export default function FieldRenderer({
     );
   }
 
+  // Render draggable intercept nodes for pass/toss events on the selected football.
+  // Each node is a small yellow diamond (rotated square) at the target intercept point.
+  function renderInterceptNodes() {
+    if (presentMode) return null;
+    const football = selectedEl?.type === 'football' ? selectedEl : null;
+    if (!football) return null;
+    const events = (football.journey?.events || [])
+      .filter(evt => evt.type === 'pass' || evt.type === 'toss');
+    if (!events.length) return null;
+
+    return events.map(evt => {
+      const pt = getInterceptPoint(evt, elements);
+      if (!pt) return null;
+      const size = 8; // half-width of the diamond
+      return (
+        <Rect
+          key={`intercept_${evt.id}`}
+          x={pt.x} y={pt.y}
+          width={size * 2} height={size * 2}
+          offsetX={size} offsetY={size}
+          rotation={45}
+          fill="transparent"
+          stroke="#ffff00"
+          strokeWidth={2}
+          dash={[3, 2]}
+          listening={false}
+        />
+      );
+    }).filter(Boolean);
+  }
+
   function renderHighlightPreview() {
     if (!placingHighlight || !mousePos) return null;
     const dx = mousePos.x - placingHighlight.x;
@@ -415,6 +446,8 @@ export default function FieldRenderer({
         })}
         {/* Football — Layer 2 when selected so it floats above players */}
         {elements.filter(el => el.type === 'football' && el.id === selectedId).map(el => renderFootball(el))}
+        {/* Intercept nodes — pass/toss target diamonds on selected football */}
+        {renderInterceptNodes()}
         {/* Text annotations */}
         {elements.filter(el => el.type === 'text' && el.content && ((!presentMode && currentTime === 0) || isVisible(el.visibility, currentTime))).map(el => {
           const isSelected = !presentMode && el.id === selectedId;

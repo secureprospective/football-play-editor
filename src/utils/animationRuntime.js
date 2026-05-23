@@ -91,12 +91,18 @@ export function getSnapTime(elements) {
   return maxPreSnap;
 }
 
-// Snap always takes this many REAL seconds, regardless of playback speed.
-// animation-time duration = SNAP_REAL_SECS × playbackSpeed (passed in from rAF loop).
-// At 1x: 0.115 real sec. At 0.5x: 0.115 real sec. At 2x: 0.115 real sec.
-const SNAP_REAL_SECS = 0.115;
+// Flight durations — all in REAL seconds (multiplied by playbackSpeed for timeline duration).
+// Snap is the median; toss is 10% slower (soft lateral); pass is 10% faster (tight spiral).
+const SNAP_REAL_SECS = 0.13915;
+const TOSS_REAL_SECS = SNAP_REAL_SECS * 1.1;  // ~0.153s — 10% slower
+const PASS_REAL_SECS = SNAP_REAL_SECS;         // same as snap
 
-// Helper: get a player's position at a specific time (for computing snap target)
+// Return the real-second flight duration for a pass/toss event type.
+function flightSecs(type) {
+  return type === 'pass' ? PASS_REAL_SECS : TOSS_REAL_SECS;
+}
+
+// Helper: get a player's position at a specific time (for computing snap/throw targets).
 function carrierPosAt(carrierId, time, pathById, playerById) {
   const player = playerById.get(carrierId);
   if (!player) return null;
@@ -113,52 +119,46 @@ function carrierPosAt(carrierId, time, pathById, playerById) {
 /**
  * Compute the football's position at time t using its journey script.
  *
- * Uses the already-computed player positions from `result` (Map<id,{x,y}>)
- * so ball movement stays in sync with player animation without re-computing routes.
+ * Pass/toss use linear interpolation from the thrower's position to the
+ * interceptPoint (coach-placed target node) or the receiver's position at
+ * catch time when no interceptPoint is set.
  *
- * @param {Object} football   - football element
- * @param {Map}    result     - already-computed player positions this frame
- * @param {Map}    pathById   - all path elements indexed by id
- * @param {Map}    playerById - all player elements indexed by id
- * @param {number} t          - current playback time
- * @param {number} snapTime   - derived snap time (0 = snap at play start)
+ * @param {Object} football     - football element
+ * @param {Map}    result       - already-computed player positions this frame
+ * @param {Map}    pathById     - all path elements indexed by id
+ * @param {Map}    playerById   - all player elements indexed by id
+ * @param {number} t            - current playback time
+ * @param {number} snapTime     - derived snap time (0 = snap at play start)
+ * @param {number} playbackSpeed
  * @returns {{ x: number, y: number }}
  */
 function footballPositionAtTime(football, result, pathById, playerById, t, snapTime, playbackSpeed) {
+  const speed = playbackSpeed || 1;
+
   // Phase 1: pre-snap — ball sits at LOS position.
-  // <= so that at t=0 (reset state) ball is always at LOS,
-  // even when snapTime=0 (no pre-snap motion defined).
   if (t <= snapTime) return { x: football.x, y: football.y };
 
   const journey = football.journey;
-  if (!journey?.snapToPlayer) {
-    // No snap recipient defined — ball stays on the ground
-    return { x: football.x, y: football.y };
-  }
+  if (!journey?.snapToPlayer) return { x: football.x, y: football.y };
 
-  // Phase 2: snap animation — ball travels straight from LOS to carrier.
-  // Duration = SNAP_REAL_SECS × playbackSpeed so the snap always takes
-  // SNAP_REAL_SECS of REAL time regardless of the coach's speed setting.
-  const snapAnimDuration = SNAP_REAL_SECS * (playbackSpeed || 1);
+  // Phase 2: snap animation — straight line from LOS to snap recipient.
+  const snapAnimDuration = SNAP_REAL_SECS * speed;
   const snapEndTime = snapTime + snapAnimDuration;
   if (t < snapEndTime) {
-    const progress   = (t - snapTime) / snapAnimDuration;
-    const target     = carrierPosAt(journey.snapToPlayer, snapTime, pathById, playerById);
-    const targetX    = target?.x ?? football.x;
-    const targetY    = target?.y ?? football.y;
+    const progress = (t - snapTime) / snapAnimDuration;
+    const target   = carrierPosAt(journey.snapToPlayer, snapTime, pathById, playerById);
     return {
-      x: football.x + progress * (targetX - football.x),
-      y: football.y + progress * (targetY - football.y),
+      x: football.x + progress * ((target?.x ?? football.x) - football.x),
+      y: football.y + progress * ((target?.y ?? football.y) - football.y),
     };
   }
 
-  // Phase 3: snap complete — walk journey events
+  // Phase 3: walk journey events
   let currentCarrier = journey.snapToPlayer;
-  // Events sorted ascending (enforced on insert, re-sorted here for safety)
   const events = (journey.events || []).slice().sort((a, b) => a.time - b.time);
 
   for (const event of events) {
-    if (t < event.time) break; // event still in the future
+    if (t < event.time) break;
 
     if (event.type === 'handoff') {
       currentCarrier = event.toPlayer;
@@ -166,29 +166,34 @@ function footballPositionAtTime(football, result, pathById, playerById, t, snapT
     }
 
     if (event.type === 'pass' || event.type === 'toss') {
-      const arcPath    = event.arcPathId ? pathById.get(event.arcPathId) : null;
-      const arcDur     = arcPath ? getPathDuration(arcPath) : 0;
-      const arcEndTime = event.time + arcDur;
+      const flightDur  = flightSecs(event.type) * speed;
+      const catchTime  = event.time + flightDur;
 
-      if (t < arcEndTime) {
-        // Ball is in-flight along the drawn arc
-        const pos = playerPositionAtTime(arcPath, t - event.time);
-        return pos || { x: football.x, y: football.y };
+      if (t < catchTime) {
+        // Ball in-flight — linear from thrower to interceptPoint (or receiver catch position)
+        const progress = (t - event.time) / flightDur;
+        const startPos = carrierPosAt(currentCarrier, event.time, pathById, playerById)
+                         || { x: football.x, y: football.y };
+        const endPos   = event.interceptPoint
+                         || carrierPosAt(event.toPlayer, catchTime, pathById, playerById)
+                         || { x: football.x, y: football.y };
+        return {
+          x: startPos.x + progress * (endPos.x - startPos.x),
+          y: startPos.y + progress * (endPos.y - startPos.y),
+        };
       }
 
-      // Arc complete — ball now with receiver
       currentCarrier = event.toPlayer;
       continue;
     }
   }
 
-  // Ball is attached to currentCarrier — use their animated position + PLAYER_RADIUS offset
+  // Ball is with currentCarrier — use their animated position + offset
   if (!currentCarrier) return { x: football.x, y: football.y };
 
   const animPos = result.get(currentCarrier);
   if (animPos) return { x: animPos.x + FIELD_CONFIG.PLAYER_RADIUS, y: animPos.y };
 
-  // Carrier has no animated position (no route) — use stored position
   const player = playerById.get(currentCarrier);
   if (player) return { x: player.x + FIELD_CONFIG.PLAYER_RADIUS, y: player.y };
 
@@ -197,11 +202,7 @@ function footballPositionAtTime(football, result, pathById, playerById, t, snapT
 
 /**
  * Returns true when the football should show its highlight ring —
- * i.e. while it is in-flight between players (snap, handoff pulse, arc).
- *
- * @param {Object} football   - football element
- * @param {Array}  elements   - active play elements
- * @param {number} currentTime
+ * snap in-flight, handoff pulse (0.1s), pass/toss in-flight.
  */
 export function isFootballInFlight(football, elements, currentTime) {
   if (currentTime <= 0) return false;
@@ -211,25 +212,17 @@ export function isFootballInFlight(football, elements, currentTime) {
 
   const snapTime = getSnapTime(elements);
 
-  // Snap in-flight window
   if (currentTime > snapTime && currentTime < snapTime + SNAP_REAL_SECS) return true;
 
-  // Build path index for arc lookups
-  const pathById = new Map();
-  for (const el of elements) {
-    if (el.type === 'path') pathById.set(el.id, el);
-  }
-
   for (const event of (journey.events || [])) {
-    if (event.time > currentTime) continue; // not yet fired
+    if (event.time > currentTime) continue;
 
     if (event.type === 'handoff') {
       if (currentTime < event.time + 0.1) return true;
     }
 
-    if ((event.type === 'pass' || event.type === 'toss') && event.arcPathId) {
-      const arcPath = pathById.get(event.arcPathId);
-      if (arcPath && currentTime < event.time + getPathDuration(arcPath)) return true;
+    if (event.type === 'pass' || event.type === 'toss') {
+      if (currentTime < event.time + flightSecs(event.type)) return true;
     }
   }
 
@@ -238,18 +231,11 @@ export function isFootballInFlight(football, elements, currentTime) {
 
 /**
  * Compute interpolated element positions at currentTime.
- *
- * @param {Array}  elements    - active play elements array
- * @param {number} currentTime - playback time in seconds
- * @returns {Map<string, {x: number, y: number}>}
- *   Only elements with a computable position appear in the Map.
- *   Elements absent from the Map stay at their stored position.
  */
 export function computePositions(elements, currentTime, playbackSpeed = 1) {
   const result = new Map();
   if (!elements?.length) return result;
 
-  // Index by id for O(1) lookup
   const pathById   = new Map();
   const playerById = new Map();
   for (const el of elements) {
@@ -257,10 +243,8 @@ export function computePositions(elements, currentTime, playbackSpeed = 1) {
     if (el.type === 'player') playerById.set(el.id, el);
   }
 
-  // Snap time — needed by football runtime
   const snapTime = getSnapTime(elements);
 
-  // Players with a linked route
   for (const el of elements) {
     if (el.type !== 'player' || !el.routeId) continue;
     const path = pathById.get(el.routeId);
@@ -269,7 +253,6 @@ export function computePositions(elements, currentTime, playbackSpeed = 1) {
     if (pos) result.set(el.id, pos);
   }
 
-  // Football — journey-based position (computed after players so result map is populated)
   for (const el of elements) {
     if (el.type !== 'football') continue;
     const pos = footballPositionAtTime(el, result, pathById, playerById, currentTime, snapTime, playbackSpeed);
@@ -277,4 +260,28 @@ export function computePositions(elements, currentTime, playbackSpeed = 1) {
   }
 
   return result;
+}
+
+/**
+ * Return the intercept point for a pass/toss event — stored interceptPoint
+ * or the receiver's computed position at catch time (anticipation default).
+ * Used by FieldRenderer to position the draggable target node.
+ *
+ * @param {Object} event      - journey event (pass or toss)
+ * @param {Array}  elements   - active play elements
+ * @returns {{ x: number, y: number } | null}
+ */
+export function getInterceptPoint(event, elements) {
+  if (event.interceptPoint) return event.interceptPoint;
+  if (!event.toPlayer) return null;
+
+  const pathById   = new Map();
+  const playerById = new Map();
+  for (const el of elements) {
+    if (el.type === 'path')   pathById.set(el.id, el);
+    if (el.type === 'player') playerById.set(el.id, el);
+  }
+
+  const catchTime = event.time + flightSecs(event.type);
+  return carrierPosAt(event.toPlayer, catchTime, pathById, playerById);
 }
