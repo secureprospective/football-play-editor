@@ -11,13 +11,14 @@
   font-family: var(--s-font);
 }
 
-/* Anim toggle tab — always shows accent: it is the mode indicator */
+/* Anim toggle — standard raised/pressed button, same family as reset and play */
 .anim-toggle {
-  height: 30px;
+  width: 34px;
+  height: 34px;
   padding: 0 10px;
   background: var(--s-btn-face);
   border: 1px solid var(--s-border-hard);
-  border-radius: 2px;
+  border-radius: 3px;
   box-shadow: var(--s-btn-raised);
   color: var(--s-text-muted);
   font-size: 10px;
@@ -27,15 +28,22 @@
   text-transform: uppercase;
   cursor: pointer;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.06s ease, color 0.06s ease;
   touch-action: manipulation;
 }
 
+.anim-toggle:hover:not(:disabled) { filter: brightness(1.12); }
+
+/* Active — pressed into faceplate, accent border signals ON state */
 .anim-toggle.active {
-  background: var(--s-accent);
+  background: var(--s-btn-active-face);
   border-color: var(--s-accent-border);
-  box-shadow: 0 2px 0 var(--s-accent-border), inset 0 1px 0 rgba(255,255,255,0.15);
-  color: var(--s-accent-text);
+  color: var(--s-accent-border);
+  box-shadow: var(--s-btn-pressed);
+  transform: translateY(2px);
 }
 
 /* Standard transport button (reset ◀◀) */
