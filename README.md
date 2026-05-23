@@ -82,17 +82,51 @@ Your playbook is saved automatically on your computer. Nothing goes to the inter
 | ✅ | **Hide/show panel** in Present Mode — collapse the bottom controls so the play fills the screen |
 | ✅ | **In-flight ring** — football glows yellow while in motion so it's easy to follow during playback |
 
-**Coming in the next 1–2 deploys (cleanup phase):**
+### Cleanup phase progress
 
-| Status | Fix |
+The app is in a 6-phase cleanup sweep right now. Some phases ship visible fixes; others are internal performance work. Each row flips to ✅ as it deploys.
+
+**Phase tracker** (last updated: 2026-05-23)
+
+| Phase | What it does | Visible to you? | Status |
+|---|---|---|---|
+| A | Code cleanup — dead code, unused files | No | ⏳ Not started |
+| B | Visible bug fixes (3 fixes — see below) | **Yes** | ⏳ Not started |
+| C | Inspector duration slider responsiveness | **Yes** (subtle) | ⏳ Not started |
+| D | App-wide performance sweep | No | ⏳ Not started |
+| E | Animation runtime tuning | No | ⏳ Not started |
+| F | Storage-full warning banner | **Yes** (new banner) | ⏳ Not started |
+
+Time and token budget will decide whether these ship in one session or several. The tracker above is the source of truth — if it says ⏳ Not started, that deploy has not landed yet.
+
+**Visible fixes in flight (Phases B, C, F):**
+
+| Phase | Status | Fix |
+|---|---|---|
+| B | ⏳ Coming | **Print Mode staging buttons** that appeared blank now show a visible background (Text/Plays toggle, Youth/Adult toggle, Clear/Print) |
+| B | ⏳ Coming | **Print queue no longer shows old play data** — if you queued a play, edited it, then printed, the card showed the pre-edit version. Now resolves the live play at print time. |
+| B | ⏳ Coming | **Present Mode blur on older Safari** — frosted backdrop on the bottom bar now renders correctly |
+| C | ⏳ Coming | **Inspector duration slider** feels responsive on cheap tablets — was generating excess work per drag |
+| F | ⏳ Coming | **Storage full warning** — visible banner if your browser storage fills, before you lose any work |
+
+Phases A, D, and E are invisible — code organization and performance improvements that make the app faster without changing what you see.
+
+### What's planned after cleanup
+
+After the cleanup sweep lands, the next development pass picks up these items. They are not in flight yet — listed so you know where the app is headed.
+
+| Status | Item |
 |---|---|
-| Coming | **Print Mode staging buttons** that appeared blank now show a visible background (Text/Plays toggle, Youth/Adult toggle, Clear/Print) |
-| Coming | **Print queue no longer shows old play data** — if you queued a play, edited it, then printed, the card showed the pre-edit version. Now resolves the live play at print time. |
-| Coming | **Inspector duration slider** will feel responsive on cheap tablets — was generating excess work per drag |
-| Coming | **Storage full warning** — visible banner if your browser storage fills, before you lose any work |
-| Coming | **Present Mode blur on older Safari** — frosted backdrop on the bottom bar now renders correctly |
+| 🔜 Planned | Inspector layout polish — tighter spacing in the segment list and journey events |
+| 🔜 Planned | Present Mode UX refinements |
+| 🔜 Planned | Flight duration slider layout — current version works, layout will be cleaner |
+| 💤 Deferred | **Phone support** — waiting until animation is fully stable on tablets first |
+| 💤 Deferred | **Route branching** (option routes — click an existing route to fork) |
+| 💤 Deferred | **Dashed line per-segment** — checkbox exists in inspector but applies to the whole route; will become per-segment later |
+| 💤 Deferred | **Manual curve control point drag** — curves currently use automatic tension only |
+| 💤 Deferred | **Card view refactor** — internal architecture cleanup, no user-visible change planned |
 
-Most cleanup work is invisible — code organization and performance improvements that make the app faster without changing what you see.
+⏳ = In flight  ✅ = Shipped  🔜 = Planned next  💤 = Deferred (not scheduled)
 
 ---
 
@@ -111,6 +145,7 @@ If something looks wrong:
 - Right-click to finish a route only works on desktop, not touch — use the **Done** button on touch.
 - Dashed line per-segment is wired in the inspector but not honored — the entire route uses one line style.
 - Curve control point drag — curves use auto-tension; manual control point is deferred.
+- Hover preview of a route only appears while a finger is touching the screen (touch devices have no hover state).
 
 ---
 

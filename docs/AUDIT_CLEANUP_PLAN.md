@@ -687,6 +687,31 @@ banner so coaches know to export and prune before losing work.
 6. **Christopher confirms before commit.** Show the diff (`git diff --stat` minimum, full `git diff` for the small phases) and wait for "commit it".
 7. **Christopher confirms before merge to main.** Cloudflare auto-deploys on push to main. Visual confirmation on live site happens after merge but before declaring the phase done.
 8. **Update `CLAUDE.md`** at the end of each phase under the appropriate section — flip resolved items off the "Known deferred items" list, add any newly discovered items.
+9. **Update `README.md` per the phase mapping below — in the same commit as the code change, not separately.** Testers read the README to know what shipped. The phase tracker and visible-fixes tables in the README are the source of truth for what is live on `tfm-playbook.pages.dev`.
+
+### README update mapping (every phase)
+
+After the phase code lands and build passes, edit `README.md` as follows:
+
+| Phase | README changes required in this phase's commit |
+|---|---|
+| A | Phase tracker: flip Phase A row from `⏳ Not started` to `✅ Shipped`. Update "last updated" date at top of phase tracker to today. No other change (invisible to users). |
+| B | Phase tracker: flip Phase B row to `✅ Shipped`. Visible fixes table: flip all three Phase B rows from `⏳ Coming` to `✅ Shipped`. Update "last updated" date. |
+| C | Phase tracker: flip Phase C row to `✅ Shipped`. Visible fixes table: flip the Phase C slider row to `✅ Shipped`. Update "last updated" date. |
+| D | Phase tracker: flip Phase D row to `✅ Shipped`. Update "last updated" date. No visible-fixes row to flip. |
+| E | Phase tracker: flip Phase E row to `✅ Shipped`. Update "last updated" date. No visible-fixes row to flip. |
+| F | Phase tracker: flip Phase F row to `✅ Shipped`. Visible fixes table: flip the Phase F storage row to `✅ Shipped`. Update "last updated" date. |
+
+### Partial-session handling
+
+If time or token budget runs out mid-phase, the README must still match what is live. Two rules:
+
+- **Do not flip a row to `✅ Shipped` unless that change is committed AND merged to `main`.** A merged-but-unshipped-to-Cloudflare row is fine — Cloudflare deploys auto on push to `main`.
+- **If a phase ships only partially**, leave the phase tracker row as `⏳ Not started` and add a `📍 In progress — <what landed>` note next to it. Flip to `✅ Shipped` only when the whole phase is done. Example: if Phase B ships B1 and B2 but not B3, the phase tracker row reads `📍 In progress — print buttons + Safari blur done, print queue snapshot still pending` and only the B1/B2 rows in the visible-fixes table flip.
+
+### When two phases land in one session
+
+If a session has budget for two phases (e.g., A + B together because A is mechanical), commit them as **separate commits on the same branch**. The README update for each phase goes in that phase's commit. Do not batch README updates across phases.
 
 ---
 
