@@ -8,6 +8,31 @@ import { THEME_LOGO } from '../../constants/themeColors';
 import { flipPlayHorizontal, flipPlayVertical } from '../../utils/flipUtils';
 import { triggerHaptic } from '../../utils/haptics';
 
+/* ── Heroicons outline ── */
+const IconUndo = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M7.49012 11.9996L3.74025 15.75M3.74025 15.75L7.49012 19.5004M3.74025 15.75H20.2397V4.49902" />
+  </svg>
+);
+
+const IconRedo = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16.4899 11.9996L20.2397 15.75M20.2397 15.75L16.4899 19.5004M20.2397 15.75H3.74023V4.49902" />
+  </svg>
+);
+
+const IconFlipH = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M7.5 21L3 16.5M3 16.5L7.5 12M3 16.5H16.5M16.5 3L21 7.5M21 7.5L16.5 12M21 7.5L7.5 7.5" />
+  </svg>
+);
+
+const IconFlipV = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 7.5L7.5 3M7.5 3L12 7.5M7.5 3V16.5M21 16.5L16.5 21M16.5 21L12 16.5M16.5 21L16.5 7.5" />
+  </svg>
+);
+
 export default function Toolbar() {
   // Actions — stable refs, never trigger re-renders
   const { undo, redo, clearElements, updateElement, exportPlaybook, importPlaybook, navigateTo, goBack } = useDataStore(useShallow(s => ({
@@ -131,53 +156,58 @@ export default function Toolbar() {
       {drawingPath ? (
         <div className="toolbar-drawing">
           <span className="toolbar-drawing-hint">Tap to add points · Shift to constrain</span>
-          <button className="tb-btn btn-success" onClick={finishDrawing}>✓ Done</button>
-          <button className="tb-btn btn-danger"  onClick={cancelDrawing}>✕ Cancel</button>
+          <button className="tb-btn btn-success" onPointerDown={triggerHaptic} onClick={finishDrawing}>✓ Done</button>
+          <button className="tb-btn btn-danger"  onPointerDown={triggerHaptic} onClick={cancelDrawing}>✕ Cancel</button>
         </div>
       ) : (
-        <div className="toolbar-actions">
-          <button className="tb-btn" onPointerDown={triggerHaptic} onClick={undo} disabled={!canUndo} title="Undo">↩</button>
-          <button className="tb-btn" onPointerDown={triggerHaptic} onClick={redo} disabled={!canRedo} title="Redo">↪</button>
-          <div className="tb-divider-v" />
-          <button className="tb-btn" onPointerDown={triggerHaptic} onClick={handleFlipH} title="Flip Horizontal">⇄ Flip H</button>
-          <button className="tb-btn" onPointerDown={triggerHaptic} onClick={handleFlipV} title="Flip Vertical">⇅ Flip V</button>
-          <div className="tb-divider-v" />
-          <button
-            className={`tb-btn ${snapEnabled ? 'btn-active' : ''}`}
-            onPointerDown={triggerHaptic}
-            onClick={() => setSnapEnabled(!snapEnabled)}
-            title="Snap to grid"
-          >Snap</button>
-          <button
-            className={`tb-btn ${scrimmageVisible ? 'btn-los-active' : ''}`}
-            onPointerDown={triggerHaptic}
-            onClick={toggleScrimmage}
-            title="LOS"
-          >LOS</button>
-          <div className="tb-divider-v" />
-          <button className="tb-btn" onPointerDown={triggerHaptic} onClick={handleExport} title="Export playbook">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:'middle'}}>
-              <path d="M9 8.25H7.5C6.25736 8.25 5.25 9.25736 5.25 10.5V19.5C5.25 20.7426 6.25736 21.75 7.5 21.75H16.5C17.7426 21.75 18.75 20.7426 18.75 19.5V10.5C18.75 9.25736 17.7426 8.25 16.5 8.25H15M15 5.25L12 2.25M12 2.25L9 5.25M12 2.25L12 15" />
-            </svg>
-            {' '}Export
-          </button>
-          <button className="tb-btn" onPointerDown={triggerHaptic} onClick={handleImport} title="Import playbook">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:'middle'}}>
-              <path d="M9 8.25H7.5C6.25736 8.25 5.25 9.25736 5.25 10.5V19.5C5.25 20.7426 6.25736 21.75 7.5 21.75H16.5C17.7426 21.75 18.75 20.7426 18.75 19.5V10.5C18.75 9.25736 17.7426 8.25 16.5 8.25H15M9 12L12 15M12 15L15 12M12 15L12 2.25" />
-            </svg>
-            {' '}Import
-          </button>
-          <div className="tb-divider-v" />
-          {confirmClear ? (
-            <>
-              <span className="tb-confirm-label">Clear play?</span>
-              <button className="tb-btn btn-danger" onPointerDown={triggerHaptic} onClick={() => { clearElements(); cancelDrawing(); setConfirmClear(false); }}>Ok</button>
-              <button className="tb-btn" onPointerDown={triggerHaptic} onClick={() => setConfirmClear(false)}>Cancel</button>
-            </>
-          ) : (
-            <button className="btn-clear-guard" onClick={() => setConfirmClear(true)} title="Clear play">✕ Clear</button>
-          )}
-        </div>
+        <>
+          <div className="toolbar-actions">
+            <button className="tb-btn" onPointerDown={triggerHaptic} onClick={undo} disabled={!canUndo} title="Undo"><IconUndo /></button>
+            <button className="tb-btn" onPointerDown={triggerHaptic} onClick={redo} disabled={!canRedo} title="Redo"><IconRedo /></button>
+            <div className="tb-divider-v" />
+            <button className="tb-btn" onPointerDown={triggerHaptic} onClick={handleFlipH} title="Flip Horizontal"><IconFlipH /> Flip H</button>
+            <button className="tb-btn" onPointerDown={triggerHaptic} onClick={handleFlipV} title="Flip Vertical"><IconFlipV /> Flip V</button>
+            <div className="tb-divider-v" />
+            <button
+              className={`tb-btn ${snapEnabled ? 'btn-active' : ''}`}
+              onPointerDown={triggerHaptic}
+              onClick={() => setSnapEnabled(!snapEnabled)}
+              title="Snap to grid"
+            >Snap</button>
+            <button
+              className={`tb-btn ${scrimmageVisible ? 'btn-los-active' : ''}`}
+              onPointerDown={triggerHaptic}
+              onClick={toggleScrimmage}
+              title="LOS"
+            >LOS</button>
+            <div className="tb-divider-v" />
+            <button className="tb-btn" onPointerDown={triggerHaptic} onClick={handleExport} title="Export playbook">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:'middle'}}>
+                <path d="M9 8.25H7.5C6.25736 8.25 5.25 9.25736 5.25 10.5V19.5C5.25 20.7426 6.25736 21.75 7.5 21.75H16.5C17.7426 21.75 18.75 20.7426 18.75 19.5V10.5C18.75 9.25736 17.7426 8.25 16.5 8.25H15M15 5.25L12 2.25M12 2.25L9 5.25M12 2.25L12 15" />
+              </svg>
+              {' '}Export
+            </button>
+            <button className="tb-btn" onPointerDown={triggerHaptic} onClick={handleImport} title="Import playbook">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:'middle'}}>
+                <path d="M9 8.25H7.5C6.25736 8.25 5.25 9.25736 5.25 10.5V19.5C5.25 20.7426 6.25736 21.75 7.5 21.75H16.5C17.7426 21.75 18.75 20.7426 18.75 19.5V10.5C18.75 9.25736 17.7426 8.25 16.5 8.25H15M9 12L12 15M12 15L15 12M12 15L12 2.25" />
+              </svg>
+              {' '}Import
+            </button>
+          </div>
+
+          {/* Clear — pinned to far right, outside the scroll zone */}
+          <div className="toolbar-clear-zone">
+            {confirmClear ? (
+              <>
+                <span className="tb-confirm-label">Clear?</span>
+                <button className="tb-btn btn-danger" onPointerDown={triggerHaptic} onClick={() => { clearElements(); cancelDrawing(); setConfirmClear(false); }}>Ok</button>
+                <button className="tb-btn" onPointerDown={triggerHaptic} onClick={() => setConfirmClear(false)}>No</button>
+              </>
+            ) : (
+              <button className="btn-clear-guard" onClick={() => setConfirmClear(true)} title="Clear play">✕ Clear</button>
+            )}
+          </div>
+        </>
       )}
 
     </div>

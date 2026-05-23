@@ -206,6 +206,16 @@
 
 .toolbar-actions::-webkit-scrollbar { display: none; }
 
+/* Clear zone — always pinned at the far right, never scrolls away */
+.toolbar-clear-zone {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px 0 4px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--s-border-hard);
+}
+
 .toolbar-drawing {
   display: flex;
   align-items: center;
