@@ -133,11 +133,14 @@ const useEditorStore = create((set, get) => ({
   activePlayId: initialPlaybooks[0]?.formations[0]?.plays[0]?.id || null,
 
   navigateTo: (viewMode, ids = {}) => {
+    const playIdChanging = ids.playId !== undefined && ids.playId !== get().activePlayId;
     set({
       viewMode,
       ...(ids.playbookId  !== undefined && { activePlaybookId:  ids.playbookId }),
       ...(ids.formationId !== undefined && { activeFormationId: ids.formationId }),
       ...(ids.playId      !== undefined && { activePlayId:      ids.playId }),
+      // Clear undo history when switching plays — history is per-play, not global
+      ...(playIdChanging && { history: [], historyIndex: -1, selectedId: null }),
     });
   },
 
