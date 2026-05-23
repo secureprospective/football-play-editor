@@ -32,6 +32,7 @@ export default function PresentOverlay() {
     : '';
 
   const [text, setText] = useState(defaultText);
+  const [panelHidden, setPanelHidden] = useState(false);
 
   // Reset animation when navigating to a different play
   useEffect(() => { reset(); }, [activePlayId]);
@@ -86,6 +87,18 @@ export default function PresentOverlay() {
           {activePlay?.name}
         </button>
       </div>
+
+      {/* Panel toggle strip — always visible, arrow flips with state */}
+      <button
+        className="present-panel-toggle"
+        onClick={() => setPanelHidden(h => !h)}
+        aria-label={panelHidden ? 'Show controls' : 'Hide controls'}
+      >
+        {panelHidden ? '▲  Show' : '▼  Hide'}
+      </button>
+
+      {/* Collapsible panel: scrub bar + bottom bar */}
+      <div className={`present-panel${panelHidden ? ' present-panel--hidden' : ''}`}>
 
       {/* Full-width scrub bar */}
       {animationEnabled && (
@@ -153,6 +166,7 @@ export default function PresentOverlay() {
           )}
         </div>
       </div>
+      </div>{/* end present-panel */}
 
       <button className="present-exit-btn" onClick={togglePresentMode}>
         EDIT
@@ -160,7 +174,7 @@ export default function PresentOverlay() {
 
       <div className="present-brand">
         <img src={logo} alt="TFM" className="app-brand-logo" />
-        <span className="app-brand-title">TFM Playbook Lite</span>
+        <span className="app-brand-title">TFM Playbook</span>
       </div>
     </div>
   );

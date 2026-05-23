@@ -23,7 +23,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/icon-192.png', 'icons/icon-512.png'],
       manifest: {
-        name: 'TFM Playbook Lite',
+        name: 'TFM Playbook',
         short_name: 'TFM Lite',
         description: 'Draw and present football plays on the sideline. Optimized for limited hardware.',
         theme_color: '#141414',
