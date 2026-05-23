@@ -86,8 +86,8 @@ export function getSnapTime(elements) {
 
 // Snap always takes this many REAL seconds, regardless of playback speed.
 // animation-time duration = SNAP_REAL_SECS × playbackSpeed (passed in from rAF loop).
-// At 1x: 0.1 real sec. At 0.5x: 0.1 real sec. At 2x: 0.1 real sec.
-const SNAP_REAL_SECS = 0.1;
+// At 1x: 0.115 real sec. At 0.5x: 0.115 real sec. At 2x: 0.115 real sec.
+const SNAP_REAL_SECS = 0.115;
 
 // Helper: get a player's position at a specific time (for computing snap target)
 function carrierPosAt(carrierId, time, pathById, playerById) {

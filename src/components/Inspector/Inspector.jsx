@@ -83,6 +83,13 @@ function FootballInspector({ football, elements, allPlayers }) {
   const duration = getDuration(elements);
   const maxTime  = duration > 0 ? duration : 10;
 
+  // Compute a default time for new events that's guaranteed to fall inside the play.
+  // Aim for ~40% into the post-snap window, clamped to [snapTime+0.1, maxTime-0.05].
+  const postSnapSpan    = maxTime - snapTime;
+  const defaultEventTime = Math.round(
+    Math.max(snapTime + 0.1, Math.min(maxTime - 0.05, snapTime + postSnapSpan * 0.4)) * 10
+  ) / 10;
+
   function playerLabel(id) {
     const p = allPlayers.find(pl => pl.id === id);
     return p ? (p.label || `Player ${allPlayers.indexOf(p) + 1}`) : '[deleted]';
@@ -130,11 +137,12 @@ function FootballInspector({ football, elements, allPlayers }) {
           <div key={evt.id} className="inspector-journey-event">
             <div className="journey-event-row">
               {/* Time */}
+              <span className="journey-at-label">At</span>
               <input
                 type="number"
                 className="journey-time-input"
                 min={snapTime.toFixed(1)}
-                max={maxTime}
+                max={maxTime.toFixed(1)}
                 step="0.1"
                 value={evt.time}
                 onChange={e => {
@@ -144,7 +152,7 @@ function FootballInspector({ football, elements, allPlayers }) {
                   });
                 }}
                 onKeyDown={e => e.stopPropagation()}
-                title="Event time (s)"
+                title={`Event fires at this animation time (play ends at ${maxTime.toFixed(1)}s)`}
               />
               <span className="journey-time-unit">s</span>
 
@@ -214,9 +222,9 @@ function FootballInspector({ football, elements, allPlayers }) {
 
       {/* Add event buttons */}
       <div className="journey-add-row">
-        <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'handoff')}>+ Handoff</button>
-        <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'toss')}>+ Toss</button>
-        <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'pass')}>+ Pass</button>
+        <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'handoff', defaultEventTime)}>+ Handoff</button>
+        <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'toss', defaultEventTime)}>+ Toss</button>
+        <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'pass', defaultEventTime)}>+ Pass</button>
       </div>
     </>
   );

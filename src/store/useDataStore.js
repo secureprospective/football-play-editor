@@ -487,13 +487,13 @@ const useDataStore = create((set, get) => ({
     pushHistory();
   },
 
-  addJourneyEvent: (footballId, eventType) => {
+  addJourneyEvent: (footballId, eventType, defaultTime = 1.0) => {
     const { activePlaybookId, activeFormationId, activePlayId, getActivePlay, pushHistory } = get();
     const play = getActivePlay();
     if (!play) return;
     const football = play.elements.find(el => el.id === footballId);
     if (!football) return;
-    const newEvent = { id: genId('evt'), time: 1.0, type: eventType, toPlayer: null, arcPathId: null };
+    const newEvent = { id: genId('evt'), time: defaultTime, type: eventType, toPlayer: null, arcPathId: null };
     const events = [...(football.journey?.events || []), newEvent]
       .sort((a, b) => a.time - b.time);
     get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {

@@ -290,8 +290,14 @@
   align-items: center;
   gap: 4px;
 }
+.journey-at-label {
+  font-size: 11px;
+  color: var(--color-border-mid);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 .journey-time-input {
-  width: 46px;
+  width: 40px;
   min-height: 32px;
   font-size: 12px;
   padding: 2px 4px;
