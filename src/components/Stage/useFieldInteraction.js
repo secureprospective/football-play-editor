@@ -1,5 +1,6 @@
-import { useRef, useEffect, useState } from 'react';
-import useEditorStore, { genId } from '../../store/useEditorStore';
+import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
+import useDataStore, { genId } from '../../store/useDataStore';
+import useUIStore from '../../store/useUIStore';
 import { useAnimationLoop } from './useAnimationLoop';
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
 import { TOOL_MODES } from '../../constants/toolModes';
@@ -8,6 +9,8 @@ import { snapPoint, constrainToAngle } from '../../utils/snapToGrid';
 import { defaultCurveCP } from '../../utils/curveUtils';
 import { THEME_COLORS } from '../../constants/themeColors';
 
+
+// --- Module-level pure helpers (no closure over hook state) ---
 
 function getPathTailPoint(path) {
   if (!path?.segments?.length) return null;
@@ -35,30 +38,66 @@ function getElementsInRect(rect, elements) {
     .map(el => el.id);
 }
 
+// Pure helpers — all mutable values passed as explicit args so handlers can be useCallback([])
+function resolveRoutePoint(rawPos, fromPoint, shiftHeld, snapEnabled, snapIncrement) {
+  if (shiftHeld && fromPoint) return constrainToAngle(fromPoint, rawPos);
+  return snapPoint(rawPos, snapIncrement, snapEnabled);
+}
+
+function resolvePreviewPos(rawPos, fromPoint, shiftHeld) {
+  if (shiftHeld && fromPoint) return constrainToAngle(fromPoint, rawPos);
+  return rawPos;
+}
+
+function resolveDragDelta(fromPos, toPos, shiftHeld) {
+  if (shiftHeld) {
+    return constrainToAngle({ x: 0, y: 0 }, {
+      x: toPos.x - fromPos.x,
+      y: toPos.y - fromPos.y,
+    });
+  }
+  return { x: toPos.x - fromPos.x, y: toPos.y - fromPos.y };
+}
+
 export function useFieldInteraction() {
+  // Store subscription — values needed for render output and derived display state.
+  // Handlers do NOT read these closed-over values; they use getState() for fresh reads.
   const {
     getActivePlay,
     addElement, updateElement, updateElements,
     selectedId,
     setSelectedId, clearSelection,
+    pushHistory,
+    marqueeIds, setMarqueeIds, clearMarquee,
+  } = useDataStore();
+
+  const {
     activeTool,
     snapEnabled, snapIncrement,
-    pushHistory,
     drawingPath, setDrawingPath, finishDrawing, cancelDrawing,
     setActivePathId,
     scrimmageVisible,
     presentMode,
-    marqueeIds, setMarqueeIds, clearMarquee,
-  } = useEditorStore();
+  } = useUIStore();
 
-  const theme  = useEditorStore(s => s.theme);
+  const theme  = useUIStore(s => s.theme);
   const colors = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
 
   const elements     = getActivePlay()?.elements || [];
   const positionsRef = useAnimationLoop();
 
+  // Stable DOM refs
   const stageRef     = useRef(null);
   const containerRef = useRef(null);
+
+  // Mirror refs — kept in sync with local state; read inside useCallback([]) handlers
+  // to avoid stale closures without triggering re-renders.
+  const stageSizeRef        = useRef({ width: 600, height: 800 });
+  const shiftHeldRef        = useRef(false);
+  const placingHighlightRef = useRef(null);
+  const liveMarqueeIdsRef   = useRef([]);
+
+  // Local state — drives rendering only
   const [stageSize, setStageSize]               = useState({ width: 600, height: 800 });
   const [mousePos, setMousePos]                 = useState(null);
   const [shiftHeld, setShiftHeld]               = useState(false);
@@ -67,6 +106,8 @@ export function useFieldInteraction() {
   const [liveMarqueeIds, setLiveMarqueeIds]     = useState([]);
   const [placingHighlight, setPlacingHighlight] = useState(null);
   const [guidingPlayerId, setGuidingPlayerId]   = useState(null);
+
+  // Interaction refs
   const dragStartRef    = useRef(null);
   const dragStartPos    = useRef(null);
   const isDraggingRef   = useRef(false);
@@ -74,12 +115,14 @@ export function useFieldInteraction() {
   const marqueeStartRef = useRef(null);
   const groupStartRef   = useRef([]);
 
-  // Resize observer
+  // Resize observer — updates both state (for render) and ref (for handlers)
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     function updateSize() {
-      setStageSize({ width: container.clientWidth, height: container.clientHeight });
+      const size = { width: container.clientWidth, height: container.clientHeight };
+      stageSizeRef.current = size;
+      setStageSize(size);
     }
     updateSize();
     const observer = new ResizeObserver(updateSize);
@@ -88,25 +131,37 @@ export function useFieldInteraction() {
   }, []);
 
   // Keyboard shortcuts
+  // finishDrawing/cancelDrawing/clearMarquee are stable Zustand actions.
+  // State setters (setLiveMarqueeIds etc.) are stable from useState. Deps: []
   useEffect(() => {
     function handleKeyDown(e) {
-      if (e.key === 'Shift') setShiftHeld(true);
+      if (e.key === 'Shift') {
+        setShiftHeld(true);
+        shiftHeldRef.current = true;
+      }
       if (e.key === 'Enter') { e.preventDefault(); finishDrawing(); }
       if (e.key === 'Escape') {
         e.preventDefault();
         cancelDrawing();
         clearMarquee();
         setLiveMarqueeIds([]);
+        liveMarqueeIdsRef.current = [];
         setMarqueeRect(null);
         setPlacingHighlight(null);
+        placingHighlightRef.current = null;
       }
-      if ((e.key === 'Delete' || e.key === 'Backspace') && !drawingPath) {
-        const { selectedId: sid, deleteElement } = useEditorStore.getState();
+      if ((e.key === 'Delete' || e.key === 'Backspace') && !useUIStore.getState().drawingPath) {
+        const tag = e.target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.target.isContentEditable) return;
+        const { selectedId: sid, deleteElement } = useDataStore.getState();
         if (sid && sid !== 'scrimmage_line') deleteElement(sid);
       }
     }
     function handleKeyUp(e) {
-      if (e.key === 'Shift') setShiftHeld(false);
+      if (e.key === 'Shift') {
+        setShiftHeld(false);
+        shiftHeldRef.current = false;
+      }
     }
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
@@ -114,59 +169,63 @@ export function useFieldInteraction() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [finishDrawing, cancelDrawing, drawingPath]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const scaleX = stageSize.width  / FIELD_CONFIG.STAGE_WIDTH;
-  const scaleY = stageSize.height / FIELD_CONFIG.STAGE_HEIGHT;
-
-  function getScaledPos() {
-    const pos = stageRef.current?.getPointerPosition();
-    if (!pos) return null;
-    return { x: pos.x / scaleX, y: pos.y / scaleY };
-  }
-
-  function resolveRoutePoint(rawPos, fromPoint) {
-    if (shiftHeld && fromPoint) return constrainToAngle(fromPoint, rawPos);
-    return snapPoint(rawPos, snapIncrement, snapEnabled);
-  }
-
-  function resolvePreviewPos(rawPos, fromPoint) {
-    if (shiftHeld && fromPoint) return constrainToAngle(fromPoint, rawPos);
-    return rawPos;
-  }
-
-  function resolveDragDelta(fromPos, toPos) {
-    if (shiftHeld) {
-      return constrainToAngle({ x: 0, y: 0 }, {
-        x: toPos.x - fromPos.x,
-        y: toPos.y - fromPos.y,
-      });
-    }
-    return { x: toPos.x - fromPos.x, y: toPos.y - fromPos.y };
-  }
-
-  const isDrawingTool = (
-    activeTool === TOOL_MODES.ADD_LINE_STRAIGHT ||
-    activeTool === TOOL_MODES.ADD_LINE_CURVE
-  );
-  const isCurve     = activeTool === TOOL_MODES.ADD_LINE_CURVE;
+  // Derived display values (from subscription — for render and cursor logic)
+  const scaleX      = stageSize.width  / FIELD_CONFIG.STAGE_WIDTH;
+  const scaleY      = stageSize.height / FIELD_CONFIG.STAGE_HEIGHT;
   const isBoxSelect = activeTool === TOOL_MODES.BOX_SELECT;
 
-  // --- Pointer down ---
-  function handlePointerDown() {
+  // Stable pointer-position helper — reads only refs and constants
+  const getScaledPos = useCallback(() => {
+    const pos = stageRef.current?.getPointerPosition();
+    if (!pos) return null;
+    const scX = stageSizeRef.current.width  / FIELD_CONFIG.STAGE_WIDTH;
+    const scY = stageSizeRef.current.height / FIELD_CONFIG.STAGE_HEIGHT;
+    return { x: pos.x / scX, y: pos.y / scY };
+  }, []);
+
+  // --- Pointer down (stable reference — all store state read via getState()) ---
+  const handlePointerDown = useCallback(() => {
     if (!stageRef.current) return;
-    if (presentMode) return;
+
+    const {
+      activeTool: tool,
+      presentMode: pm,
+      snapEnabled: snapEn,
+      snapIncrement: snapInc,
+      scrimmageVisible: scrimVis,
+      setDrawingPath: setDP,
+      setActivePathId: setAPId,
+    } = useUIStore.getState();
+
+    const {
+      selectedId: selId,
+      getActivePlay: getPlay,
+      addElement: addEl,
+      setSelectedId: setSelId,
+      clearSelection: clearSel,
+      clearMarquee: clearMq,
+    } = useDataStore.getState();
+
+    if (pm) return;
 
     const pos = getScaledPos();
     if (!pos) return;
+
+    const els          = getPlay()?.elements || [];
+    const shiftH       = shiftHeldRef.current;
+    const isCurveLocal = tool === TOOL_MODES.ADD_LINE_CURVE;
+    const isDrawLocal  = tool === TOOL_MODES.ADD_LINE_STRAIGHT || tool === TOOL_MODES.ADD_LINE_CURVE;
+
     dragStartRef.current  = pos;
     dragStartPos.current  = pos;
     isDraggingRef.current = false;
 
-    const hit = masterHitTest(pos.x, pos.y, elements, selectedId, positionsRef.current);
+    const hit = masterHitTest(pos.x, pos.y, els, selId, positionsRef.current);
 
-    if (activeTool === TOOL_MODES.ADD_PLAYER) {
-      const snapped = snapPoint(pos, snapIncrement, snapEnabled);
+    if (tool === TOOL_MODES.ADD_PLAYER) {
+      const snapped = snapPoint(pos, snapInc, snapEn);
       const newPlayer = {
         id: genId("el"), type: 'player',
         x: snapped.x, y: snapped.y,
@@ -175,95 +234,99 @@ export function useFieldInteraction() {
         groupId: null,
         routeId: null,
       };
-      addElement(newPlayer);
-      setSelectedId(newPlayer.id);
-      useEditorStore.getState().setActiveTool(TOOL_MODES.SELECT);
+      addEl(newPlayer);
+      setSelId(newPlayer.id);
+      useUIStore.getState().setActiveTool(TOOL_MODES.SELECT);
       return;
     }
 
-    if (activeTool === TOOL_MODES.ADD_FOOTBALL) {
-      const hasFootball = elements.some(el => el.type === 'football');
+    if (tool === TOOL_MODES.ADD_FOOTBALL) {
+      const hasFootball = els.some(el => el.type === 'football');
       if (!hasFootball) {
-        const snapped = snapPoint(pos, snapIncrement, snapEnabled);
+        const snapped = snapPoint(pos, snapInc, snapEn);
         const newFootball = {
           id: genId("el"), type: 'football',
           x: snapped.x, y: snapped.y,
           attachedToElementId: null,
         };
-        addElement(newFootball);
-        setSelectedId(newFootball.id);
+        addEl(newFootball);
+        setSelId(newFootball.id);
       }
-      useEditorStore.getState().setActiveTool(TOOL_MODES.SELECT);
+      useUIStore.getState().setActiveTool(TOOL_MODES.SELECT);
       return;
     }
 
-    if (activeTool === TOOL_MODES.ADD_TEXT) {
-      const snapped = snapPoint(pos, snapIncrement, snapEnabled);
+    if (tool === TOOL_MODES.ADD_TEXT) {
+      const snapped = snapPoint(pos, snapInc, snapEn);
       const newText = {
         id: genId("el"), type: 'text',
         x: snapped.x, y: snapped.y,
         content: 'Text',
         visibility: { startTime: null, endTime: null, fade: false },
       };
-      addElement(newText);
-      setSelectedId(newText.id);
-      useEditorStore.getState().setActiveTool(TOOL_MODES.SELECT);
+      addEl(newText);
+      setSelId(newText.id);
+      useUIStore.getState().setActiveTool(TOOL_MODES.SELECT);
       return;
     }
 
-    if (activeTool === TOOL_MODES.ADD_HIGHLIGHT) {
-      const snapped = snapPoint(pos, snapIncrement, snapEnabled);
-      if (!placingHighlight) {
-        setPlacingHighlight({ x: snapped.x, y: snapped.y });
+    if (tool === TOOL_MODES.ADD_HIGHLIGHT) {
+      const snapped = snapPoint(pos, snapInc, snapEn);
+      const phCurrent = placingHighlightRef.current;
+      if (!phCurrent) {
+        const ph = { x: snapped.x, y: snapped.y };
+        setPlacingHighlight(ph);
+        placingHighlightRef.current = ph;
       } else {
-        const dx = snapped.x - placingHighlight.x;
-        const dy = snapped.y - placingHighlight.y;
+        const dx = snapped.x - phCurrent.x;
+        const dy = snapped.y - phCurrent.y;
         const radius = Math.max(20, Math.sqrt(dx * dx + dy * dy));
         const newHighlight = {
           id: genId("el"), type: 'highlight',
-          x: placingHighlight.x, y: placingHighlight.y,
+          x: phCurrent.x, y: phCurrent.y,
           radius,
           color: '#ffff00',
           opacity: 0.3,
           visibility: { startTime: null, endTime: null, fade: false },
         };
-        addElement(newHighlight);
-        setSelectedId(newHighlight.id);
+        addEl(newHighlight);
+        setSelId(newHighlight.id);
         setPlacingHighlight(null);
-        useEditorStore.getState().setActiveTool(TOOL_MODES.SELECT);
+        placingHighlightRef.current = null;
+        useUIStore.getState().setActiveTool(TOOL_MODES.SELECT);
       }
       return;
     }
 
-    if (isDrawingTool) {
-      // Case 1: Already drawing — read directly from store to avoid stale closure
-      const currentDrawingPath = useEditorStore.getState().drawingPath;
-      if (currentDrawingPath) {
-        const tail = getPathTailPoint(currentDrawingPath) ?? currentDrawingPath._branchOrigin ?? currentDrawingPath._startPoint;
-        const resolved = resolveRoutePoint(pos, tail);
-        const controlPoint = isCurve ? defaultCurveCP(tail, resolved) : undefined;
+    if (isDrawLocal) {
+      // Case 1: Already drawing
+      const currentDP = useUIStore.getState().drawingPath;
+      if (currentDP) {
+        const tail = getPathTailPoint(currentDP) ?? currentDP._branchOrigin ?? currentDP._startPoint;
+        const resolved = resolveRoutePoint(pos, tail, shiftH, snapEn, snapInc);
+        const controlPoint = isCurveLocal ? defaultCurveCP(tail, resolved) : undefined;
         const newSeg = {
           id: genId("seg"),
           points: [tail, resolved],
-          curve: isCurve,
+          curve: isCurveLocal,
           preSnap: false,
           duration: 0.5,
           ...(controlPoint && { controlPoint }),
         };
-        setDrawingPath({ ...currentDrawingPath, segments: [...currentDrawingPath.segments, newSeg] });
+        setDP({ ...currentDP, segments: [...currentDP.segments, newSeg] });
         return;
       }
 
       // Case 2: A path is selected — branch or continue
-      if (selectedId) {
-        const selectedEl = elements.find(el => el.id === selectedId);
+      if (selId) {
+        const selectedEl = els.find(el => el.id === selId);
         if (selectedEl?.type === 'path') {
           const pathHit = hitTestPathSegments(pos.x, pos.y, selectedEl.segments);
           if (pathHit.hit) {
-            const branchOrigin = snapPoint(pathHit.point, snapIncrement, snapEnabled);
-            setActivePathId(selectedId);
-            setDrawingPath({
-              id: selectedId,
+            const branchOrigin = snapPoint(pathHit.point, snapInc, snapEn);
+            setAPId(selId);
+            setDP({
+              id: selId,
               type: 'path',
               segments: [],
               _branchOrigin: branchOrigin,
@@ -276,10 +339,10 @@ export function useFieldInteraction() {
       }
 
       // Case 3: Start new route
-      const resolved = resolveRoutePoint(pos, null);
-      clearSelection();
-      setActivePathId(null);
-      setDrawingPath({
+      const resolved = resolveRoutePoint(pos, null, shiftH, snapEn, snapInc);
+      clearSel();
+      setAPId(null);
+      setDP({
         id: genId("el"),
         type: 'path',
         segments: [],
@@ -290,18 +353,17 @@ export function useFieldInteraction() {
       return;
     }
 
-    if (activeTool === TOOL_MODES.BOX_SELECT) {
-      // Read directly from store to avoid stale closure on marqueeIds
-      const currentMarqueeIds = useEditorStore.getState().marqueeIds;
+    if (tool === TOOL_MODES.BOX_SELECT) {
+      const currentMarqueeIds = useDataStore.getState().marqueeIds;
       if (currentMarqueeIds.length > 0) {
-        const onGroup = elements.some(el =>
+        const onGroup = els.some(el =>
           currentMarqueeIds.includes(el.id) && (
             el.type === 'player' ? hitTestPlayer(pos.x, pos.y, el) :
             el.type === 'path'   ? hitTestPathSegments(pos.x, pos.y, el.segments).hit : false
           )
         );
         if (onGroup) {
-          groupStartRef.current = elements
+          groupStartRef.current = els
             .filter(el => currentMarqueeIds.includes(el.id))
             .map(el => ({
               id: el.id, type: el.type,
@@ -315,31 +377,32 @@ export function useFieldInteraction() {
           return;
         }
       }
-      clearMarquee();
+      clearMq();
       setLiveMarqueeIds([]);
+      liveMarqueeIdsRef.current = [];
       marqueeStartRef.current = pos;
       setMarqueeRect({ x: pos.x, y: pos.y, width: 0, height: 0 });
       dragTargetRef.current = null;
       return;
     }
 
-    if (scrimmageVisible) {
-      const scrimmage = elements.find(el => el.id === 'scrimmage_line');
+    if (scrimVis) {
+      const scrimmage = els.find(el => el.id === 'scrimmage_line');
       if (scrimmage && Math.abs(pos.y - scrimmage.y) < 10) {
-        setSelectedId('scrimmage_line');
+        setSelId('scrimmage_line');
         dragTargetRef.current = { type: 'scrimmage', elementId: 'scrimmage_line' };
         return;
       }
     }
 
-    if (hit.type === 'controlPoint') { setSelectedId(hit.elementId); dragTargetRef.current = hit; return; }
-    if (hit.type === 'handle')       { setSelectedId(hit.elementId); dragTargetRef.current = hit; return; }
+    if (hit.type === 'controlPoint') { setSelId(hit.elementId); dragTargetRef.current = hit; return; }
+    if (hit.type === 'handle')       { setSelId(hit.elementId); dragTargetRef.current = hit; return; }
     if (hit.type === 'player') {
-      setSelectedId(hit.elementId);
-      const player = elements.find(el => el.id === hit.elementId);
+      setSelId(hit.elementId);
+      const player  = els.find(el => el.id === hit.elementId);
       const animPos = positionsRef.current.get(player.id);
       const routeId = player?.routeId || null;
-      const linkedPath = routeId ? elements.find(el => el.id === routeId) : null;
+      const linkedPath = routeId ? els.find(el => el.id === routeId) : null;
       dragTargetRef.current = {
         ...hit,
         playerStart: { x: animPos?.x ?? player.x, y: animPos?.y ?? player.y },
@@ -348,58 +411,74 @@ export function useFieldInteraction() {
       };
       return;
     }
-    if (hit.type === 'football')     { setSelectedId(hit.elementId); dragTargetRef.current = hit; return; }
-    if (hit.type === 'text')         { setSelectedId(hit.elementId); dragTargetRef.current = hit; return; }
-    if (hit.type === 'highlight')    { setSelectedId(hit.elementId); dragTargetRef.current = hit; return; }
-    if (hit.type === 'path')         { setSelectedId(hit.elementId); dragTargetRef.current = hit; return; }
+    if (hit.type === 'football')  { setSelId(hit.elementId); dragTargetRef.current = hit; return; }
+    if (hit.type === 'text')      { setSelId(hit.elementId); dragTargetRef.current = hit; return; }
+    if (hit.type === 'highlight') { setSelId(hit.elementId); dragTargetRef.current = hit; return; }
+    if (hit.type === 'path')      { setSelId(hit.elementId); dragTargetRef.current = hit; return; }
 
-    clearSelection();
+    clearSel();
     dragTargetRef.current = null;
-  }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // --- Pointer move ---
-  function handlePointerMove() {
+  // --- Pointer move (stable reference) ---
+  const handlePointerMove = useCallback(() => {
     if (!stageRef.current) return;
-    if (presentMode) return;
 
-    const pos = getScaledPos();
+    const {
+      presentMode: pm,
+      drawingPath: dp,
+      activeTool: tool,
+      scrimmageVisible: scrimVis,
+      snapEnabled: snapEn,
+      snapIncrement: snapInc,
+    } = useUIStore.getState();
+
+    const {
+      getActivePlay: getPlay,
+      updateElement: updEl,
+      updateElements: updEls,
+    } = useDataStore.getState();
+
+    if (pm) return;
+
+    const pos  = getScaledPos();
     if (!pos) return;
 
-    if (drawingPath) {
-      const tail = drawingPath._branchOrigin || getPathTailPoint(drawingPath) || drawingPath._startPoint;
-      setMousePos(resolvePreviewPos(pos, tail));
+    const els    = getPlay()?.elements || [];
+    const shiftH = shiftHeldRef.current;
+
+    if (dp) {
+      const tail = dp._branchOrigin || getPathTailPoint(dp) || dp._startPoint;
+      setMousePos(resolvePreviewPos(pos, tail, shiftH));
     } else {
       setMousePos(pos);
     }
 
-    if (!dragStartRef.current && scrimmageVisible) {
-      const scrimmage = elements.find(el => el.id === 'scrimmage_line');
-      if (scrimmage && Math.abs(pos.y - scrimmage.y) < 10) {
-        setHoveredId('scrimmage_line');
-      } else {
-        setHoveredId(null);
-      }
+    if (!dragStartRef.current && scrimVis) {
+      const scrimmage = els.find(el => el.id === 'scrimmage_line');
+      setHoveredId(scrimmage && Math.abs(pos.y - scrimmage.y) < 10 ? 'scrimmage_line' : null);
     }
 
     if (!dragStartRef.current) return;
+
     if (!isDraggingRef.current) {
       if (exceededDragThreshold(dragStartRef.current.x, dragStartRef.current.y, pos.x, pos.y)) {
         isDraggingRef.current = true;
-        if (dragTargetRef.current?.type === 'player' && marqueeIds.length === 0) {
+        const { marqueeIds: mqIds } = useDataStore.getState();
+        if (dragTargetRef.current?.type === 'player' && mqIds.length === 0) {
           setGuidingPlayerId(dragTargetRef.current.elementId);
         }
-        // Commit any animated positions to stored before drag takes over,
-        // then clear the Map so FieldRenderer uses stored positions going forward.
+        // Commit animated positions to stored before drag; clear map so renderer uses stored truth
         if (positionsRef.current.size > 0 && dragTargetRef.current) {
           const { type: dType, elementId: dId } = dragTargetRef.current;
           if (dType === 'player') {
             const ap = positionsRef.current.get(dId);
-            if (ap) updateElement(dId, { x: ap.x, y: ap.y });
+            if (ap) updEl(dId, { x: ap.x, y: ap.y });
           } else if (dType === 'path') {
-            const pathEl = elements.find(e => e.id === dId);
+            const pathEl = els.find(e => e.id === dId);
             if (pathEl?.playerId) {
               const ap = positionsRef.current.get(pathEl.playerId);
-              if (ap) updateElement(pathEl.playerId, { x: ap.x, y: ap.y });
+              if (ap) updEl(pathEl.playerId, { x: ap.x, y: ap.y });
             }
           }
           positionsRef.current = new Map();
@@ -411,10 +490,10 @@ export function useFieldInteraction() {
       const { type, elementId } = dragTargetRef.current;
 
       if (type === 'groupMove') {
-        const delta = resolveDragDelta(dragStartRef.current, pos);
+        const delta = resolveDragDelta(dragStartRef.current, pos, shiftH);
         const updates = groupStartRef.current.map(start => {
           if (start.type === 'player' || start.type === 'football' || start.type === 'text' || start.type === 'highlight') {
-            const newPos = snapPoint({ x: start.x + delta.x, y: start.y + delta.y }, snapIncrement, snapEnabled);
+            const newPos = snapPoint({ x: start.x + delta.x, y: start.y + delta.y }, snapInc, snapEn);
             return { id: start.id, changes: { x: newPos.x, y: newPos.y } };
           }
           if (start.type === 'path') {
@@ -431,29 +510,31 @@ export function useFieldInteraction() {
           }
           return null;
         }).filter(Boolean);
-        updateElements(updates);
+        updEls(updates);
         return;
       }
 
       if (type === 'controlPoint') {
-        const el = elements.find(e => e.id === elementId);
+        const el = els.find(e => e.id === elementId);
         if (!el?.segments) return;
         const { segmentIndex } = dragTargetRef.current;
         const seg = el.segments[segmentIndex];
-        const p1 = seg.points[0];
-        const p2 = seg.points[seg.points.length - 1];
-        const midpoint = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
-        const newCp = shiftHeld ? constrainToAngle(midpoint, pos) : pos;
-        updateElement(elementId, { segments: el.segments.map((s, si) => si !== segmentIndex ? s : { ...s, controlPoint: newCp }) });
+        const p1  = seg.points[0];
+        const p2  = seg.points[seg.points.length - 1];
+        const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+        const newCp = shiftH ? constrainToAngle(mid, pos) : pos;
+        updEl(elementId, {
+          segments: el.segments.map((s, si) => si !== segmentIndex ? s : { ...s, controlPoint: newCp }),
+        });
         return;
       }
 
       if (type === 'handle') {
-        const snapped = snapPoint(pos, snapIncrement, snapEnabled);
-        const el = elements.find(e => e.id === elementId);
+        const snapped = snapPoint(pos, snapInc, snapEn);
+        const el = els.find(e => e.id === elementId);
         if (!el?.segments) return;
         const { segmentIndex, nodeIndex } = dragTargetRef.current;
-        updateElement(elementId, {
+        updEl(elementId, {
           segments: el.segments.map((seg, si) =>
             si !== segmentIndex ? seg : { ...seg, points: seg.points.map((p, pi) => pi === nodeIndex ? snapped : p) }
           ),
@@ -462,17 +543,20 @@ export function useFieldInteraction() {
       }
 
       if (type === 'scrimmage') {
-        updateElement('scrimmage_line', { y: pos.y });
+        updEl('scrimmage_line', { y: pos.y });
         return;
       }
 
       if (type === 'player' || type === 'football' || type === 'text' || type === 'highlight') {
-        const delta = resolveDragDelta(dragStartPos.current, pos);
-        const newPos = snapPoint({ x: dragStartPos.current.x + delta.x, y: dragStartPos.current.y + delta.y }, snapIncrement, snapEnabled);
+        const delta  = resolveDragDelta(dragStartPos.current, pos, shiftH);
+        const newPos = snapPoint(
+          { x: dragStartPos.current.x + delta.x, y: dragStartPos.current.y + delta.y },
+          snapInc, snapEn
+        );
         const { linkedRouteId, linkedRouteStartSegments, playerStart } = dragTargetRef.current;
         if (type === 'player' && linkedRouteId && linkedRouteStartSegments && playerStart) {
           const rd = { x: newPos.x - playerStart.x, y: newPos.y - playerStart.y };
-          updateElements([
+          updEls([
             { id: elementId, changes: { x: newPos.x, y: newPos.y } },
             {
               id: linkedRouteId,
@@ -486,35 +570,35 @@ export function useFieldInteraction() {
             },
           ]);
         } else {
-          updateElement(elementId, { x: newPos.x, y: newPos.y });
+          updEl(elementId, { x: newPos.x, y: newPos.y });
         }
         return;
       }
 
       if (type === 'path') {
-        const delta = resolveDragDelta(dragStartRef.current, pos);
-        const el = elements.find(e => e.id === elementId);
+        const delta = resolveDragDelta(dragStartRef.current, pos, shiftH);
+        const el    = els.find(e => e.id === elementId);
         if (!el?.segments) return;
         const translatedSegments = el.segments.map(seg => ({
           ...seg,
           points: seg.points.map(p => ({ x: p.x + delta.x, y: p.y + delta.y })),
           ...(seg.controlPoint ? { controlPoint: { x: seg.controlPoint.x + delta.x, y: seg.controlPoint.y + delta.y } } : {}),
         }));
-        const linkedPlayer = el.playerId ? elements.find(e => e.id === el.playerId) : null;
+        const linkedPlayer = el.playerId ? els.find(e => e.id === el.playerId) : null;
         if (linkedPlayer) {
-          updateElements([
+          updEls([
             { id: elementId, changes: { segments: translatedSegments } },
             { id: linkedPlayer.id, changes: { x: linkedPlayer.x + delta.x, y: linkedPlayer.y + delta.y } },
           ]);
         } else {
-          updateElement(elementId, { segments: translatedSegments });
+          updEl(elementId, { segments: translatedSegments });
         }
         dragStartRef.current = pos;
         return;
       }
     }
 
-    if (activeTool === TOOL_MODES.BOX_SELECT && marqueeStartRef.current && !dragTargetRef.current) {
+    if (tool === TOOL_MODES.BOX_SELECT && marqueeStartRef.current && !dragTargetRef.current) {
       const rect = {
         x: marqueeStartRef.current.x,
         y: marqueeStartRef.current.y,
@@ -522,16 +606,21 @@ export function useFieldInteraction() {
         height: pos.y - marqueeStartRef.current.y,
       };
       setMarqueeRect(rect);
-      setLiveMarqueeIds(getElementsInRect(rect, elements));
+      const newIds = getElementsInRect(rect, els);
+      setLiveMarqueeIds(newIds);
+      liveMarqueeIdsRef.current = newIds;
     }
-  }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // --- Pointer up ---
-  function handlePointerUp() {
-    if (isDraggingRef.current && dragTargetRef.current) pushHistory();
+  // --- Pointer up (stable reference) ---
+  const handlePointerUp = useCallback(() => {
+    const { activeTool: tool } = useUIStore.getState();
+    const { pushHistory: ph, setMarqueeIds: setMqIds } = useDataStore.getState();
 
-    if (activeTool === TOOL_MODES.BOX_SELECT && marqueeStartRef.current && !dragTargetRef.current) {
-      setMarqueeIds(isDraggingRef.current ? liveMarqueeIds : []);
+    if (isDraggingRef.current && dragTargetRef.current) ph();
+
+    if (tool === TOOL_MODES.BOX_SELECT && marqueeStartRef.current && !dragTargetRef.current) {
+      setMqIds(isDraggingRef.current ? liveMarqueeIdsRef.current : []);
     }
 
     setMarqueeRect(null);
@@ -541,7 +630,24 @@ export function useFieldInteraction() {
     dragStartPos.current    = null;
     isDraggingRef.current   = false;
     dragTargetRef.current   = null;
-  }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Memoized handlers object — reference-stable; Konva re-binds only on initial mount
+  const handlers = useMemo(() => ({
+    onMouseDown:   () => handlePointerDown(),
+    onMouseMove:   () => handlePointerMove(),
+    onMouseUp:     () => handlePointerUp(),
+    onContextMenu: (e) => {
+      e.evt.preventDefault();
+      const { activeTool: at, drawingPath: dp } = useUIStore.getState();
+      if ((at === TOOL_MODES.ADD_LINE_STRAIGHT || at === TOOL_MODES.ADD_LINE_CURVE) && dp) {
+        useUIStore.getState().finishDrawing();
+      }
+    },
+    onTouchStart: (e) => { e.evt.preventDefault(); handlePointerDown(); },
+    onTouchMove:  (e) => { e.evt.preventDefault(); handlePointerMove(); },
+    onTouchEnd:   (e) => { e.evt.preventDefault(); handlePointerUp(); },
+  }), [handlePointerDown, handlePointerMove, handlePointerUp]);
 
   const cursorStyle = presentMode
     ? 'default'
@@ -573,14 +679,6 @@ export function useFieldInteraction() {
     drawingPath,
     presentMode,
     scrimmageVisible,
-    handlers: {
-      onMouseDown:    () => handlePointerDown(),
-      onMouseMove:    () => handlePointerMove(),
-      onMouseUp:      () => handlePointerUp(),
-      onContextMenu:  (e) => { e.evt.preventDefault(); if (isDrawingTool && drawingPath) finishDrawing(); },
-      onTouchStart:   (e) => { e.evt.preventDefault(); handlePointerDown(); },
-      onTouchMove:    (e) => { e.evt.preventDefault(); handlePointerMove(); },
-      onTouchEnd:     (e) => { e.evt.preventDefault(); handlePointerUp(); },
-    },
+    handlers,
   };
 }

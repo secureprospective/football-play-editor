@@ -1,6 +1,7 @@
 import { useEffect, lazy, Suspense } from 'react';
 import './App.css';
-import useEditorStore from './store/useEditorStore';
+import useDataStore from './store/useDataStore';
+import useUIStore from './store/useUIStore';
 import { VIEW_MODES } from './constants/toolModes';
 import PlaybookView  from './views/PlaybookView';
 import FormationView from './views/FormationView';
@@ -17,7 +18,8 @@ import AnimationBar from './components/AnimationBar/AnimationBar';
 const FieldCanvas = lazy(() => import('./components/Stage/FieldCanvas'));
 
 export default function App() {
-  const { viewMode, presentMode, togglePresentMode, theme, activePlayId } = useEditorStore();
+  const { viewMode, activePlayId } = useDataStore();
+  const { presentMode, togglePresentMode, theme } = useUIStore();
   useEffect(() => {
     document.documentElement.className = theme;
   }, [theme]);

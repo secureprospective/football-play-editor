@@ -1,5 +1,5 @@
 import './Toolbox.css';
-import useEditorStore from '../../store/useEditorStore';
+import useUIStore from '../../store/useUIStore';
 import { TOOL_MODES } from '../../constants/toolModes';
 
 const THEMES = [
@@ -70,7 +70,7 @@ const TOOLS = [
 ];
 
 export default function Toolbox() {
-  const { activeTool, setActiveTool, theme, setTheme } = useEditorStore();
+  const { activeTool, setActiveTool, theme, setTheme } = useUIStore();
 
   return (
     <div className="toolbox">

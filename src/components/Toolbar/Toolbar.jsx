@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import './Toolbar.css';
-import useEditorStore from '../../store/useEditorStore';
+import useDataStore from '../../store/useDataStore';
+import useUIStore from '../../store/useUIStore';
 import { VIEW_MODES } from '../../constants/toolModes';
 import { THEME_LOGO } from '../../constants/themeColors';
 import { flipPlayHorizontal, flipPlayVertical } from '../../utils/flipUtils';
@@ -12,13 +13,16 @@ export default function Toolbar() {
     getActivePlay, getActiveFormation, getActivePlaybook,
     updateElement,
     exportPlaybook, importPlaybook,
+    navigateTo, goBack,
+  } = useDataStore();
+
+  const {
     drawingPath, finishDrawing, cancelDrawing,
     scrimmageVisible, toggleScrimmage,
     presentMode, togglePresentMode,
     snapEnabled, setSnapEnabled,
-    navigateTo, goBack,
     theme,
-  } = useEditorStore();
+  } = useUIStore();
 
   const logo = THEME_LOGO[theme] || THEME_LOGO['theme-sun-cyan'];
 
@@ -152,7 +156,7 @@ export default function Toolbar() {
           {confirmClear ? (
             <>
               <span className="tb-confirm-label">Clear play?</span>
-              <button className="tb-btn btn-danger" onClick={() => { clearElements(); setConfirmClear(false); }}>Ok</button>
+              <button className="tb-btn btn-danger" onClick={() => { clearElements(); cancelDrawing(); setConfirmClear(false); }}>Ok</button>
               <button className="tb-btn" onClick={() => setConfirmClear(false)}>Cancel</button>
             </>
           ) : (

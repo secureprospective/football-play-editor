@@ -1,10 +1,12 @@
 import '../Toolbar/Toolbar.css';
 import './AppHeader.css';
-import useEditorStore from '../../store/useEditorStore';
+import useDataStore from '../../store/useDataStore';
+import useUIStore from '../../store/useUIStore';
 import { THEME_LOGO } from '../../constants/themeColors';
 
 export default function AppHeader({ crumbs = [], active, onAdd, addLabel, actions }) {
-  const { goBack, theme } = useEditorStore();
+  const { goBack } = useDataStore();
+  const { theme } = useUIStore();
   const logo = THEME_LOGO[theme] || THEME_LOGO['theme-sun-cyan'];
 
   return (

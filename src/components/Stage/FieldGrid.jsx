@@ -1,7 +1,7 @@
 import { Layer, Rect, Line } from 'react-konva';
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
 import { THEME_COLORS } from '../../constants/themeColors';
-import useEditorStore from '../../store/useEditorStore';
+import useUIStore from '../../store/useUIStore';
 
 const {
   FIELD_LEFT, FIELD_RIGHT, FIELD_TOP, FIELD_BOTTOM,
@@ -12,7 +12,7 @@ const {
 } = FIELD_CONFIG;
 
 export default function FieldGrid() {
-  const theme = useEditorStore(s => s.theme);
+  const theme = useUIStore(s => s.theme);
   const tc = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
   const colors = { field: tc.field, fieldLine: tc.text };
 

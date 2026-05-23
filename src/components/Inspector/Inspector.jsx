@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import './Inspector.css';
-import useEditorStore from '../../store/useEditorStore';
+import useDataStore from '../../store/useDataStore';
+import useUIStore from '../../store/useUIStore';
 import { THEME_COLORS } from '../../constants/themeColors';
 import { getDuration } from '../../store/useAnimationStore';
+import { getSnapTime } from '../../utils/animationRuntime';
 
 function VisibilityControls({ visibility, duration, onChange }) {
   const timed = visibility?.startTime !== null && visibility?.startTime !== undefined;
@@ -70,8 +72,179 @@ function VisibilityControls({ visibility, duration, onChange }) {
   );
 }
 
+// ── Football journey inspector ───────────────────────────────────────────────
+function FootballInspector({ football, elements, allPlayers }) {
+  const { setFootballSnapTo, addJourneyEvent, updateJourneyEvent, deleteJourneyEvent } = useDataStore();
+  const { setArcDrawingMode, arcDrawingForEventId } = useUIStore();
+
+  // draftTime: { id: eventId, value: string } — tracks mid-edit value so the
+  // store (and its sort) only updates on blur/Enter, not on every keystroke.
+  const [draftTime, setDraftTime] = useState(null);
+
+  const journey  = football.journey || { snapToPlayer: null, events: [] };
+  const events   = [...(journey.events || [])].sort((a, b) => a.time - b.time);
+  const snapTime = getSnapTime(elements);
+  const duration = getDuration(elements);
+  const maxTime  = duration > 0 ? duration : 10;
+
+  // Compute a default time for new events that's guaranteed to fall inside the play.
+  // Aim for ~40% into the post-snap window, clamped to [snapTime+0.1, maxTime-0.05].
+  const postSnapSpan    = maxTime - snapTime;
+  const defaultEventTime = Math.round(
+    Math.max(snapTime + 0.1, Math.min(maxTime - 0.05, snapTime + postSnapSpan * 0.4)) * 10
+  ) / 10;
+
+  function commitTime(eventId, raw) {
+    const v = parseFloat(raw);
+    if (!isNaN(v)) {
+      updateJourneyEvent(football.id, eventId, {
+        time: Math.max(snapTime, Math.min(maxTime, Math.round(v * 10) / 10)),
+      });
+    }
+    setDraftTime(null);
+  }
+
+  return (
+    <>
+      {/* Position */}
+      <div className="inspector-field-row">
+        <span className="inspector-field-label">Position</span>
+        <span className="inspector-field-value">x={Math.round(football.x)}  y={Math.round(football.y)} (LOS)</span>
+      </div>
+
+      {/* Snap to */}
+      <label>Snap to
+        <select
+          value={journey.snapToPlayer || 'none'}
+          onChange={e => setFootballSnapTo(football.id, e.target.value === 'none' ? null : e.target.value)}
+          onKeyDown={e => e.stopPropagation()}
+        >
+          <option value="none">— No snap —</option>
+          {allPlayers.map((p, i) => (
+            <option key={p.id} value={p.id}>
+              {p.label || `Player ${i + 1}`}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <div className="inspector-field-row">
+        <span className="inspector-field-label">Snap time</span>
+        <span className="inspector-field-value">{snapTime.toFixed(1)}s (auto)</span>
+      </div>
+
+      {/* Journey events */}
+      <div className="inspector-segments-label" style={{ marginTop: 10 }}>Journey Events</div>
+
+      {events.length === 0 && (
+        <div className="inspector-hint">No events — ball goes straight from snap to end of play</div>
+      )}
+
+      {events.map(evt => {
+        const isInFlight = evt.type === 'pass' || evt.type === 'toss';
+        const isEditingTime = draftTime?.id === evt.id;
+        const timeDisplayValue = isEditingTime ? draftTime.value : String(evt.time);
+        return (
+          <div key={evt.id} className="inspector-journey-event">
+            <div className="journey-event-row">
+              {/* Time — only commits to store on blur or Enter to prevent
+                  mid-edit partial values from triggering a re-sort */}
+              <span className="journey-at-label">At</span>
+              <input
+                type="number"
+                className="journey-time-input"
+                min={snapTime.toFixed(1)}
+                max={maxTime.toFixed(1)}
+                step="0.1"
+                value={timeDisplayValue}
+                onChange={e => setDraftTime({ id: evt.id, value: e.target.value })}
+                onBlur={() => isEditingTime && commitTime(evt.id, draftTime.value)}
+                onKeyDown={e => {
+                  e.stopPropagation();
+                  if (e.key === 'Enter') { commitTime(evt.id, draftTime?.value ?? String(evt.time)); e.target.blur(); }
+                  if (e.key === 'Escape') { setDraftTime(null); e.target.blur(); }
+                }}
+                title={`Event fires at this animation time (play ends at ${maxTime.toFixed(1)}s)`}
+              />
+              <span className="journey-time-unit">s</span>
+
+              {/* Type */}
+              <select
+                className="journey-type-select"
+                value={evt.type}
+                onChange={e => updateJourneyEvent(football.id, evt.id, { type: e.target.value })}
+                onKeyDown={e => e.stopPropagation()}
+              >
+                <option value="handoff">Handoff</option>
+                <option value="toss">Toss</option>
+                <option value="pass">Pass</option>
+              </select>
+
+              {/* To player */}
+              <select
+                className="journey-player-select"
+                value={evt.toPlayer || 'none'}
+                onChange={e => updateJourneyEvent(football.id, evt.id, {
+                  toPlayer: e.target.value === 'none' ? null : e.target.value,
+                })}
+                onKeyDown={e => e.stopPropagation()}
+              >
+                <option value="none">— Player —</option>
+                {allPlayers.map((p, i) => (
+                  <option key={p.id} value={p.id}>{p.label || `P${i + 1}`}</option>
+                ))}
+              </select>
+
+              {/* Delete */}
+              <button
+                className="journey-delete-btn"
+                onClick={() => deleteJourneyEvent(football.id, evt.id)}
+                title="Remove event"
+              >×</button>
+            </div>
+
+            {/* Arc status for pass/toss */}
+            {isInFlight && (
+              <div className="journey-arc-row">
+                {evt.arcPathId
+                  ? <span className="journey-arc-status arc-drawn">Arc ✓</span>
+                  : <span className="journey-arc-status arc-missing">No arc drawn</span>
+                }
+                <button
+                  className="seg-label-btn"
+                  style={{ marginLeft: 8 }}
+                  disabled={arcDrawingForEventId === evt.id}
+                  onClick={() => {
+                    // Clear old arc link if redrawing, then enter arc mode
+                    if (evt.arcPathId) {
+                      updateJourneyEvent(football.id, evt.id, { arcPathId: null });
+                    }
+                    setArcDrawingMode(football.id, evt.id);
+                  }}
+                >
+                  {arcDrawingForEventId === evt.id
+                    ? 'Drawing…'
+                    : evt.arcPathId ? 'Redraw' : 'Draw arc'}
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Add event buttons */}
+      <div className="journey-add-row">
+        <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'handoff', defaultEventTime)}>+ Handoff</button>
+        <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'toss', defaultEventTime)}>+ Toss</button>
+        <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'pass', defaultEventTime)}>+ Pass</button>
+      </div>
+    </>
+  );
+}
+
 export default function Inspector() {
-  const { getActivePlay, selectedId, updateElement, updateSegment, theme, marqueeIds, linkPlayerToRoute, unlinkPlayerFromRoute } = useEditorStore();
+  const { getActivePlay, selectedId, updateElement, updateSegment, marqueeIds, linkPlayerToRoute, unlinkPlayerFromRoute } = useDataStore();
+  const { theme } = useUIStore();
   const elements = getActivePlay()?.elements || [];
   const allPaths   = elements.filter(el => el.type === 'path');
   const allPlayers = elements.filter(el => el.type === 'player');
@@ -80,9 +253,12 @@ export default function Inspector() {
   const palette = tc.palette.map((fill, i) => ({ fill, label: tc.labels[i] }));
 
   const [activeSegColorId, setActiveSegColorId] = useState(null);
+  // delayDrafts: { [segId]: string } — holds raw text while user is mid-edit
+  // so we display "0.0" exactly instead of whatever the browser does with type="number"
+  const [delayDrafts, setDelayDrafts] = useState({});
 
-  // Reset segment color mode when the selected element changes
-  useEffect(() => { setActiveSegColorId(null); }, [selected?.id]);
+  // Reset both when selected element changes
+  useEffect(() => { setActiveSegColorId(null); setDelayDrafts({}); }, [selected?.id]);
 
   // ESC cancels segment color mode
   useEffect(() => {
@@ -207,7 +383,11 @@ export default function Inspector() {
       <div className="inspector">
         <div className="inspector-header">Football</div>
         <div className="inspector-body">
-          <div className="inspector-hint">Football animation — coming soon</div>
+          <FootballInspector
+            football={selected}
+            elements={elements}
+            allPlayers={allPlayers}
+          />
         </div>
         <div className="inspector-footer">
           <span className="inspector-id">id: {selected.id}</span>
@@ -356,7 +536,11 @@ export default function Inspector() {
           </div>
           {selected.segments?.length > 0 && (
             <div className="inspector-segments">
-              <div className="inspector-segments-label">Segments</div>
+              <div className="inspector-segments-col-header">
+                <span>Segment</span>
+                <span className="seg-col-delay-hdr">Delay</span>
+                <span className="seg-col-presnap-hdr"></span>
+              </div>
               {selected.segments.map((seg, i) => (
                 <div key={seg.id} className="inspector-segment-row">
                   <div className="seg-row-header">
@@ -366,6 +550,26 @@ export default function Inspector() {
                     >
                       Seg {i + 1}
                     </button>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      className="seg-delay-input"
+                      value={seg.id in delayDrafts ? delayDrafts[seg.id] : (seg.delay ?? 0).toFixed(1)}
+                      onChange={e => setDelayDrafts(d => ({ ...d, [seg.id]: e.target.value }))}
+                      onBlur={() => {
+                        if (seg.id in delayDrafts) {
+                          const v = parseFloat(delayDrafts[seg.id]);
+                          if (!isNaN(v)) updateSegment(selected.id, seg.id, { delay: Math.max(0, Math.min(3, Math.round(v * 10) / 10)) });
+                          setDelayDrafts(d => { const { [seg.id]: _, ...rest } = d; return rest; });
+                        }
+                      }}
+                      onKeyDown={e => {
+                        e.stopPropagation();
+                        if (e.key === 'Enter') e.target.blur();
+                        if (e.key === 'Escape') { setDelayDrafts(d => { const { [seg.id]: _, ...rest } = d; return rest; }); e.target.blur(); }
+                      }}
+                      title="Delay before segment (s)"
+                    />
                     <button
                       className={`seg-presnap-btn ${seg.preSnap ? 'active' : ''}`}
                       onClick={() => updateSegment(selected.id, seg.id, { preSnap: !seg.preSnap })}

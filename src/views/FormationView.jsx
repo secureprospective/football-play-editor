@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import './Views.css';
-import useEditorStore from '../store/useEditorStore';
+import useDataStore from '../store/useDataStore';
 import AppHeader from '../components/AppHeader/AppHeader';
 import PlayThumbnail from '../components/PlayThumbnail/PlayThumbnail';
 import { VIEW_MODES } from '../constants/toolModes';
@@ -88,7 +88,7 @@ export default function FormationView() {
     navigateTo, goBack,
     addFormation, deleteFormation, updateFormation, duplicateFormation,
     reorderFormations,
-  } = useEditorStore();
+  } = useDataStore();
 
   const playbook = getActivePlaybook();
 

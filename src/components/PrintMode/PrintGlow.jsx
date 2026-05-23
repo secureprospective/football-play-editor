@@ -1,8 +1,8 @@
-import useEditorStore from '../../store/useEditorStore';
+import useUIStore from '../../store/useUIStore';
 import './PrintMode.css';
 
 export default function PrintGlow() {
-  const printModeActive = useEditorStore(s => s.printModeActive);
+  const printModeActive = useUIStore(s => s.printModeActive);
   if (!printModeActive) return null;
   return <div className="print-glow" aria-hidden="true" />;
 }
