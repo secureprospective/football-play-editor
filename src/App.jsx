@@ -19,7 +19,7 @@ const FieldCanvas = lazy(() => import('./components/Stage/FieldCanvas'));
 
 export default function App() {
   const { viewMode, activePlayId } = useDataStore();
-  const { presentMode, togglePresentMode, theme } = useUIStore();
+  const { presentMode, theme } = useUIStore();
   useEffect(() => {
     document.documentElement.className = theme;
   }, [theme]);

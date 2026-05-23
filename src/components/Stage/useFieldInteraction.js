@@ -65,18 +65,14 @@ export function useFieldInteraction() {
   // Handlers do NOT read these closed-over values; they use getState() for fresh reads.
   const {
     getActivePlay,
-    addElement, updateElement, updateElements,
     selectedId,
-    setSelectedId, clearSelection,
-    pushHistory,
-    marqueeIds, setMarqueeIds, clearMarquee,
+    setSelectedId,
+    marqueeIds, clearMarquee,
   } = useDataStore();
 
   const {
     activeTool,
-    snapEnabled, snapIncrement,
-    drawingPath, setDrawingPath, finishDrawing, cancelDrawing,
-    setActivePathId,
+    drawingPath, finishDrawing, cancelDrawing,
     scrimmageVisible,
     presentMode,
   } = useUIStore();

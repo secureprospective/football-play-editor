@@ -44,7 +44,7 @@ function FormationCard({ fm, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDo
       </div>
 
       {renamingId === fm.id ? (
-        <div className="inline-input-row" style={{ borderTop: '1px solid var(--color-border)', borderBottom: 'none', padding: '8px' }}>
+        <div className="inline-input-row inline-input-row-card">
           <input
             className="inline-input"
             value={renameValue}
@@ -58,7 +58,7 @@ function FormationCard({ fm, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDo
         </div>
       ) : deletingId === fm.id ? (
         <div className="card-delete-float">
-          <span style={{ fontSize: '13px', color: 'var(--color-danger)', fontWeight: 600, flex: 1 }}>Delete formation?</span>
+          <span className="card-delete-label">Delete formation?</span>
           <button className="card-action-btn" onClick={e => { e.stopPropagation(); onDeleteCancel(e); }}>Cancel</button>
           <button className="card-action-btn danger" onClick={e => onDeleteConfirm(e, fm.id)}>Delete</button>
         </div>
@@ -85,7 +85,7 @@ function FormationCard({ fm, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDo
 export default function FormationView() {
   const {
     getActivePlaybook, activePlaybookId,
-    navigateTo, goBack,
+    navigateTo,
     addFormation, deleteFormation, updateFormation, duplicateFormation,
     reorderFormations,
   } = useDataStore();

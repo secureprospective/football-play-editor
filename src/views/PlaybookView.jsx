@@ -55,7 +55,7 @@ function PlaybookCard({
       </div>
 
       {renamingId === pb.id ? (
-        <div className="inline-input-row" style={{ borderTop: '1px solid var(--color-border)', borderBottom: 'none', padding: '8px' }}>
+        <div className="inline-input-row inline-input-row-card">
           <input
             className="inline-input"
             value={renameValue}
@@ -72,7 +72,7 @@ function PlaybookCard({
         </div>
       ) : deletingId === pb.id ? (
         <div className="card-delete-float">
-          <span style={{ fontSize: '13px', color: 'var(--color-danger)', fontWeight: 600, flex: 1 }}>Delete playbook?</span>
+          <span className="card-delete-label">Delete playbook?</span>
           <button className="card-action-btn" onClick={e => { e.stopPropagation(); onDeleteCancel(e); }}>Cancel</button>
           <button className="card-action-btn danger" onClick={e => onDeleteConfirm(e, pb.id)}>Delete</button>
         </div>

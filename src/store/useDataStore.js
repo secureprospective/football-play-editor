@@ -63,7 +63,7 @@ function migratePath(el) {
   return { ...rest, playerId: null, segments };
 }
 
-export function migrateFootball(fb) {
+function migrateFootball(fb) {
   if (!fb.journey) {
     fb.journey = { snapToPlayer: null, events: [] };
   }

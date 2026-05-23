@@ -90,7 +90,7 @@ The app is in a 6-phase cleanup sweep right now. Some phases ship visible fixes;
 
 | Phase | What it does | Visible to you? | Status |
 |---|---|---|---|
-| A | Code cleanup — dead code, unused files | No | ⏳ Not started |
+| A | Code cleanup — dead code, unused files | No | ✅ Shipped |
 | B | Visible bug fixes (3 fixes — see below) | **Yes** | ⏳ Not started |
 | C | Inspector duration slider responsiveness | **Yes** (subtle) | ⏳ Not started |
 | D | App-wide performance sweep | No | ⏳ Not started |

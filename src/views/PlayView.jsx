@@ -52,7 +52,7 @@ function PlayCard({ pl, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDown, o
       </div>
 
       {!printMode && renamingId === pl.id ? (
-        <div className="inline-input-row" style={{ borderTop: '1px solid var(--color-border)', borderBottom: 'none', padding: '8px' }}>
+        <div className="inline-input-row inline-input-row-card">
           <input
             className="inline-input"
             value={renameValue}
@@ -66,7 +66,7 @@ function PlayCard({ pl, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDown, o
         </div>
       ) : !printMode && deletingId === pl.id ? (
         <div className="card-delete-float">
-          <span style={{ fontSize: '13px', color: 'var(--color-danger)', fontWeight: 600, flex: 1 }}>Delete play?</span>
+          <span className="card-delete-label">Delete play?</span>
           <button className="card-action-btn" onClick={e => { e.stopPropagation(); onDeleteCancel(e); }}>Cancel</button>
           <button className="card-action-btn danger" onClick={e => onDeleteConfirm(e, pl.id)}>Delete</button>
         </div>
@@ -94,7 +94,7 @@ export default function PlayView() {
   const {
     getActivePlaybook, getActiveFormation,
     activePlaybookId, activeFormationId,
-    navigateTo, goBack,
+    navigateTo,
     addPlay, deletePlay, updatePlay, duplicatePlay,
     reorderPlays,
   } = useDataStore();

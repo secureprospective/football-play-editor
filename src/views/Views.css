@@ -221,3 +221,15 @@
 .card-action-btn.danger { color: var(--color-danger); border-color: var(--color-border); }
 .card-action-btn.danger:hover { border-color: var(--color-danger); }
 
+.card-delete-label {
+  font-size: 13px;
+  color: var(--color-danger);
+  font-weight: 600;
+  flex: 1;
+}
+.inline-input-row-card {
+  border-top: 1px solid var(--color-border);
+  border-bottom: none;
+  padding: 8px;
+}
+
