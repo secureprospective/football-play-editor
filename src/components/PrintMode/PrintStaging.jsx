@@ -1,5 +1,13 @@
 import useUIStore from '../../store/useUIStore';
+import useDataStore from '../../store/useDataStore';
 import PlayThumbnail from '../PlayThumbnail/PlayThumbnail';
+
+function resolvePlay(item, playbooks) {
+  const pb = playbooks.find(p => p.id === item.playbookId);
+  const fm = pb?.formations.find(f => f.id === item.formationId);
+  const pl = fm?.plays.find(p => p.id === item.playId);
+  return pl ? { ...item, elements: pl.elements, name: pl.name } : null;
+}
 import {
   DndContext,
   closestCenter,
@@ -69,6 +77,8 @@ export default function PrintStaging() {
     setPrintSize,
     togglePrintQueueItem,
   } = useUIStore();
+  const playbooks = useDataStore(s => s.playbooks);
+  const resolvedQueue = printQueue.map(it => resolvePlay(it, playbooks)).filter(Boolean);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -133,11 +143,11 @@ export default function PrintStaging() {
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext
-            items={printQueue.map(q => q.playId)}
+            items={resolvedQueue.map(q => q.playId)}
             strategy={rectSortingStrategy}
           >
             <div className="print-queue-tiles">
-              {printQueue.map((item, i) => (
+              {resolvedQueue.map((item, i) => (
                 <SortableTile
                   key={item.playId}
                   item={item}

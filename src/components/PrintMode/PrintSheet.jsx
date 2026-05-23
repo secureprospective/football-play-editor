@@ -1,6 +1,14 @@
 import useUIStore from '../../store/useUIStore';
+import useDataStore from '../../store/useDataStore';
 import PlayThumbnail from '../PlayThumbnail/PlayThumbnail';
 import './PrintMode.css';
+
+function resolvePlay(item, playbooks) {
+  const pb = playbooks.find(p => p.id === item.playbookId);
+  const fm = pb?.formations.find(f => f.id === item.formationId);
+  const pl = fm?.plays.find(p => p.id === item.playId);
+  return pl ? { ...item, elements: pl.elements, name: pl.name } : null;
+}
 
 function DiagramCard({ chunk, offset }) {
   return (
@@ -104,11 +112,13 @@ function TextSheet({ printQueue }) {
 
 export default function PrintSheet() {
   const { printQueue, printFormat } = useUIStore();
+  const playbooks = useDataStore(s => s.playbooks);
+  const resolved = printQueue.map(it => resolvePlay(it, playbooks)).filter(Boolean);
   return (
     <div className="print-sheet-wrapper">
       {printFormat === 'text'
-        ? <TextSheet printQueue={printQueue} />
-        : <DiagramSheet printQueue={printQueue} />
+        ? <TextSheet printQueue={resolved} />
+        : <DiagramSheet printQueue={resolved} />
       }
     </div>
   );

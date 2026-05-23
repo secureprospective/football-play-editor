@@ -81,7 +81,8 @@ const useUIStore = create((set, get) => ({
     const exists = state.printQueue.find(q => q.playId === item.playId);
     if (exists) return { printQueue: state.printQueue.filter(q => q.playId !== item.playId) };
     if (state.printQueue.length >= 20) return {};
-    return { printQueue: [...state.printQueue, item] };
+    const { playId, formationId, playbookId, name } = item;
+    return { printQueue: [...state.printQueue, { playId, formationId, playbookId, name }] };
   }),
 
   reorderPrintQueue: (newQueue) => set({ printQueue: newQueue }),

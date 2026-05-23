@@ -147,8 +147,6 @@ export default function PlayView() {
         formationId: activeFormationId,
         playbookId: activePlaybookId,
         name: pl.name,
-        formationName: formation?.name || '',
-        elements: pl.elements,
       });
       return;
     }
