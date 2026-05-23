@@ -3,21 +3,22 @@ import { create } from 'zustand';
 // Deliberately isolated from useEditorStore — animation playback state must
 // never enter the undo/redo history stack.
 
-// Pure function: sum of all segment durations across all paths in a play.
-// Pre-snap segments are timed holds — their duration counts toward total.
+// Pure function: longest single route duration + 1s buffer.
+// All players animate simultaneously — play ends when the last route finishes.
 export function getDuration(elements) {
   if (!elements?.length) return 0;
-  return elements
-    .filter(el => el.type === 'path' && el.segments?.length)
-    .reduce((total, path) =>
-      total + path.segments.reduce((sum, seg) => sum + (seg.duration ?? 0), 0),
-    0);
+  const paths = elements.filter(el => el.type === 'path' && el.segments?.length);
+  if (!paths.length) return 0;
+  const maxRoute = Math.max(...paths.map(path =>
+    path.segments.reduce((sum, seg) => sum + (seg.duration ?? 0), 0)
+  ));
+  return maxRoute + 0.25;
 }
 
 const useAnimationStore = create((set) => ({
   isPlaying:        false,
   currentTime:      0,
-  playbackSpeed:    1.0,
+  playbackSpeed:    0.25,
   animationEnabled: true,
 
   play: () => set(state =>

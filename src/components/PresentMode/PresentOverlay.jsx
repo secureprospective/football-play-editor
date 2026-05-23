@@ -17,7 +17,12 @@ export default function PresentOverlay() {
     play: startPlay, pause, reset, toggleAnimation, setSpeed,
   } = useAnimationStore();
 
-  const SPEEDS = [0.25, 0.5, 1, 2];
+  const SPEEDS = [
+    { label: '0.25x', value: 0.0625 },
+    { label: '0.5x',  value: 0.125  },
+    { label: '1x',    value: 0.25   },
+    { label: '2x',    value: 0.5    },
+  ];
 
   const logo      = THEME_LOGO[theme] || THEME_LOGO['theme-sun-cyan'];
   const activePlay     = getActivePlay();
@@ -133,7 +138,7 @@ export default function PresentOverlay() {
                 onChange={e => setSpeed(parseFloat(e.target.value))}
               >
                 {SPEEDS.map(s => (
-                  <option key={s} value={s}>{s}x</option>
+                  <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
               </select>
               <button

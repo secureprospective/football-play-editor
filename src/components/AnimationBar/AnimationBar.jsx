@@ -3,7 +3,12 @@ import useAnimationStore, { getDuration } from '../../store/useAnimationStore';
 import useEditorStore from '../../store/useEditorStore';
 import './AnimationBar.css';
 
-const SPEEDS = [0.25, 0.5, 1, 2];
+const SPEEDS = [
+  { label: '0.25x', value: 0.0625 },
+  { label: '0.5x',  value: 0.125  },
+  { label: '1x',    value: 0.25   },
+  { label: '2x',    value: 0.5    },
+];
 
 export default function AnimationBar() {
   const {
@@ -70,7 +75,7 @@ export default function AnimationBar() {
         onChange={e => setSpeed(parseFloat(e.target.value))}
       >
         {SPEEDS.map(s => (
-          <option key={s} value={s}>{s}x</option>
+          <option key={s.value} value={s.value}>{s.label}</option>
         ))}
       </select>
     </div>
