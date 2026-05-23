@@ -156,6 +156,13 @@ Edge works well as a fallback. The install process is the same — look for the 
 
 | Shipped | What's new |
 |---|---|
+| ✅ | **Rugged UI overhaul** — the entire interface has been redesigned with a tactical hardware aesthetic. Buttons have physical depth and press down when tapped. Every screen — editor, card views, Present Mode — uses the same visual system. |
+| ✅ | **Theme-aware chrome** — all controls (toolbar, toolbox, inspector, animation bar) now pull from the active theme. Switching themes updates everything uniformly. |
+| ✅ | **TFM brand button** — the logo and app name in the header is now a button that links to [techfreedomministries.org](https://techfreedomministries.org/). |
+| ✅ | **Haptic feedback** — on supported devices (Android tablets, phones), tapping any tool or action button produces a short 12ms click pulse. |
+| ✅ | **New toolbar icons** — Undo, Redo, Flip H, and Flip V now use clean Heroicons instead of Unicode symbols. |
+| ✅ | **Clear button guard** — the Clear button is now visually distinct (orange border, heavier weight) and pinned to the far right so it is never accidentally tapped. |
+| ✅ | **Present Mode controls** — the navigation arrows and the Hide/Show toggle now match the app theme instead of appearing as transparent overlays. |
 | ✅ | **Pre-snap motion sequencing** — mark route segments as pre-snap and assign a sequence order (1, 2, 3...). Players motion one at a time before the snap, enforcing the NFL one-player-in-motion rule. Ball snaps automatically 0.1s after the last pre-snap motion completes. |
 | ✅ | **Football animation** — place a football, set a snap target, add handoff / toss / pass events, then hit play to watch the play run |
 | ✅ | **Per-event flight duration** — set how long each pass/toss/handoff takes in the football inspector |
@@ -171,8 +178,8 @@ Edge works well as a fallback. The install process is the same — look for the 
 
 | Status | Item |
 |---|---|
-| 🔜 Planned | Inspector layout polish — tighter spacing in segment list and journey events |
-| 🔜 Planned | Present Mode UX refinements |
+| 🔜 Planned | **Knurled timeline scrubber** — custom ribbed thumb on the animation bar slider (currently uses browser default) |
+| 🔜 Planned | **Toggle switches** — inspector boolean controls redesigned as rocker switches (currently uses checkboxes) |
 | 🔜 Planned | Flight duration slider layout cleanup |
 | 💤 Deferred | **Phone support** — waiting until animation is fully stable on tablets first |
 | 💤 Deferred | **Route branching** (option routes — click an existing route to fork) |

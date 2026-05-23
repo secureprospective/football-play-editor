@@ -60,7 +60,7 @@ Push to `lite` → Lite site auto-deploys. Push to `main` → Full site auto-dep
 - PWA — installable on Chrome, service worker via vite-plugin-pwa, cache-first assets, network-first navigation, manifest with 192px + 512px icons
 - Play thumbnails — static SVG mini field render on play cards; players (circle/square) and routes (straight/curve/motion) scaled from 1920×1080 field space; ▶ placeholder for empty plays; fully theme-aware (field background, player fill, route color all resolve from active theme)
 - Formation thumbnails — formation cards show first play's players + LOS (no routes) via PlayThumbnail playersOnly prop; ▶ placeholder for empty formations; fully theme-aware
-- Card polish — floating shadow (--color-shadow per theme), 16px border radius, embossed action buttons, inline delete confirm (card-delete-float overlay) on all three nav layers (Playbook, Formation, Play)
+- Card polish — 4px border radius (structural, not bubbly), bevel action buttons, inline delete confirm (card-delete-float overlay) on all three nav layers (Playbook, Formation, Play)
 - Shift-key 45° angle constraint during player drag and route drawing
 - Whole-path drag — drag a route to translate all its segments together
 - Field grid with NFL yard lines and hash marks (FieldGrid component)
@@ -74,8 +74,21 @@ Push to `lite` → Lite site auto-deploys. Push to `main` → Full site auto-dep
 - Performance — Konva code-split via React.lazy (FieldCanvas); card views load 260KB instead of 590KB; Konva chunk (317KB) loads only when field editor opens and caches permanently; vendor-konva and vendor-react in stable named chunks for cache efficiency; PlayThumbnail wrapped with React.memo to prevent re-renders during DnD and rename interactions
 - Marquee box-select tool (⬚) — drag to draw selection rect; all-or-nothing rule (all element points must be inside); live node highlighting as rect captures elements; group drag with Shift-45° constraint; one-step undo; inspector shows count + hint; updateElements() store action for atomic batch updates
 - AppHeader component — unified header bar on Playbook, Formation, and Play layers; reuses tb-btn/tb-crumb CSS classes from Toolbar.css; back button + breadcrumb crumbs + add button
-- Breadcrumb buttons styled to match toolbar buttons — bordered (1px border-mid), panel-alt background, 36px height, 5px radius; active crumb uses accent border/color
+- Breadcrumb buttons — raised bevel (--s-btn-face, --s-btn-raised), 2px radius, 30px height; active crumb pressed/accent state with translateY(2px)
 - Present Mode breadcrumbs — floating absolute-positioned crumb buttons only (no header bar), 50% opacity; clicking exits present and navigates to that layer
+- Rugged tactical UI overhaul — injection-molded hardware aesthetic across every screen (see docs/UI_OVERHAUL_SPEC.md)
+  - --s-* CSS token layer on all 4 themes (surfaces, bevels, wells, accent gradients, danger, rivets, play button, knurl)
+  - 3D bevel system: raised/pressed binary on all buttons; translateY(2px) on active, 0.06s snap transition
+  - Toolbox: panel-deep rail, rivet pseudo-elements (::before/::after), lens color swatches
+  - Theme dots: 28px, 76px gap (2× tool button width) for touch accuracy
+  - Clear button: guard-ring treatment, pinned to far right outside scroll zone
+  - Toolbar icons: heroicons arrow-turn-down-left/right (undo/redo), arrows-right-left/up-down (flip)
+  - Brand: logo + "TFM Playbook" is a raised bevel button linking to techfreedomministries.org
+  - Present Mode: nav arrows + hide/show toggle use full bevel system and theme tokens
+  - Haptics: triggerHaptic() (12ms pulse) in src/utils/haptics.js, wired to all primary controls
+  - Monospace font (SF Mono / Consolas / Courier New) on all chrome labels, inputs, readouts
+  - --s-font: shared CSS variable for mono stack
+  - Deferred for future build: custom knurled timeline thumb, rocker switch toggles (native inputs kept)
 
 ## Animation Roadmap
 
@@ -315,8 +328,14 @@ Phases 1–6 complete. Audit cleanup (Phases A–F) complete as of 2026-05-23.
 - Inspector button shows sequence number ("Pre-snap 1"); removing shifts others down via setSegmentPreSnap store action
 - Migration: preSnap:true → sequential number on load/import
 
+**UI Overhaul (shipped 2026-05-23, session/ui-overhaul → main):**
+- Full rugged chrome redesign — 15 files, docs/UI_OVERHAUL_SPEC.md is the reference doc
+- --s-* token layer, 3D bevel system, haptics, heroicons, brand link, present mode buttons
+- Deferred: custom knurled scrubber thumb, rocker switch toggles (flagged in spec)
+
 **Active work areas:**
-- UI polish pass — inspector layout refinements, Present Mode UX
+- Custom scrubber thumb (knurled, spec Section 4.4) — native range kept for first pass
+- Rocker switch toggles in inspector (spec Section 4.3) — native checkboxes kept for first pass
 - Flight duration slider layout refinement (⚑ flagged in Phase 6)
 - Route branching (option route) — deferred indefinitely
 - Card refactor — useCardInteraction hook + CardShell — deferred
@@ -332,6 +351,8 @@ Phases 1–6 complete. Audit cleanup (Phases A–F) complete as of 2026-05-23.
 - Right-click to finish route not available on touch — Done button covers this
 - Dashed Line toggle in inspector is wired but not honored per-segment — deferred
 - Curve control point drag (interactive Bézier) — curves use auto-tension, manual control point deferred
+- Custom knurled timeline thumb — native range input kept; custom div-based slider deferred (UI overhaul)
+- Rocker switch toggles — native checkboxes kept; custom track+thumb component deferred (UI overhaul)
 
 ## Known issues — deferred
 - getPointerPosition TypeError: stageRef.current is null during Konva Stage remount on theme switch (key={theme} forces remount). Fires on mousemove during the transition. No user-visible crash. Fix: null guard in getScaledPos. Deferred — not reproducible in normal use.

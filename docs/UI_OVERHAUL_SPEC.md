@@ -1,7 +1,49 @@
 # UI_OVERHAUL_SPEC.md
 **Project:** Football Play Editor — Rugged Tactical UI Overhaul
 **For:** Claude Code
-**Status:** Approved design direction. Implement exactly as specified.
+**Status:** Shipped 2026-05-23 (session/ui-overhaul → main). See implementation notes below.
+
+---
+
+## Implementation Notes (added post-ship)
+
+This spec was written by external AI assistants without access to the codebase. The following corrections and decisions were made during implementation by Claude Code.
+
+### Codebase corrections
+
+| Spec reference | Actual codebase |
+|---|---|
+| `themes.css` | Does not exist — tokens added to `src/index.css` alongside existing `--color-*` blocks |
+| `.theme-dark-cyan` | `.theme-sun-cyan` |
+| `.theme-dark-orange` | `.theme-sun-orange` |
+| `.theme-light` | `.theme-paper-overcast` |
+| `.theme-sand` | `.theme-paper-newsprint` |
+| "Toolbelt" (single file) | Two files: `Toolbox.css` (left tool rail) + `Toolbar.css` (top bar) |
+| Clear guard in Section 4.4 (Animation Bar) | Clear button lives in the Toolbar, not the AnimationBar. Guard ring applied there. |
+| Dark-orange tokens "identical to dark-cyan" | CSS classes cannot inherit from siblings — all tokens written out explicitly for each theme |
+
+### Decisions made during implementation
+
+| Decision | Outcome |
+|---|---|
+| Card border radius | Spec implied 2px (button radius). Cards set to **4px** — structural, not bubbly, but distinct from buttons |
+| Present Mode panel surface | Stays **frosted glass** (rgba backdrop-filter) — field visible through controls is correct for sideline use |
+| Print Mode amber | **Kept hardcoded** (#f59e0b) — intentional mode indicator, not a theme color. Controls get bevel; amber untouched |
+| Cinzel brand font | **Preserved** — `.app-brand-title` stays Cinzel serif. Section 6 monospace rule applies to all other chrome only |
+| Custom knurled scrubber thumb | **Deferred** — native `<input type="range">` kept for first pass. Custom div-based slider is a future build |
+| Rocker switch toggles | **Deferred** — native `<input type="checkbox">` kept for first pass. Custom track+thumb is a future build |
+| Theme dot spacing | **76px gap** (2× the 38px tool button width) per coach's direction. Dots sized to 28px |
+| Brand button | Logo + "TFM Playbook" is a **raised bevel `<a>` link** to techfreedomministries.org — opens in new tab |
+
+### What was not covered by the spec (added during implementation)
+
+The spec covered the editor chrome only. The full scope expanded to every screen:
+- Card views (`Views.css`) — bevel card actions, 4px radius, structural drag handles
+- AppHeader (`AppHeader.css`) — seam border, bevel nav buttons, accent add button
+- Present Mode nav arrows and hide/show toggle — full bevel + theme tokens
+- Print Mode controls — bevel buttons, amber brand preserved
+
+---
 
 ---
 
@@ -719,17 +761,19 @@ The 12ms pulse is a single discrete click — short enough to feel mechanical, n
 
 ## Section 10 — Implementation Order
 
-Work in this sequence. Verify each step before proceeding.
+*As originally specified (steps 1–7). Actual implementation expanded to 11 steps — see implementation notes at top of this file.*
 
-1. Add all token variables to `themes.css` for all four theme classes
-2. Update `Toolbar.css` — top bar and toolbelt
-3. Update `Inspector.css` — inspector panel
-4. Update `AnimationBar.css` — animation bar and all transport controls
-5. Create `src/utils/haptics.js`
-6. Wire haptics into JSX components
-7. Build and verify all four themes visually before committing
-
-At each step: make the change, run the build, visually confirm the component in all four themes, then proceed.
+1. Add all token variables to `src/index.css` for all four theme classes ✅
+2. Update `Toolbar.css` — top bar (guard ring on Clear, heroicons for undo/redo/flip, Clear pinned to right) ✅
+3. Update `Toolbox.css` — left tool rail, rivets, lens swatches, 76px spacing ✅
+4. Update `Inspector.css` — wells, section headers, bevel segment controls ✅
+5. Update `AnimationBar.css` — accent Anim tab, green play housing, bevel transport ✅
+6. Update `Views.css` — cards, card actions, inline inputs ✅
+7. Update `AppHeader.css` — seam border, bevel nav, accent add button ✅
+8. Update `PresentOverlay.css` — frosted glass panel stays; nav arrows + hide toggle get bevel ✅
+9. Update `PrintMode.css` — amber brand preserved; controls get bevel ✅
+10. Create `src/utils/haptics.js` ✅
+11. Wire haptics into JSX (Toolbar, Toolbox, AnimationBar, AppHeader) ✅
 
 ---
 
