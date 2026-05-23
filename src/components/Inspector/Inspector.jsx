@@ -134,109 +134,110 @@ function FootballInspector({ football, elements, allPlayers }) {
       </div>
 
       {/* Journey events */}
-      <div className="inspector-segments-label" style={{ marginTop: 10 }}>Journey Events</div>
+      <div className="inspector-journey-section">
+        <div className="inspector-segments-label">Journey Events</div>
 
-      {events.length === 0 && (
-        <div className="inspector-hint">No events — ball goes straight from snap to end of play</div>
-      )}
-
-      {events.map(evt => {
-        const isInFlight = evt.type === 'pass' || evt.type === 'toss';
-        const isEditingTime = draftTime?.id === evt.id;
-        const timeDisplayValue = isEditingTime ? draftTime.value : String(evt.time);
-        return (
-          <div key={evt.id} className="inspector-journey-event">
-            <div className="journey-event-row">
-              {/* Time — only commits to store on blur or Enter to prevent
-                  mid-edit partial values from triggering a re-sort */}
-              <span className="journey-at-label">At</span>
-              <input
-                type="number"
-                className="journey-time-input"
-                min={snapTime.toFixed(1)}
-                max={maxTime.toFixed(1)}
-                step="0.1"
-                value={timeDisplayValue}
-                onChange={e => setDraftTime({ id: evt.id, value: e.target.value })}
-                onBlur={() => isEditingTime && commitTime(evt.id, draftTime.value)}
-                onKeyDown={e => {
-                  e.stopPropagation();
-                  if (e.key === 'Enter') { commitTime(evt.id, draftTime?.value ?? String(evt.time)); e.target.blur(); }
-                  if (e.key === 'Escape') { setDraftTime(null); e.target.blur(); }
-                }}
-                title={`Event fires at this animation time (play ends at ${maxTime.toFixed(1)}s)`}
-              />
-              <span className="journey-time-unit">s</span>
-
-              {/* Type */}
-              <select
-                className="journey-type-select"
-                value={evt.type}
-                onChange={e => updateJourneyEvent(football.id, evt.id, { type: e.target.value })}
-                onKeyDown={e => e.stopPropagation()}
-              >
-                <option value="handoff">Handoff</option>
-                <option value="toss">Toss</option>
-                <option value="pass">Pass</option>
-              </select>
-
-              {/* To player */}
-              <select
-                className="journey-player-select"
-                value={evt.toPlayer || 'none'}
-                onChange={e => updateJourneyEvent(football.id, evt.id, {
-                  toPlayer: e.target.value === 'none' ? null : e.target.value,
-                })}
-                onKeyDown={e => e.stopPropagation()}
-              >
-                <option value="none">— Player —</option>
-                {allPlayers.map((p, i) => (
-                  <option key={p.id} value={p.id}>{p.label || `P${i + 1}`}</option>
-                ))}
-              </select>
-
-              {/* Delete */}
-              <button
-                className="journey-delete-btn"
-                onClick={() => deleteJourneyEvent(football.id, evt.id)}
-                title="Remove event"
-              >×</button>
+        {events.length === 0 ? (
+          <div className="inspector-hint">No events — ball stays with snap recipient</div>
+        ) : (
+          <>
+            {/* Column headers */}
+            <div className="journey-col-header">
+              <span className="journey-hdr-at">At</span>
+              <span className="journey-hdr-type">Type</span>
+              <span className="journey-hdr-to">To</span>
             </div>
 
-            {/* Arc status for pass/toss */}
-            {isInFlight && (
-              <div className="journey-arc-row">
-                {evt.arcPathId
-                  ? <span className="journey-arc-status arc-drawn">Arc ✓</span>
-                  : <span className="journey-arc-status arc-missing">No arc drawn</span>
-                }
-                <button
-                  className="seg-label-btn"
-                  style={{ marginLeft: 8 }}
-                  disabled={arcDrawingForEventId === evt.id}
-                  onClick={() => {
-                    // Clear old arc link if redrawing, then enter arc mode
-                    if (evt.arcPathId) {
-                      updateJourneyEvent(football.id, evt.id, { arcPathId: null });
-                    }
-                    setArcDrawingMode(football.id, evt.id);
-                  }}
-                >
-                  {arcDrawingForEventId === evt.id
-                    ? 'Drawing…'
-                    : evt.arcPathId ? 'Redraw' : 'Draw arc'}
-                </button>
-              </div>
-            )}
-          </div>
-        );
-      })}
+            {events.map(evt => {
+              const isInFlight = evt.type === 'pass' || evt.type === 'toss';
+              const isEditingTime = draftTime?.id === evt.id;
+              const timeDisplayValue = isEditingTime ? draftTime.value : String(evt.time);
+              return (
+                <div key={evt.id} className="inspector-journey-event">
+                  <div className="journey-event-row">
+                    {/* Time */}
+                    <input
+                      type="number"
+                      className="journey-time-input"
+                      min={snapTime.toFixed(1)}
+                      max={maxTime.toFixed(1)}
+                      step="0.1"
+                      value={timeDisplayValue}
+                      onChange={e => setDraftTime({ id: evt.id, value: e.target.value })}
+                      onBlur={() => isEditingTime && commitTime(evt.id, draftTime.value)}
+                      onKeyDown={e => {
+                        e.stopPropagation();
+                        if (e.key === 'Enter') { commitTime(evt.id, draftTime?.value ?? String(evt.time)); e.target.blur(); }
+                        if (e.key === 'Escape') { setDraftTime(null); e.target.blur(); }
+                      }}
+                      title={`Event fires at this animation time (play ends at ${maxTime.toFixed(1)}s)`}
+                    />
 
-      {/* Add event buttons */}
-      <div className="journey-add-row">
-        <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'handoff', defaultEventTime)}>+ Handoff</button>
-        <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'toss', defaultEventTime)}>+ Toss</button>
-        <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'pass', defaultEventTime)}>+ Pass</button>
+                    {/* Type */}
+                    <select
+                      className="journey-type-select"
+                      value={evt.type}
+                      onChange={e => updateJourneyEvent(football.id, evt.id, { type: e.target.value })}
+                      onKeyDown={e => e.stopPropagation()}
+                    >
+                      <option value="handoff">Handoff</option>
+                      <option value="toss">Toss</option>
+                      <option value="pass">Pass</option>
+                    </select>
+
+                    {/* To player */}
+                    <select
+                      className="journey-player-select"
+                      value={evt.toPlayer || 'none'}
+                      onChange={e => updateJourneyEvent(football.id, evt.id, {
+                        toPlayer: e.target.value === 'none' ? null : e.target.value,
+                      })}
+                      onKeyDown={e => e.stopPropagation()}
+                    >
+                      <option value="none">— Player —</option>
+                      {allPlayers.map((p, i) => (
+                        <option key={p.id} value={p.id}>{p.label || `P${i + 1}`}</option>
+                      ))}
+                    </select>
+
+                    {/* Delete */}
+                    <button
+                      className="journey-delete-btn"
+                      onClick={() => deleteJourneyEvent(football.id, evt.id)}
+                      title="Remove event"
+                    >×</button>
+                  </div>
+
+                  {/* Arc sub-row — pass/toss only */}
+                  {isInFlight && (
+                    <div className="journey-arc-row">
+                      <span className={`journey-arc-status ${evt.arcPathId ? 'arc-drawn' : 'arc-missing'}`}>
+                        {evt.arcPathId ? 'Arc ✓' : 'No arc'}
+                      </span>
+                      <button
+                        className="seg-label-btn"
+                        disabled={arcDrawingForEventId === evt.id}
+                        onClick={() => {
+                          if (evt.arcPathId) updateJourneyEvent(football.id, evt.id, { arcPathId: null });
+                          setArcDrawingMode(football.id, evt.id);
+                        }}
+                      >
+                        {arcDrawingForEventId === evt.id ? 'Drawing…' : evt.arcPathId ? 'Redraw' : 'Draw arc'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </>
+        )}
+
+        {/* Add event buttons */}
+        <div className="journey-add-row">
+          <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'handoff', defaultEventTime)}>+ Handoff</button>
+          <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'toss', defaultEventTime)}>+ Toss</button>
+          <button className="seg-label-btn" onClick={() => addJourneyEvent(football.id, 'pass', defaultEventTime)}>+ Pass</button>
+        </div>
       </div>
     </>
   );

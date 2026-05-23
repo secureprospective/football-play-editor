@@ -196,6 +196,47 @@ function footballPositionAtTime(football, result, pathById, playerById, t, snapT
 }
 
 /**
+ * Returns true when the football should show its highlight ring —
+ * i.e. while it is in-flight between players (snap, handoff pulse, arc).
+ *
+ * @param {Object} football   - football element
+ * @param {Array}  elements   - active play elements
+ * @param {number} currentTime
+ */
+export function isFootballInFlight(football, elements, currentTime) {
+  if (currentTime <= 0) return false;
+
+  const journey = football.journey;
+  if (!journey?.snapToPlayer) return false;
+
+  const snapTime = getSnapTime(elements);
+
+  // Snap in-flight window
+  if (currentTime > snapTime && currentTime < snapTime + SNAP_REAL_SECS) return true;
+
+  // Build path index for arc lookups
+  const pathById = new Map();
+  for (const el of elements) {
+    if (el.type === 'path') pathById.set(el.id, el);
+  }
+
+  for (const event of (journey.events || [])) {
+    if (event.time > currentTime) continue; // not yet fired
+
+    if (event.type === 'handoff') {
+      if (currentTime < event.time + 0.1) return true;
+    }
+
+    if ((event.type === 'pass' || event.type === 'toss') && event.arcPathId) {
+      const arcPath = pathById.get(event.arcPathId);
+      if (arcPath && currentTime < event.time + getPathDuration(arcPath)) return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * Compute interpolated element positions at currentTime.
  *
  * @param {Array}  elements    - active play elements array

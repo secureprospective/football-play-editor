@@ -316,76 +316,128 @@
 .inspector-hint {
   font-size: 11px;
   color: var(--color-border-mid);
-  padding: 4px 0 8px;
+  padding: 4px 0 6px;
   line-height: 1.4;
 }
 
-.inspector-journey-event {
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 6px 8px;
-  margin-bottom: 6px;
-  background: var(--color-panel-alt);
+/* Journey section — mirrors .inspector-segments layout */
+.inspector-journey-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--color-border);
+  margin-top: 6px;
 }
+
+/* Column header — mirrors .inspector-segments-col-header */
+.journey-col-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 0 0;
+}
+.journey-hdr-at   { width: 38px; flex-shrink: 0; text-align: center; }
+.journey-hdr-type { width: 62px; flex-shrink: 0; }
+.journey-hdr-to   { flex: 1; }
+
+/* Each event — no card border, flat row like segment rows */
+.inspector-journey-event {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
 .journey-event-row {
   display: flex;
   align-items: center;
   gap: 4px;
 }
-.journey-at-label {
-  font-size: 11px;
-  color: var(--color-border-mid);
-  white-space: nowrap;
+
+/* Time input — sized to match header width */
+.inspector-body input.journey-time-input[type="number"] {
+  width: 38px;
+  min-width: 0;
+  min-height: 0 !important;
+  height: 20px;
   flex-shrink: 0;
-}
-.journey-time-input {
-  width: 40px;
-  min-height: 32px;
-  font-size: 12px;
-  padding: 2px 4px;
+  font-size: 11px;
+  font-family: inherit;
+  padding: 0 3px;
   text-align: center;
   border: 1px solid var(--color-border-mid);
   border-radius: 3px;
-  background: var(--color-panel);
+  background: var(--color-panel-alt);
   color: var(--color-text);
   -moz-appearance: textfield;
+  box-sizing: border-box;
 }
-.journey-time-input::-webkit-inner-spin-button,
-.journey-time-input::-webkit-outer-spin-button { -webkit-appearance: none; }
-.journey-time-unit {
+.inspector-body input.journey-time-input[type="number"]::-webkit-inner-spin-button,
+.inspector-body input.journey-time-input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+/* Type + player selects */
+.inspector-body select.journey-type-select {
+  width: 62px;
+  min-width: 0;
+  min-height: 0 !important;
+  height: 20px;
+  flex-shrink: 0;
   font-size: 11px;
-  color: var(--color-border-mid);
-}
-.journey-type-select,
-.journey-player-select {
-  flex: 1;
-  min-height: 32px;
-  font-size: 11px;
+  padding: 0 2px;
   border: 1px solid var(--color-border-mid);
   border-radius: 3px;
-  background: var(--color-panel);
+  background: var(--color-panel-alt);
   color: var(--color-text);
-  padding: 0 4px;
+  box-sizing: border-box;
 }
+.inspector-body select.journey-player-select {
+  flex: 1;
+  min-width: 0;
+  min-height: 0 !important;
+  height: 20px;
+  font-size: 11px;
+  padding: 0 2px;
+  border: 1px solid var(--color-border-mid);
+  border-radius: 3px;
+  background: var(--color-panel-alt);
+  color: var(--color-text);
+  box-sizing: border-box;
+}
+
 .journey-delete-btn {
-  min-width: 28px;
-  min-height: 28px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
   border: none;
   background: transparent;
   color: var(--color-danger, #dc2626);
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
   border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  flex-shrink: 0;
 }
 .journey-delete-btn:hover { background: color-mix(in srgb, var(--color-danger, #dc2626) 15%, transparent); }
 
-.journey-arc-row { margin-top: 4px; font-size: 11px; }
-.journey-arc-status { font-size: 11px; }
+/* Arc sub-row — indented, appears only under pass/toss rows */
+.journey-arc-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 42px; /* aligns under Type column */
+  margin-bottom: 2px;
+}
+.journey-arc-status {
+  font-size: 10px;
+  white-space: nowrap;
+}
 .arc-drawn   { color: var(--color-accent); }
 .arc-missing { color: var(--color-border-mid); font-style: italic; }
 
@@ -393,5 +445,5 @@
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
-  margin-top: 6px;
+  padding-top: 2px;
 }

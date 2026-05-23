@@ -2,6 +2,7 @@ import { Layer, Rect, Circle, Text, Line, RegularPolygon, Ellipse } from 'react-
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
 import { FOOTBALL_RX, FOOTBALL_RY, TEXT_FONT_SIZE } from '../../utils/hitTesting';
 import { defaultCurveCP, bezierCtrl } from '../../utils/curveUtils';
+import { isFootballInFlight } from '../../utils/animationRuntime';
 
 const FOOTBALL_ATTACH_OFFSET = FIELD_CONFIG.PLAYER_RADIUS;
 
@@ -183,8 +184,10 @@ export default function FieldRenderer({
   }
 
   function renderFootball(el) {
-    const isSelected = !presentMode && el.id === selectedId;
-    const inMarquee  = !presentMode && (liveMarqueeIds.includes(el.id) || marqueeIds.includes(el.id));
+    const isSelected  = !presentMode && el.id === selectedId;
+    const inMarquee   = !presentMode && (liveMarqueeIds.includes(el.id) || marqueeIds.includes(el.id));
+    const isFlashing  = currentTime > 0 && isFootballInFlight(el, elements, currentTime);
+    const showRing    = isSelected || isFlashing;
     const animPos = positions.get(el.id);
     let visualX = animPos?.x ?? el.x;
     let visualY = animPos?.y ?? el.y;
@@ -201,8 +204,8 @@ export default function FieldRenderer({
         x={visualX} y={visualY}
         radiusX={FOOTBALL_RX} radiusY={FOOTBALL_RY}
         fill="#8B5E3C"
-        stroke={isSelected ? '#ffff00' : inMarquee ? colors.accent : '#4A2C17'}
-        strokeWidth={isSelected || inMarquee ? 3 : 2}
+        stroke={showRing ? '#ffff00' : inMarquee ? colors.accent : '#4A2C17'}
+        strokeWidth={showRing || inMarquee ? 3 : 2}
       />
     );
   }
