@@ -115,6 +115,19 @@ export function useFieldInteraction() {
   const marqueeStartRef = useRef(null);
   const groupStartRef   = useRef([]);
 
+  // Football tool toggle — fires the moment the tool button is pressed.
+  // If a football exists: toggle its selection (select if not selected, deselect if selected),
+  // then switch to SELECT so the coach can drag immediately.
+  // If no football exists: stay in ADD_FOOTBALL so the next canvas click places one.
+  useEffect(() => {
+    if (activeTool !== TOOL_MODES.ADD_FOOTBALL) return;
+    const football = elements.find(el => el.type === 'football');
+    if (!football) return; // let canvas click handle placement
+    const alreadySelected = selectedId === football.id;
+    setSelectedId(alreadySelected ? null : football.id);
+    useUIStore.getState().setActiveTool(TOOL_MODES.SELECT);
+  }, [activeTool]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Resize observer — updates both state (for render) and ref (for handlers)
   useEffect(() => {
     const container = containerRef.current;
@@ -241,17 +254,15 @@ export function useFieldInteraction() {
     }
 
     if (tool === TOOL_MODES.ADD_FOOTBALL) {
-      const hasFootball = els.some(el => el.type === 'football');
-      if (!hasFootball) {
-        const snapped = snapPoint(pos, snapInc, snapEn);
-        const newFootball = {
-          id: genId("el"), type: 'football',
-          x: snapped.x, y: snapped.y,
-          attachedToElementId: null,
-        };
-        addEl(newFootball);
-        setSelId(newFootball.id);
-      }
+      // Only reaches here when no football exists yet (useEffect handles the existing-football case)
+      const snapped = snapPoint(pos, snapInc, snapEn);
+      const newFootball = {
+        id: genId("el"), type: 'football',
+        x: snapped.x, y: snapped.y,
+        attachedToElementId: null,
+      };
+      addEl(newFootball);
+      setSelId(newFootball.id);
       useUIStore.getState().setActiveTool(TOOL_MODES.SELECT);
       return;
     }

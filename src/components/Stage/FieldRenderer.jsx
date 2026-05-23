@@ -350,8 +350,8 @@ export default function FieldRenderer({
         {!presentMode && renderDrawingPreview()}
         {!presentMode && !isBoxSelect && selectedEl?.type === 'path' && renderNodeHandles(selectedEl)}
         {renderAllNodes()}
-        {/* Football — Layer 1 so players (Layer 2) draw over attached ball */}
-        {elements.filter(el => el.type === 'football').map(el => renderFootball(el))}
+        {/* Football — Layer 1 when unselected so players draw over it */}
+        {elements.filter(el => el.type === 'football' && el.id !== selectedId).map(el => renderFootball(el))}
         {/* Marquee rect */}
         {marqueeRect && (
           <Rect
@@ -410,6 +410,8 @@ export default function FieldRenderer({
             />
           );
         })}
+        {/* Football — Layer 2 when selected so it floats above players */}
+        {elements.filter(el => el.type === 'football' && el.id === selectedId).map(el => renderFootball(el))}
         {/* Text annotations */}
         {elements.filter(el => el.type === 'text' && el.content && ((!presentMode && currentTime === 0) || isVisible(el.visibility, currentTime))).map(el => {
           const isSelected = !presentMode && el.id === selectedId;
