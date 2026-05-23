@@ -296,24 +296,22 @@ Mobile phone support deferred until football animation arc is fully stabilized.
 ---
 
 ## What is next (immediate)
-Phase 6 complete. Full codebase audit completed by Opus (2026-05-23) — 6-phase cleanup plan written to `docs/AUDIT_CLEANUP_PLAN.md`.
+Phases 1–6 complete. Audit cleanup (Phases A–F) complete as of 2026-05-23.
 
-**Next session: Execute the audit cleanup plan (intended executor: Sonnet).**
-Trigger phrase: `football` → reads `docs/AUDIT_CLEANUP_PLAN.md` — read it fully before doing anything. The plan requires Sonnet to also load `/mnt/storage/claudebox/Christopher_in_Context.md` and `/mnt/storage/claudebox/VSCode_workflow.md` at session start.
+**Audit cleanup summary (all shipped to main):**
+- Phase A — Dead CSS, unused destructures, stale assets
+- Phase B — Print button backgrounds, live print queue, Safari blur fix
+- Phase C — Duration slider draft+commit (1 undo step); undo now preserves selection
+- Phase D — useShallow selector sweep across 8 files
+- Phase E — snapTime hoisted out of per-frame recompute
+- Phase F — localStorage quota error surfaced as banner
 
-Cleanup plan phases (run in order, one per session):
-- Phase A — Mechanical cleanup (dead code, unused destructures, stale assets)
-- Phase B — Visible bug fixes (--color-surface, printQueue stale snapshot, backdrop-filter prefix)
-- Phase C — Slider history bloat fix (duration slider draft+commit pattern)
-- Phase D — Selector sweep (useShallow conversion across ~10 files)
-- Phase E — Animation runtime hoist (snapTime computed once per frame)
-- Phase F — Storage safety net (surface localStorage quota errors)
-
-Active work areas after cleanup:
+**Active work areas:**
 - UI polish pass — inspector layout refinements, Present Mode UX
-- Flight duration slider refinement (⚑ flagged)
+- Flight duration slider layout refinement (⚑ flagged in Phase 6)
 - Route branching (option route) — deferred indefinitely
 - Card refactor — useCardInteraction hook + CardShell — deferred
+- Migrate printQueue to IndexedDB if storage warning fires for real users (see Phase F)
 
 ---
 
