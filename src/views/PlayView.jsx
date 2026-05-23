@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import './Views.css';
-import useEditorStore from '../store/useEditorStore';
+import useDataStore from '../store/useDataStore';
+import useUIStore from '../store/useUIStore';
 import AppHeader from '../components/AppHeader/AppHeader';
 import { VIEW_MODES } from '../constants/toolModes';
 import {
@@ -96,8 +97,9 @@ export default function PlayView() {
     navigateTo, goBack,
     addPlay, deletePlay, updatePlay, duplicatePlay,
     reorderPlays,
-    printModeActive, printQueue, togglePrintQueueItem,
-  } = useEditorStore();
+  } = useDataStore();
+
+  const { printModeActive, printQueue, togglePrintQueueItem } = useUIStore();
 
   const formation = getActiveFormation();
   const playbook  = getActivePlaybook();

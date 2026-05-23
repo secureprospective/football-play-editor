@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import useAnimationStore, { getDuration } from '../../store/useAnimationStore';
-import useEditorStore from '../../store/useEditorStore';
+import useDataStore from '../../store/useDataStore';
 import { computePositions } from '../../utils/animationRuntime';
 
 export function useAnimationLoop() {
@@ -40,7 +40,7 @@ export function useAnimationLoop() {
       lastTsRef.current = timestamp;
 
       const { currentTime: ct, playbackSpeed, seek, pause } = useAnimationStore.getState();
-      const elements = useEditorStore.getState().getActivePlay()?.elements || [];
+      const elements = useDataStore.getState().getActivePlay()?.elements || [];
       const duration  = getDuration(elements);
       const nextTime  = ct + dt * playbackSpeed;
 
@@ -66,7 +66,7 @@ export function useAnimationLoop() {
   // Scrub — recompute positions whenever currentTime changes while not playing
   useEffect(() => {
     if (!isPlaying) {
-      const elements = useEditorStore.getState().getActivePlay()?.elements || [];
+      const elements = useDataStore.getState().getActivePlay()?.elements || [];
       updatePositions(computePositions(elements, currentTime));
     }
   }, [currentTime, isPlaying]);

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import './Views.css';
-import useEditorStore from '../store/useEditorStore';
+import useDataStore from '../store/useDataStore';
+import useUIStore from '../store/useUIStore';
 import AppHeader from '../components/AppHeader/AppHeader';
 import PrintStaging from '../components/PrintMode/PrintStaging';
 import { VIEW_MODES } from '../constants/toolModes';
@@ -95,10 +96,8 @@ function PlaybookCard({
 }
 
 export default function PlaybookView() {
-  const {
-    playbooks, navigateTo, addPlaybook, deletePlaybook, updatePlaybook, reorderPlaybooks,
-    printModeActive, togglePrintMode,
-  } = useEditorStore();
+  const { playbooks, navigateTo, addPlaybook, deletePlaybook, updatePlaybook, reorderPlaybooks } = useDataStore();
+  const { printModeActive, togglePrintMode } = useUIStore();
 
   const [showInput, setShowInput]     = useState(false);
   const [newName, setNewName]         = useState('');

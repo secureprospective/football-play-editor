@@ -1,4 +1,4 @@
-import useEditorStore from '../../store/useEditorStore';
+import useUIStore from '../../store/useUIStore';
 import PlayThumbnail from '../PlayThumbnail/PlayThumbnail';
 import './PrintMode.css';
 
@@ -103,7 +103,7 @@ function TextSheet({ printQueue }) {
 }
 
 export default function PrintSheet() {
-  const { printQueue, printFormat } = useEditorStore();
+  const { printQueue, printFormat } = useUIStore();
   return (
     <div className="print-sheet-wrapper">
       {printFormat === 'text'

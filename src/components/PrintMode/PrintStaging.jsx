@@ -1,4 +1,4 @@
-import useEditorStore from '../../store/useEditorStore';
+import useUIStore from '../../store/useUIStore';
 import PlayThumbnail from '../PlayThumbnail/PlayThumbnail';
 import {
   DndContext,
@@ -68,7 +68,7 @@ export default function PrintStaging() {
     setPrintFormat,
     setPrintSize,
     togglePrintQueueItem,
-  } = useEditorStore();
+  } = useUIStore();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import './Inspector.css';
-import useEditorStore from '../../store/useEditorStore';
+import useDataStore from '../../store/useDataStore';
+import useUIStore from '../../store/useUIStore';
 import { THEME_COLORS } from '../../constants/themeColors';
 import { getDuration } from '../../store/useAnimationStore';
 
@@ -71,7 +72,8 @@ function VisibilityControls({ visibility, duration, onChange }) {
 }
 
 export default function Inspector() {
-  const { getActivePlay, selectedId, updateElement, updateSegment, theme, marqueeIds, linkPlayerToRoute, unlinkPlayerFromRoute } = useEditorStore();
+  const { getActivePlay, selectedId, updateElement, updateSegment, marqueeIds, linkPlayerToRoute, unlinkPlayerFromRoute } = useDataStore();
+  const { theme } = useUIStore();
   const elements = getActivePlay()?.elements || [];
   const allPaths   = elements.filter(el => el.type === 'path');
   const allPlayers = elements.filter(el => el.type === 'player');

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import useAnimationStore, { getDuration } from '../../store/useAnimationStore';
-import useEditorStore from '../../store/useEditorStore';
+import useDataStore from '../../store/useDataStore';
 import { SPEEDS } from '../../constants/animationConfig';
 import './AnimationBar.css';
 
@@ -10,7 +10,7 @@ export default function AnimationBar() {
     play, pause, reset, seek, setSpeed, toggleAnimation,
   } = useAnimationStore();
 
-  const { getActivePlay, activePlayId } = useEditorStore();
+  const { getActivePlay, activePlayId } = useDataStore();
   const elements = getActivePlay()?.elements || [];
   const duration = getDuration(elements);
 

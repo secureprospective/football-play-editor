@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
-import useEditorStore, { genId } from '../../store/useEditorStore';
+import useDataStore, { genId } from '../../store/useDataStore';
+import useUIStore from '../../store/useUIStore';
 import { useAnimationLoop } from './useAnimationLoop';
 import { FIELD_CONFIG } from '../../constants/fieldConfig';
 import { TOOL_MODES } from '../../constants/toolModes';
@@ -66,17 +67,20 @@ export function useFieldInteraction() {
     addElement, updateElement, updateElements,
     selectedId,
     setSelectedId, clearSelection,
+    pushHistory,
+    marqueeIds, setMarqueeIds, clearMarquee,
+  } = useDataStore();
+
+  const {
     activeTool,
     snapEnabled, snapIncrement,
-    pushHistory,
     drawingPath, setDrawingPath, finishDrawing, cancelDrawing,
     setActivePathId,
     scrimmageVisible,
     presentMode,
-    marqueeIds, setMarqueeIds, clearMarquee,
-  } = useEditorStore();
+  } = useUIStore();
 
-  const theme  = useEditorStore(s => s.theme);
+  const theme  = useUIStore(s => s.theme);
   const colors = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
 
   const elements     = getActivePlay()?.elements || [];
@@ -146,8 +150,8 @@ export function useFieldInteraction() {
         setPlacingHighlight(null);
         placingHighlightRef.current = null;
       }
-      if ((e.key === 'Delete' || e.key === 'Backspace') && !useEditorStore.getState().drawingPath) {
-        const { selectedId: sid, deleteElement } = useEditorStore.getState();
+      if ((e.key === 'Delete' || e.key === 'Backspace') && !useUIStore.getState().drawingPath) {
+        const { selectedId: sid, deleteElement } = useDataStore.getState();
         if (sid && sid !== 'scrimmage_line') deleteElement(sid);
       }
     }
@@ -186,18 +190,21 @@ export function useFieldInteraction() {
     const {
       activeTool: tool,
       presentMode: pm,
-      selectedId: selId,
       snapEnabled: snapEn,
       snapIncrement: snapInc,
       scrimmageVisible: scrimVis,
+      setDrawingPath: setDP,
+      setActivePathId: setAPId,
+    } = useUIStore.getState();
+
+    const {
+      selectedId: selId,
       getActivePlay: getPlay,
       addElement: addEl,
       setSelectedId: setSelId,
       clearSelection: clearSel,
-      setDrawingPath: setDP,
-      setActivePathId: setAPId,
       clearMarquee: clearMq,
-    } = useEditorStore.getState();
+    } = useDataStore.getState();
 
     if (pm) return;
 
@@ -227,7 +234,7 @@ export function useFieldInteraction() {
       };
       addEl(newPlayer);
       setSelId(newPlayer.id);
-      useEditorStore.getState().setActiveTool(TOOL_MODES.SELECT);
+      useUIStore.getState().setActiveTool(TOOL_MODES.SELECT);
       return;
     }
 
@@ -243,7 +250,7 @@ export function useFieldInteraction() {
         addEl(newFootball);
         setSelId(newFootball.id);
       }
-      useEditorStore.getState().setActiveTool(TOOL_MODES.SELECT);
+      useUIStore.getState().setActiveTool(TOOL_MODES.SELECT);
       return;
     }
 
@@ -257,7 +264,7 @@ export function useFieldInteraction() {
       };
       addEl(newText);
       setSelId(newText.id);
-      useEditorStore.getState().setActiveTool(TOOL_MODES.SELECT);
+      useUIStore.getState().setActiveTool(TOOL_MODES.SELECT);
       return;
     }
 
@@ -284,14 +291,14 @@ export function useFieldInteraction() {
         setSelId(newHighlight.id);
         setPlacingHighlight(null);
         placingHighlightRef.current = null;
-        useEditorStore.getState().setActiveTool(TOOL_MODES.SELECT);
+        useUIStore.getState().setActiveTool(TOOL_MODES.SELECT);
       }
       return;
     }
 
     if (isDrawLocal) {
       // Case 1: Already drawing
-      const currentDP = useEditorStore.getState().drawingPath;
+      const currentDP = useUIStore.getState().drawingPath;
       if (currentDP) {
         const tail = getPathTailPoint(currentDP) ?? currentDP._branchOrigin ?? currentDP._startPoint;
         const resolved = resolveRoutePoint(pos, tail, shiftH, snapEn, snapInc);
@@ -345,7 +352,7 @@ export function useFieldInteraction() {
     }
 
     if (tool === TOOL_MODES.BOX_SELECT) {
-      const currentMarqueeIds = useEditorStore.getState().marqueeIds;
+      const currentMarqueeIds = useDataStore.getState().marqueeIds;
       if (currentMarqueeIds.length > 0) {
         const onGroup = els.some(el =>
           currentMarqueeIds.includes(el.id) && (
@@ -420,12 +427,15 @@ export function useFieldInteraction() {
       drawingPath: dp,
       activeTool: tool,
       scrimmageVisible: scrimVis,
-      getActivePlay: getPlay,
       snapEnabled: snapEn,
       snapIncrement: snapInc,
+    } = useUIStore.getState();
+
+    const {
+      getActivePlay: getPlay,
       updateElement: updEl,
       updateElements: updEls,
-    } = useEditorStore.getState();
+    } = useDataStore.getState();
 
     if (pm) return;
 
@@ -452,7 +462,7 @@ export function useFieldInteraction() {
     if (!isDraggingRef.current) {
       if (exceededDragThreshold(dragStartRef.current.x, dragStartRef.current.y, pos.x, pos.y)) {
         isDraggingRef.current = true;
-        const { marqueeIds: mqIds } = useEditorStore.getState();
+        const { marqueeIds: mqIds } = useDataStore.getState();
         if (dragTargetRef.current?.type === 'player' && mqIds.length === 0) {
           setGuidingPlayerId(dragTargetRef.current.elementId);
         }
@@ -602,7 +612,8 @@ export function useFieldInteraction() {
 
   // --- Pointer up (stable reference) ---
   const handlePointerUp = useCallback(() => {
-    const { activeTool: tool, pushHistory: ph, setMarqueeIds: setMqIds } = useEditorStore.getState();
+    const { activeTool: tool } = useUIStore.getState();
+    const { pushHistory: ph, setMarqueeIds: setMqIds } = useDataStore.getState();
 
     if (isDraggingRef.current && dragTargetRef.current) ph();
 
@@ -626,9 +637,9 @@ export function useFieldInteraction() {
     onMouseUp:     () => handlePointerUp(),
     onContextMenu: (e) => {
       e.evt.preventDefault();
-      const { activeTool: at, drawingPath: dp } = useEditorStore.getState();
+      const { activeTool: at, drawingPath: dp } = useUIStore.getState();
       if ((at === TOOL_MODES.ADD_LINE_STRAIGHT || at === TOOL_MODES.ADD_LINE_CURVE) && dp) {
-        useEditorStore.getState().finishDrawing();
+        useUIStore.getState().finishDrawing();
       }
     },
     onTouchStart: (e) => { e.evt.preventDefault(); handlePointerDown(); },
