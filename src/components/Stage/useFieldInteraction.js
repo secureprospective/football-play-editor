@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
+import { useShallow } from 'zustand/shallow';
 import useDataStore, { genId } from '../../store/useDataStore';
 import useUIStore from '../../store/useUIStore';
 import { useAnimationLoop } from './useAnimationLoop';
@@ -63,24 +64,24 @@ function resolveDragDelta(fromPos, toPos, shiftHeld) {
 export function useFieldInteraction() {
   // Store subscription — values needed for render output and derived display state.
   // Handlers do NOT read these closed-over values; they use getState() for fresh reads.
-  const {
-    getActivePlay,
-    selectedId,
-    setSelectedId,
-    marqueeIds, clearMarquee,
-  } = useDataStore();
+  const { setSelectedId, clearMarquee } = useDataStore(useShallow(s => ({
+    setSelectedId: s.setSelectedId, clearMarquee: s.clearMarquee,
+  })));
+  const selectedId = useDataStore(s => s.selectedId);
+  const marqueeIds = useDataStore(s => s.marqueeIds);
+  const elements   = useDataStore(s => s.getActivePlay()?.elements || []);
 
-  const {
-    activeTool,
-    drawingPath, finishDrawing, cancelDrawing,
-    scrimmageVisible,
-    presentMode,
-  } = useUIStore();
+  const { finishDrawing, cancelDrawing } = useUIStore(useShallow(s => ({
+    finishDrawing: s.finishDrawing, cancelDrawing: s.cancelDrawing,
+  })));
+  const activeTool      = useUIStore(s => s.activeTool);
+  const drawingPath     = useUIStore(s => s.drawingPath);
+  const scrimmageVisible = useUIStore(s => s.scrimmageVisible);
+  const presentMode     = useUIStore(s => s.presentMode);
 
   const theme  = useUIStore(s => s.theme);
   const colors = THEME_COLORS[theme] || THEME_COLORS['theme-sun-cyan'];
 
-  const elements     = getActivePlay()?.elements || [];
   const positionsRef = useAnimationLoop();
 
   // Stable DOM refs
