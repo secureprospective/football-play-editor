@@ -1,4 +1,5 @@
 import { useEffect, lazy, Suspense } from 'react';
+import { useShallow } from 'zustand/shallow';
 import './App.css';
 import useDataStore from './store/useDataStore';
 import useUIStore from './store/useUIStore';
@@ -18,8 +19,8 @@ import AnimationBar from './components/AnimationBar/AnimationBar';
 const FieldCanvas = lazy(() => import('./components/Stage/FieldCanvas'));
 
 export default function App() {
-  const { viewMode, activePlayId } = useDataStore();
-  const { presentMode, theme } = useUIStore();
+  const { viewMode, activePlayId } = useDataStore(useShallow(s => ({ viewMode: s.viewMode, activePlayId: s.activePlayId })));
+  const { presentMode, theme } = useUIStore(useShallow(s => ({ presentMode: s.presentMode, theme: s.theme })));
   useEffect(() => {
     document.documentElement.className = theme;
   }, [theme]);
