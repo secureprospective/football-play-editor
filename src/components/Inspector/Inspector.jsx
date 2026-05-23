@@ -77,6 +77,10 @@ function FootballInspector({ football, elements, allPlayers }) {
   const { setFootballSnapTo, addJourneyEvent, updateJourneyEvent, deleteJourneyEvent } = useDataStore();
   const { setArcDrawingMode, arcDrawingForEventId } = useUIStore();
 
+  // draftTime: { id: eventId, value: string } — tracks mid-edit value so the
+  // store (and its sort) only updates on blur/Enter, not on every keystroke.
+  const [draftTime, setDraftTime] = useState(null);
+
   const journey  = football.journey || { snapToPlayer: null, events: [] };
   const events   = [...(journey.events || [])].sort((a, b) => a.time - b.time);
   const snapTime = getSnapTime(elements);
@@ -90,9 +94,14 @@ function FootballInspector({ football, elements, allPlayers }) {
     Math.max(snapTime + 0.1, Math.min(maxTime - 0.05, snapTime + postSnapSpan * 0.4)) * 10
   ) / 10;
 
-  function playerLabel(id) {
-    const p = allPlayers.find(pl => pl.id === id);
-    return p ? (p.label || `Player ${allPlayers.indexOf(p) + 1}`) : '[deleted]';
+  function commitTime(eventId, raw) {
+    const v = parseFloat(raw);
+    if (!isNaN(v)) {
+      updateJourneyEvent(football.id, eventId, {
+        time: Math.max(snapTime, Math.min(maxTime, Math.round(v * 10) / 10)),
+      });
+    }
+    setDraftTime(null);
   }
 
   return (
@@ -133,10 +142,13 @@ function FootballInspector({ football, elements, allPlayers }) {
 
       {events.map(evt => {
         const isInFlight = evt.type === 'pass' || evt.type === 'toss';
+        const isEditingTime = draftTime?.id === evt.id;
+        const timeDisplayValue = isEditingTime ? draftTime.value : String(evt.time);
         return (
           <div key={evt.id} className="inspector-journey-event">
             <div className="journey-event-row">
-              {/* Time */}
+              {/* Time — only commits to store on blur or Enter to prevent
+                  mid-edit partial values from triggering a re-sort */}
               <span className="journey-at-label">At</span>
               <input
                 type="number"
@@ -144,14 +156,14 @@ function FootballInspector({ football, elements, allPlayers }) {
                 min={snapTime.toFixed(1)}
                 max={maxTime.toFixed(1)}
                 step="0.1"
-                value={evt.time}
-                onChange={e => {
-                  const v = parseFloat(e.target.value);
-                  if (!isNaN(v)) updateJourneyEvent(football.id, evt.id, {
-                    time: Math.max(snapTime, Math.min(maxTime, Math.round(v * 10) / 10)),
-                  });
+                value={timeDisplayValue}
+                onChange={e => setDraftTime({ id: evt.id, value: e.target.value })}
+                onBlur={() => isEditingTime && commitTime(evt.id, draftTime.value)}
+                onKeyDown={e => {
+                  e.stopPropagation();
+                  if (e.key === 'Enter') { commitTime(evt.id, draftTime?.value ?? String(evt.time)); e.target.blur(); }
+                  if (e.key === 'Escape') { setDraftTime(null); e.target.blur(); }
                 }}
-                onKeyDown={e => e.stopPropagation()}
                 title={`Event fires at this animation time (play ends at ${maxTime.toFixed(1)}s)`}
               />
               <span className="journey-time-unit">s</span>
