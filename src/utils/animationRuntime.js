@@ -84,6 +84,23 @@ export function getSnapTime(elements) {
   return maxPreSnap;
 }
 
+// Snap travels at 2x normal segment speed (default segment = 0.5s, snap = 0.25s)
+const SNAP_DURATION = 0.25;
+
+// Helper: get a player's position at a specific time (for computing snap target)
+function carrierPosAt(carrierId, time, pathById, playerById) {
+  const player = playerById.get(carrierId);
+  if (!player) return null;
+  if (player.routeId) {
+    const route = pathById.get(player.routeId);
+    if (route) {
+      const pos = playerPositionAtTime(route, time);
+      if (pos) return { x: pos.x + FIELD_CONFIG.PLAYER_RADIUS, y: pos.y };
+    }
+  }
+  return { x: player.x + FIELD_CONFIG.PLAYER_RADIUS, y: player.y };
+}
+
 /**
  * Compute the football's position at time t using its journey script.
  *
@@ -110,12 +127,26 @@ function footballPositionAtTime(football, result, pathById, playerById, t, snapT
     return { x: football.x, y: football.y };
   }
 
+  // Phase 2: snap animation — ball travels straight from LOS to carrier over SNAP_DURATION
+  const snapEndTime = snapTime + SNAP_DURATION;
+  if (t < snapEndTime) {
+    const progress   = (t - snapTime) / SNAP_DURATION;
+    const target     = carrierPosAt(journey.snapToPlayer, snapTime, pathById, playerById);
+    const targetX    = target?.x ?? football.x;
+    const targetY    = target?.y ?? football.y;
+    return {
+      x: football.x + progress * (targetX - football.x),
+      y: football.y + progress * (targetY - football.y),
+    };
+  }
+
+  // Phase 3: snap complete — walk journey events
   let currentCarrier = journey.snapToPlayer;
-  // Events must be sorted by time ascending (enforced on insert, but sort here for safety)
+  // Events sorted ascending (enforced on insert, re-sorted here for safety)
   const events = (journey.events || []).slice().sort((a, b) => a.time - b.time);
 
   for (const event of events) {
-    if (t < event.time) break; // event is still in the future
+    if (t < event.time) break; // event still in the future
 
     if (event.type === 'handoff') {
       currentCarrier = event.toPlayer;
@@ -129,8 +160,7 @@ function footballPositionAtTime(football, result, pathById, playerById, t, snapT
 
       if (t < arcEndTime) {
         // Ball is in-flight along the drawn arc
-        const arcT = t - event.time;
-        const pos  = playerPositionAtTime(arcPath, arcT);
+        const pos = playerPositionAtTime(arcPath, t - event.time);
         return pos || { x: football.x, y: football.y };
       }
 
