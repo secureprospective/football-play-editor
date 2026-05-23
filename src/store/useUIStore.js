@@ -15,13 +15,27 @@ const useUIStore = create((set, get) => ({
   // --- Drawing State ---
   drawingPath: null,
   activePathId: null,
-  arcDrawingForEventId: null,  // placeholder — wired in football Phase 2
 
-  setDrawingPath: (path) => set({ drawingPath: path }),
-  setActivePathId: (id) => set({ activePathId: id }),
+  // Arc drawing mode — set when the coach is drawing a pass/toss flight path.
+  // arcDrawingForEventId: the journey eventId this arc belongs to
+  // arcDrawingFootballId: the football element that owns the event
+  arcDrawingForEventId: null,
+  arcDrawingFootballId: null,
+
+  setDrawingPath:  (path) => set({ drawingPath: path }),
+  setActivePathId: (id)   => set({ activePathId: id }),
+
+  // Enter arc drawing mode: switches tool to straight line so coach can draw immediately.
+  setArcDrawingMode: (footballId, eventId) => {
+    set({
+      arcDrawingForEventId: eventId,
+      arcDrawingFootballId: footballId,
+      activeTool: 'ADD_LINE_STRAIGHT',
+    });
+  },
 
   finishDrawing: () => {
-    const { drawingPath, activePathId } = get();
+    const { drawingPath, activePathId, arcDrawingForEventId, arcDrawingFootballId } = get();
     if (!drawingPath) return;
 
     const ds = useDataStore.getState();
@@ -38,8 +52,27 @@ const useUIStore = create((set, get) => ({
       }
       set({ drawingPath: null, activePathId: null });
       ds.setSelectedId(activePathId);
+
+    } else if (arcDrawingForEventId && arcDrawingFootballId) {
+      // Arc mode: add the path, then link it to the journey event.
+      // Use updateElement (no extra pushHistory) so the whole op is one undo step.
+      if (drawingPath.segments.length > 0) {
+        ds.addElement(drawingPath);  // adds path + pushes history
+        // Link arcPathId without a second history push
+        const play = ds.getActivePlay();
+        const football = play?.elements.find(el => el.id === arcDrawingFootballId);
+        if (football) {
+          const events = (football.journey?.events || []).map(evt =>
+            evt.id === arcDrawingForEventId ? { ...evt, arcPathId: drawingPath.id } : evt
+          );
+          ds.updateElement(arcDrawingFootballId, { journey: { ...football.journey, events } });
+        }
+      }
+      set({ drawingPath: null, activePathId: null, arcDrawingForEventId: null, arcDrawingFootballId: null });
+      ds.setSelectedId(arcDrawingFootballId);  // return focus to football
+
     } else {
-      // New path
+      // Normal new path
       if (drawingPath.segments.length > 0) {
         ds.addElement(drawingPath);
         ds.setSelectedId(drawingPath.id);
@@ -49,7 +82,14 @@ const useUIStore = create((set, get) => ({
     set({ activeTool: DEFAULT_TOOL });
   },
 
-  cancelDrawing: () => set({ drawingPath: null, activePathId: null }),
+  cancelDrawing: () => {
+    const { arcDrawingFootballId } = get();
+    set({ drawingPath: null, activePathId: null, arcDrawingForEventId: null, arcDrawingFootballId: null });
+    // Re-select the football so the inspector stays on it
+    if (arcDrawingFootballId) {
+      useDataStore.getState().setSelectedId(arcDrawingFootballId);
+    }
+  },
 
   // --- Snap ---
   snapEnabled: true,

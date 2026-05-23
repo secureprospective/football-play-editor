@@ -74,12 +74,8 @@ function VisibilityControls({ visibility, duration, onChange }) {
 
 // ── Football journey inspector ───────────────────────────────────────────────
 function FootballInspector({ football, elements, allPlayers }) {
-  const {
-    setFootballSnapTo,
-    addJourneyEvent,
-    updateJourneyEvent,
-    deleteJourneyEvent,
-  } = useDataStore();
+  const { setFootballSnapTo, addJourneyEvent, updateJourneyEvent, deleteJourneyEvent } = useDataStore();
+  const { setArcDrawingMode, arcDrawingForEventId } = useUIStore();
 
   const journey  = football.journey || { snapToPlayer: null, events: [] };
   const events   = [...(journey.events || [])].sort((a, b) => a.time - b.time);
@@ -192,8 +188,24 @@ function FootballInspector({ football, elements, allPlayers }) {
               <div className="journey-arc-row">
                 {evt.arcPathId
                   ? <span className="journey-arc-status arc-drawn">Arc ✓</span>
-                  : <span className="journey-arc-status arc-missing">Arc: not drawn (Step 6)</span>
+                  : <span className="journey-arc-status arc-missing">No arc drawn</span>
                 }
+                <button
+                  className="seg-label-btn"
+                  style={{ marginLeft: 8 }}
+                  disabled={arcDrawingForEventId === evt.id}
+                  onClick={() => {
+                    // Clear old arc link if redrawing, then enter arc mode
+                    if (evt.arcPathId) {
+                      updateJourneyEvent(football.id, evt.id, { arcPathId: null });
+                    }
+                    setArcDrawingMode(football.id, evt.id);
+                  }}
+                >
+                  {arcDrawingForEventId === evt.id
+                    ? 'Drawing…'
+                    : evt.arcPathId ? 'Redraw' : 'Draw arc'}
+                </button>
               </div>
             )}
           </div>
