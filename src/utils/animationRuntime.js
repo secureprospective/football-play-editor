@@ -28,43 +28,87 @@ function interpolateSegment(seg, t) {
   };
 }
 
-// Walk a path's segments to find the interpolated position at currentTime.
-// Returns { x, y } or undefined if the path has no usable segments.
-function playerPositionAtTime(path, currentTime) {
+/**
+ * Walk a path's segments to find the interpolated position at currentTime.
+ * Pre-snap segments use their globally-scheduled time windows (preSnapSchedule).
+ * Post-snap segments accumulate from snapTime.
+ * Returns { x, y } or undefined (player stays at stored position).
+ *
+ * @param {Object} path
+ * @param {number} currentTime
+ * @param {Map}    preSnapSchedule  — Map<segId, { startTime, endTime }> from buildPreSnapSchedule
+ * @param {number} snapTime         — when the ball snaps
+ */
+function playerPositionAtTime(path, currentTime, preSnapSchedule, snapTime) {
   if (!path?.segments?.length) return undefined;
+  const st = snapTime ?? 0;
 
-  let segStart = 0;
-  let lastPoint = null;
+  // --- Pre-snap phase ---
+  // Iterate all pre-snap segments; find the one currently animating, or track the
+  // latest completed endpoint so the player holds position between phases.
+  let lastPreSnapEndTime = -1;
+  let lastPreSnapPos     = null;
 
   for (const seg of path.segments) {
+    if (!seg.preSnap || !preSnapSchedule) continue;
+    const scheduled = preSnapSchedule.get(seg.id);
+    if (!scheduled || !seg.points?.length) continue;
+
+    const { startTime, endTime } = scheduled;
+    const delay    = seg.delay ?? 0;
+    const duration = seg.duration ?? 0.5;
+    const delayEnd = startTime + delay;
+    const p2       = seg.points[seg.points.length - 1];
+
+    if (currentTime >= endTime) {
+      // Segment fully completed — track as latest endpoint.
+      if (endTime >= lastPreSnapEndTime) {
+        lastPreSnapEndTime = endTime;
+        lastPreSnapPos     = { x: p2.x, y: p2.y };
+      }
+    } else if (currentTime >= startTime) {
+      // Currently animating this pre-snap segment.
+      if (currentTime < delayEnd) return { x: seg.points[0].x, y: seg.points[0].y };
+      const t = Math.max(0, Math.min(1, (currentTime - delayEnd) / duration));
+      return interpolateSegment(seg, t);
+    }
+    // currentTime < startTime — segment not started yet; skip.
+  }
+
+  // Before snap: hold at last completed pre-snap position, or stay at stored position.
+  if (currentTime < st) return lastPreSnapPos || undefined;
+
+  // --- Post-snap phase ---
+  let segStart = st;
+  let lastPoint = lastPreSnapPos;
+
+  for (const seg of path.segments) {
+    if (seg.preSnap) continue; // already handled above
     if (!seg.points?.length) continue;
+
     const delay    = seg.delay ?? 0;
     const duration = seg.duration ?? 0.5;
     const p2       = seg.points[seg.points.length - 1];
 
     if (duration <= 0 && delay <= 0) {
-      lastPoint = p2;
+      lastPoint = { x: p2.x, y: p2.y };
       continue;
     }
 
     const delayEnd = segStart + delay;
     const segEnd   = delayEnd + duration;
 
-    if (currentTime < delayEnd) {
-      // In the delay window — player holds at the start of this segment
-      return { x: seg.points[0].x, y: seg.points[0].y };
-    }
-
+    if (currentTime < delayEnd) return lastPoint || { x: seg.points[0].x, y: seg.points[0].y };
     if (currentTime < segEnd) {
       const t = Math.max(0, Math.min(1, (currentTime - delayEnd) / duration));
       return interpolateSegment(seg, t);
     }
 
-    lastPoint = p2;
+    lastPoint = { x: p2.x, y: p2.y };
     segStart  = segEnd;
   }
 
-  return lastPoint ? { x: lastPoint.x, y: lastPoint.y } : undefined;
+  return lastPoint;
 }
 
 // Sum all segment durations (+ delays) for a path.
@@ -74,21 +118,48 @@ function getPathDuration(path) {
 }
 
 /**
- * Derive snap time from the longest pre-snap segment sequence in the play.
- * Returns 0 if no pre-snap segments exist (ball snaps immediately at t=0).
+ * Build a global schedule for all pre-snap segments across the play.
+ * Segments are sorted by their preSnap sequence number and assigned start/end
+ * times sequentially — only one segment animates at a time (NFL rule).
+ *
+ * @returns {{ schedule: Map<segId, { startTime, endTime }>, totalDuration: number }}
  */
-export function getSnapTime(elements) {
-  let maxPreSnap = 0;
+export function buildPreSnapSchedule(elements) {
+  const schedule = new Map();
+
+  // Collect all segments with a numeric preSnap value.
+  const preSnapSegs = [];
   for (const el of elements) {
     if (el.type !== 'path' || !el.segments) continue;
-    let preSnapDuration = 0;
     for (const seg of el.segments) {
-      if (seg.preSnap) preSnapDuration += (seg.delay ?? 0) + (seg.duration ?? 0.5);
-      else break; // pre-snap segments must be contiguous from the route start
+      if (typeof seg.preSnap === 'number' && seg.preSnap > 0) preSnapSegs.push(seg);
     }
-    maxPreSnap = Math.max(maxPreSnap, preSnapDuration);
   }
-  return maxPreSnap;
+
+  if (preSnapSegs.length === 0) return { schedule, totalDuration: 0 };
+
+  // Sort by sequence number ascending.
+  preSnapSegs.sort((a, b) => a.preSnap - b.preSnap);
+
+  // Assign start/end times sequentially.
+  let t = 0;
+  for (const seg of preSnapSegs) {
+    const delay    = seg.delay ?? 0;
+    const duration = seg.duration ?? 0.5;
+    schedule.set(seg.id, { startTime: t, endTime: t + delay + duration });
+    t += delay + duration;
+  }
+
+  return { schedule, totalDuration: t };
+}
+
+/**
+ * Returns when the ball snaps — 0.1s after all pre-snap motion completes,
+ * or 0 if there are no pre-snap segments.
+ */
+export function getSnapTime(elements) {
+  const { totalDuration } = buildPreSnapSchedule(elements);
+  return totalDuration > 0 ? totalDuration + 0.1 : 0;
 }
 
 // Flight durations — all in REAL seconds (multiplied by playbackSpeed for timeline duration).
@@ -103,13 +174,13 @@ function flightSecs(type) {
 }
 
 // Helper: get a player's position at a specific time (for computing snap/throw targets).
-function carrierPosAt(carrierId, time, pathById, playerById) {
+function carrierPosAt(carrierId, time, pathById, playerById, preSnapSchedule, snapTime) {
   const player = playerById.get(carrierId);
   if (!player) return null;
   if (player.routeId) {
     const route = pathById.get(player.routeId);
     if (route) {
-      const pos = playerPositionAtTime(route, time);
+      const pos = playerPositionAtTime(route, time, preSnapSchedule, snapTime ?? 0);
       if (pos) return { x: pos.x + FIELD_CONFIG.PLAYER_RADIUS, y: pos.y };
     }
   }
@@ -132,7 +203,7 @@ function carrierPosAt(carrierId, time, pathById, playerById) {
  * @param {number} playbackSpeed
  * @returns {{ x: number, y: number }}
  */
-function footballPositionAtTime(football, result, pathById, playerById, t, snapTime, playbackSpeed) {
+function footballPositionAtTime(football, result, pathById, playerById, t, snapTime, playbackSpeed, preSnapSchedule) {
   const speed = playbackSpeed || 1;
 
   // Phase 1: pre-snap — ball sits at LOS position.
@@ -146,7 +217,7 @@ function footballPositionAtTime(football, result, pathById, playerById, t, snapT
   const snapEndTime = snapTime + snapAnimDuration;
   if (t < snapEndTime) {
     const progress = (t - snapTime) / snapAnimDuration;
-    const target   = carrierPosAt(journey.snapToPlayer, snapTime, pathById, playerById);
+    const target   = carrierPosAt(journey.snapToPlayer, snapTime, pathById, playerById, preSnapSchedule, snapTime);
     return {
       x: football.x + progress * ((target?.x ?? football.x) - football.x),
       y: football.y + progress * ((target?.y ?? football.y) - football.y),
@@ -170,12 +241,11 @@ function footballPositionAtTime(football, result, pathById, playerById, t, snapT
       const catchTime  = event.time + flightDur;
 
       if (t < catchTime) {
-        // Ball in-flight — linear from thrower to interceptPoint (or receiver catch position)
         const progress = (t - event.time) / flightDur;
-        const startPos = carrierPosAt(currentCarrier, event.time, pathById, playerById)
+        const startPos = carrierPosAt(currentCarrier, event.time, pathById, playerById, preSnapSchedule, snapTime)
                          || { x: football.x, y: football.y };
         const endPos   = event.interceptPoint
-                         || carrierPosAt(event.toPlayer, catchTime, pathById, playerById)
+                         || carrierPosAt(event.toPlayer, catchTime, pathById, playerById, preSnapSchedule, snapTime)
                          || { x: football.x, y: football.y };
         return {
           x: startPos.x + progress * (endPos.x - startPos.x),
@@ -243,19 +313,21 @@ export function computePositions(elements, currentTime, playbackSpeed = 1) {
     if (el.type === 'player') playerById.set(el.id, el);
   }
 
-  const snapTime = getSnapTime(elements);
+  // Build schedule once — shared by player positions and football.
+  const { schedule: preSnapSchedule, totalDuration } = buildPreSnapSchedule(elements);
+  const snapTime = totalDuration > 0 ? totalDuration + 0.1 : 0;
 
   for (const el of elements) {
     if (el.type !== 'player' || !el.routeId) continue;
     const path = pathById.get(el.routeId);
     if (!path) continue;
-    const pos = playerPositionAtTime(path, currentTime);
+    const pos = playerPositionAtTime(path, currentTime, preSnapSchedule, snapTime);
     if (pos) result.set(el.id, pos);
   }
 
   for (const el of elements) {
     if (el.type !== 'football') continue;
-    const pos = footballPositionAtTime(el, result, pathById, playerById, currentTime, snapTime, playbackSpeed);
+    const pos = footballPositionAtTime(el, result, pathById, playerById, currentTime, snapTime, playbackSpeed, preSnapSchedule);
     result.set(el.id, pos);
   }
 
@@ -282,6 +354,9 @@ export function getInterceptPoint(event, elements) {
     if (el.type === 'player') playerById.set(el.id, el);
   }
 
+  const { schedule: preSnapSchedule, totalDuration } = buildPreSnapSchedule(elements);
+  const snapTime = totalDuration > 0 ? totalDuration + 0.1 : 0;
+
   const catchTime = event.time + (event.duration ?? flightSecs(event.type));
-  return carrierPosAt(event.toPlayer, catchTime, pathById, playerById);
+  return carrierPosAt(event.toPlayer, catchTime, pathById, playerById, preSnapSchedule, snapTime);
 }

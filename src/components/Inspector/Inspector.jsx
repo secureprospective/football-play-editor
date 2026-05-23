@@ -260,10 +260,11 @@ function FootballInspector({ football, elements, allPlayers }) {
 }
 
 export default function Inspector() {
-  const { updateElement, updateSegment, updateSegmentLive, pushHistory, linkPlayerToRoute, unlinkPlayerFromRoute } = useDataStore(useShallow(s => ({
+  const { updateElement, updateSegment, updateSegmentLive, pushHistory, linkPlayerToRoute, unlinkPlayerFromRoute, setSegmentPreSnap } = useDataStore(useShallow(s => ({
     updateElement: s.updateElement, updateSegment: s.updateSegment,
     updateSegmentLive: s.updateSegmentLive, pushHistory: s.pushHistory,
     linkPlayerToRoute: s.linkPlayerToRoute, unlinkPlayerFromRoute: s.unlinkPlayerFromRoute,
+    setSegmentPreSnap: s.setSegmentPreSnap,
   })));
   const selectedId = useDataStore(s => s.selectedId);
   const marqueeIds = useDataStore(s => s.marqueeIds);
@@ -557,7 +558,14 @@ export default function Inspector() {
               T-End
             </label>
           </div>
-          {selected.segments?.length > 0 && (
+          {selected.segments?.length > 0 && (() => {
+            // Next available pre-snap sequence number across all segments in the play.
+            const nextSeqNum = elements.reduce((max, el) => {
+              if (el.type !== 'path') return max;
+              return (el.segments || []).reduce((m, s) =>
+                (typeof s.preSnap === 'number' && s.preSnap > m) ? s.preSnap : m, max);
+            }, 0) + 1;
+            return (
             <div className="inspector-segments">
               <div className="inspector-segments-col-header">
                 <span>Segment</span>
@@ -595,9 +603,9 @@ export default function Inspector() {
                     />
                     <button
                       className={`seg-presnap-btn ${seg.preSnap ? 'active' : ''}`}
-                      onClick={() => updateSegment(selected.id, seg.id, { preSnap: !seg.preSnap })}
+                      onClick={() => setSegmentPreSnap(selected.id, seg.id, seg.preSnap ? false : nextSeqNum)}
                     >
-                      {seg.preSnap ? 'Pre-snap ✓' : 'Pre-snap'}
+                      {seg.preSnap ? `Pre-snap ${seg.preSnap}` : 'Pre-snap'}
                     </button>
                   </div>
                   <div className="range-row">
@@ -631,7 +639,8 @@ export default function Inspector() {
               ))}
 
             </div>
-          )}
+            );
+          })()}
           {(() => {
             const linkedPlayer = selected.playerId
               ? elements.find(el => el.id === selected.playerId)

@@ -84,10 +84,28 @@ function migrateFootball(fb) {
 }
 
 function migrateElements(elements) {
-  return elements
+  let mapped = elements
     .map(el => migratePath(el))
     .map(el => (el.type === 'player' && el.routeId === undefined) ? { ...el, routeId: null } : el)
     .map(el => el.type === 'football' ? migrateFootball(el) : el);
+
+  // Migrate preSnap: true → sequential number, preSnap: false/undefined → false.
+  // Each preSnap:true segment across all paths gets a unique sequence number (paths
+  // processed in array order, segments in route order within each path).
+  let seqCounter = 1;
+  mapped = mapped.map(el => {
+    if (el.type !== 'path') return el;
+    return {
+      ...el,
+      segments: el.segments.map(seg => {
+        if (seg.preSnap === true)  return { ...seg, preSnap: seqCounter++ };
+        if (!seg.preSnap)          return { ...seg, preSnap: false };
+        return seg; // already a number — leave as-is
+      }),
+    };
+  });
+
+  return mapped;
 }
 
 // --- Persistence ---
@@ -414,6 +432,41 @@ const useDataStore = create((set, get) => ({
         return { ...el, segments: el.segments.map(seg => seg.id === segmentId ? { ...seg, ...changes } : seg) };
       }),
     });
+  },
+
+  // Set a segment's preSnap sequence number atomically across the entire play.
+  // value = number (sequence position) or false (remove).
+  // Removing shifts all higher sequence numbers down by 1.
+  setSegmentPreSnap: (pathId, segmentId, value) => {
+    const { activePlaybookId, activeFormationId, activePlayId, getActivePlay, pushHistory } = get();
+    const play = getActivePlay();
+    if (!play) return;
+
+    // Find the current preSnap value so we know what to shift down when removing.
+    let oldValue = false;
+    for (const el of play.elements) {
+      if (el.type !== 'path') continue;
+      const seg = el.segments?.find(s => s.id === segmentId);
+      if (seg !== undefined) { oldValue = seg.preSnap; break; }
+    }
+
+    get().updatePlay(activePlaybookId, activeFormationId, activePlayId, {
+      elements: play.elements.map(el => {
+        if (el.type !== 'path') return el;
+        return {
+          ...el,
+          segments: el.segments.map(seg => {
+            if (seg.id === segmentId) return { ...seg, preSnap: value };
+            // Shift down any segment with a higher sequence number when removing.
+            if (value === false && typeof oldValue === 'number' && typeof seg.preSnap === 'number' && seg.preSnap > oldValue) {
+              return { ...seg, preSnap: seg.preSnap - 1 };
+            }
+            return seg;
+          }),
+        };
+      }),
+    });
+    pushHistory();
   },
 
   deleteElement: (id) => {
