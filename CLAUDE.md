@@ -89,6 +89,10 @@ Push to `lite` → Lite site auto-deploys. Push to `main` → Full site auto-dep
   - Monospace font (SF Mono / Consolas / Courier New) on all chrome labels, inputs, readouts
   - --s-font: shared CSS variable for mono stack
   - Deferred for future build: custom knurled timeline thumb, rocker switch toggles (native inputs kept)
+- Anim toggle (AnimationBar): standard raised/pressed button — same family as reset and play; accent-border color when ON (not permanent accent block)
+- Film icon (heroicons outline) on Anim toggle (AnimationBar, 22px) and Present Mode anim toggle — icon-only, no text
+- Present Mode anim toggle: film icon in both ON and OFF states; .present-anim-off amber color signals OFF state
+- Brand button: logo + "TFM Playbook" is a raised bevel `<a>` link to techfreedomministries.org in both Toolbar and AppHeader; high-contrast --color-text on Cinzel title
 
 ## Animation Roadmap
 
@@ -356,3 +360,16 @@ Phases 1–6 complete. Audit cleanup (Phases A–F) complete as of 2026-05-23.
 
 ## Known issues — deferred
 - getPointerPosition TypeError: stageRef.current is null during Konva Stage remount on theme switch (key={theme} forces remount). Fires on mousemove during the transition. No user-visible crash. Fix: null guard in getScaledPos. Deferred — not reproducible in normal use.
+
+---
+
+## License
+Business Source License 1.1 — shipped 2026-05-23.
+
+- `LICENSE` — root legal document; full BSL 1.1 terms, nonprofit/coach/educational carve-out, Change Date 2030-01-01 → GPL v2+
+- Copyright header on all 33 `.js` / `.jsx` source files in `src/`
+- README.md has public-facing License section with link to LICENSE
+- `main.jsx` carries the header as the app entry point
+
+Licensor: Christopher Campbell / Tech Freedom Ministries
+Commercial use prohibited without written permission from the Licensor.
