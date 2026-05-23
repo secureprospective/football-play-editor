@@ -1,3 +1,8 @@
+// TFM Playbook — Football Play Editor
+// Copyright (C) 2024–2026 Christopher Campbell / Tech Freedom Ministries
+// Licensed under the Business Source License 1.1
+// See LICENSE file in the project root for full terms.
+// Commercial use prohibited without written permission from the Licensor.
 const STAGE_W  = 1920;
 const STAGE_H  = 1080;
 const LOS_Y    = 771; // 20 yards * 38.57px/yard from top
