@@ -306,6 +306,15 @@ Phases 1–6 complete. Audit cleanup (Phases A–F) complete as of 2026-05-23.
 - Phase E — snapTime hoisted out of per-frame recompute
 - Phase F — localStorage quota error surfaced as banner
 
+**Pre-snap sequencing (shipped 2026-05-23):**
+- preSnap field changed from boolean to sequence number (1, 2, 3...) on each segment
+- All pre-snap segments across the play run in strict global sequence order (NFL rule: 1 player at a time)
+- Ball snaps 0.1s after the last pre-snap segment completes
+- buildPreSnapSchedule(elements) assigns startTime/endTime per segment; computed once per frame
+- playerPositionAtTime updated: pre-snap phase uses schedule, post-snap phase accumulates from snapTime
+- Inspector button shows sequence number ("Pre-snap 1"); removing shifts others down via setSegmentPreSnap store action
+- Migration: preSnap:true → sequential number on load/import
+
 **Active work areas:**
 - UI polish pass — inspector layout refinements, Present Mode UX
 - Flight duration slider layout refinement (⚑ flagged in Phase 6)
