@@ -9,6 +9,8 @@ Fix three architectural issues before adding football animation:
 
 Sequence is **dependent**: handlers can land before the store split or after, but the store split must happen before football animation (which adds new data-store actions).
 
+This refactor is **Phase 1 of the football session**. After it lands, the same session continues into football animation per `FOOTBALL_ANIMATION_PLAN.md`. Read both plans before starting.
+
 ## Outcome Definition
 
 A successful session ends with:
@@ -146,15 +148,22 @@ Within each store, organize as Zustand slices (separate functions composed via s
          dataCrudSlice.js      — playbooks/formations/plays CRUD
          elementOpsSlice.js    — add/update/delete/link element actions
          historySlice.js       — pushHistory, undo, redo
-         persistenceSlice.js   — load, save, migrate
+         persistenceSlice.js   — load, save, migrate (incl. migrateFootball when football lands)
          exportImportSlice.js  — export/import JSON
        ui/
          toolSlice.js          — activeTool
          selectionSlice.js     — selectedId, marqueeIds
-         drawingSlice.js       — drawingPath, placingHighlight
+         drawingSlice.js       — drawingPath, placingHighlight, arcDrawingForEventId (football)
          modeSlice.js          — presentMode, printMode, snapEnabled
          themeSlice.js         — theme
    ```
+
+   **Football-driven slice considerations (for Phase 2 of the football session, but flagged now so slices are designed with room):**
+   - `drawingSlice` will add `arcDrawingForEventId: null` (which journey event the currently-drawn arc belongs to)
+   - `elementOpsSlice` will add five football-journey actions: `setFootballSnapTo`, `addJourneyEvent`, `updateJourneyEvent`, `deleteJourneyEvent`, `setEventArcPath`
+   - `persistenceSlice` will add `migrateFootball` (backfills empty journey on existing footballs)
+   - `deleteElement` in elementOpsSlice will gain cleanup logic for stale `arcPathId` and `snapToPlayer`/`toPlayer` references
+   - Don't build any of these now — just leave the slice structure clean enough that adding them in the football phase is trivial
 
 2. **Build `useUIStore` first** — it's smaller and has no dependencies on other state.
    - Move each UI state field and its setters into the appropriate slice
@@ -278,29 +287,15 @@ refactor(stage): extract pure field helpers to utils
 
 ---
 
-## Phase 4 — Drawing State Machine (OPTIONAL — only if time remains)
+## Phase 4 — Drawing State Machine (DROPPED)
 
-**Estimated time:** 2-3 hours
-**Risk level:** MEDIUM (state machine extraction has gotchas)
+Originally planned as extraction of drawing state into its own hook. **No longer needed.**
 
-This is the next step IF Phase 1, 2, and 3 are all clean and Christopher has time. Otherwise defer to a follow-up session.
+Reason: the football design has two drawing consumers (player routes + ball arcs) that share 95% of the same code. The difference is only the completion handler — a player route adds to `elements`; a ball arc adds to `elements` AND links its id to a journey event.
 
-### What we'd do
+Solution: add a `mode: 'route' | 'arc'` param to the existing `finishDrawing()` action. This is a small extension, not a refactor. It happens during the football phase, not here.
 
-Extract route drawing into its own hook `useDrawingState.js`:
-- Owns `drawingPath` state and the click sequence state machine
-- Exposes `startDrawing()`, `addPoint(pos)`, `finishDrawing()`, `cancelDrawing()`
-- Called from `useFieldInteraction` which only orchestrates
-
-### Why this is the riskiest part
-
-Drawing state has a lot of edge cases:
-- Mid-route undo
-- Branching from an existing path
-- Curve vs straight tool switch mid-route
-- First node snap to player center on link
-
-If extracted carelessly, edge cases regress. Defer if any other phase ran long.
+If a future session has reason to extract drawing as its own hook (e.g., adding a third drawing consumer), revisit then. For now, leave it in `useFieldInteraction.js`.
 
 ---
 
@@ -365,10 +360,10 @@ Are tests passing?
 ## Success Criteria
 
 **Minimum acceptable:** Phase 1 complete and merged.
-**Target:** Phase 1 + Phase 2 complete and merged.
+**Target:** Phase 1 + Phase 2 complete and merged. (Required before football animation begins.)
 **Stretch:** Phase 1 + Phase 2 + Phase 3 complete and merged.
 
-The football animation prompt at `docs/FOOTBALL_ANIMATION_PROMPT.md` should be re-checked after Phase 2 to update file paths it references.
+After Phase 2 lands, the same session continues into football animation per `FOOTBALL_ANIMATION_PLAN.md`. Re-verify any path references in `FOOTBALL_ANIMATION_PLAN.md` reflect the new store split (e.g., `useEditorStore` → `useDataStore`/`useUIStore`).
 
 ---
 
