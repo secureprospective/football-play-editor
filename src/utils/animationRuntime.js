@@ -99,8 +99,10 @@ export function getSnapTime(elements) {
  * @returns {{ x: number, y: number }}
  */
 function footballPositionAtTime(football, result, pathById, playerById, t, snapTime) {
-  // Phase 1: pre-snap — ball sits at LOS position
-  if (t < snapTime) return { x: football.x, y: football.y };
+  // Phase 1: pre-snap — ball sits at LOS position.
+  // <= so that at t=0 (reset state) ball is always at LOS,
+  // even when snapTime=0 (no pre-snap motion defined).
+  if (t <= snapTime) return { x: football.x, y: football.y };
 
   const journey = football.journey;
   if (!journey?.snapToPlayer) {
