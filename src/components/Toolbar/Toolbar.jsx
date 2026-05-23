@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useShallow } from 'zustand/shallow';
 import './Toolbar.css';
 import useDataStore from '../../store/useDataStore';
 import useUIStore from '../../store/useUIStore';
@@ -7,31 +8,33 @@ import { THEME_LOGO } from '../../constants/themeColors';
 import { flipPlayHorizontal, flipPlayVertical } from '../../utils/flipUtils';
 
 export default function Toolbar() {
-  const {
-    undo, redo, canUndo, canRedo,
-    clearElements,
-    getActivePlay, getActiveFormation, getActivePlaybook,
-    updateElement,
-    exportPlaybook, importPlaybook,
-    navigateTo, goBack,
-  } = useDataStore();
+  // Actions — stable refs, never trigger re-renders
+  const { undo, redo, clearElements, updateElement, exportPlaybook, importPlaybook, navigateTo, goBack } = useDataStore(useShallow(s => ({
+    undo: s.undo, redo: s.redo, clearElements: s.clearElements,
+    updateElement: s.updateElement, exportPlaybook: s.exportPlaybook,
+    importPlaybook: s.importPlaybook, navigateTo: s.navigateTo, goBack: s.goBack,
+  })));
+  // Derived state — re-renders only when these specific values change
+  const canUndo   = useDataStore(s => s.canUndo());
+  const canRedo   = useDataStore(s => s.canRedo());
+  const play      = useDataStore(s => s.getActivePlay());
+  const formation = useDataStore(s => s.getActiveFormation());
+  const playbook  = useDataStore(s => s.getActivePlaybook());
 
-  const {
-    drawingPath, finishDrawing, cancelDrawing,
-    scrimmageVisible, toggleScrimmage,
-    presentMode, togglePresentMode,
-    snapEnabled, setSnapEnabled,
-    theme,
-  } = useUIStore();
+  const { drawingPath, finishDrawing, cancelDrawing, scrimmageVisible, toggleScrimmage,
+          presentMode, togglePresentMode, snapEnabled, setSnapEnabled, theme } = useUIStore(useShallow(s => ({
+    drawingPath: s.drawingPath, finishDrawing: s.finishDrawing, cancelDrawing: s.cancelDrawing,
+    scrimmageVisible: s.scrimmageVisible, toggleScrimmage: s.toggleScrimmage,
+    presentMode: s.presentMode, togglePresentMode: s.togglePresentMode,
+    snapEnabled: s.snapEnabled, setSnapEnabled: s.setSnapEnabled,
+    theme: s.theme,
+  })));
 
   const logo = THEME_LOGO[theme] || THEME_LOGO['theme-sun-cyan'];
 
   const [confirmClear, setConfirmClear] = useState(false);
 
-  const play      = getActivePlay();
-  const formation = getActiveFormation();
-  const playbook  = getActivePlaybook();
-  const elements  = play?.elements || [];
+  const elements = play?.elements || [];
 
   function handleFlipH() {
     const flipped = flipPlayHorizontal(elements);
@@ -123,8 +126,8 @@ export default function Toolbar() {
         </div>
       ) : (
         <div className="toolbar-actions">
-          <button className="tb-btn" onClick={undo} disabled={!canUndo()} title="Undo">↩</button>
-          <button className="tb-btn" onClick={redo} disabled={!canRedo()} title="Redo">↪</button>
+          <button className="tb-btn" onClick={undo} disabled={!canUndo} title="Undo">↩</button>
+          <button className="tb-btn" onClick={redo} disabled={!canRedo} title="Redo">↪</button>
           <div className="tb-divider-v" />
           <button className="tb-btn" onClick={handleFlipH} title="Flip Horizontal">⇄ Flip H</button>
           <button className="tb-btn" onClick={handleFlipV} title="Flip Vertical">⇅ Flip V</button>
