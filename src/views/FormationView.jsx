@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useShallow } from 'zustand/shallow';
 import './Views.css';
 import useDataStore from '../store/useDataStore';
 import AppHeader from '../components/AppHeader/AppHeader';
@@ -83,14 +84,13 @@ function FormationCard({ fm, onOpen, onRenameArm, onRenameConfirm, onRenameKeyDo
 }
 
 export default function FormationView() {
-  const {
-    getActivePlaybook, activePlaybookId,
-    navigateTo,
-    addFormation, deleteFormation, updateFormation, duplicateFormation,
-    reorderFormations,
-  } = useDataStore();
-
-  const playbook = getActivePlaybook();
+  const { navigateTo, addFormation, deleteFormation, updateFormation, duplicateFormation, reorderFormations } = useDataStore(useShallow(s => ({
+    navigateTo: s.navigateTo, addFormation: s.addFormation,
+    deleteFormation: s.deleteFormation, updateFormation: s.updateFormation,
+    duplicateFormation: s.duplicateFormation, reorderFormations: s.reorderFormations,
+  })));
+  const activePlaybookId = useDataStore(s => s.activePlaybookId);
+  const playbook         = useDataStore(s => s.getActivePlaybook());
 
   const [showInput, setShowInput]     = useState(false);
   const [newName, setNewName]         = useState('');
