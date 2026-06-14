@@ -305,7 +305,7 @@ Stack: React, Vite, Konva, Zustand, Cloudflare Pages.
 - `lite` branch → [football-play-editor.pages.dev](https://football-play-editor.pages.dev) (stable, feature-frozen at v1.0.0)
 - `main` branch → [tfm-playbook.pages.dev](https://tfm-playbook.pages.dev) (active development)
 
-See `CLAUDE.md` for full build state, architecture notes, and session protocol.
+See `CLAUDE.md` for current state and session protocol, and `docs/PHASE_HISTORY.md` for the full build history.
 
 ---
 
@@ -315,4 +315,4 @@ This project is licensed under the [Business Source License 1.1](./LICENSE).
 Free to use, modify, and self-host. Commercial use requires written permission  
 from Christopher Campbell / Tech Freedom Ministries.
 
-See `CLAUDE.md` for full build state, architecture notes, and session protocol.
+See `CLAUDE.md` for current state and session protocol, and `docs/PHASE_HISTORY.md` for the full build history.
